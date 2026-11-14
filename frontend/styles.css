@@ -543,7 +543,7 @@ body::after {
 /* the property's top: pictures top left, info and rent below, Explore in 3D on the right, Ready to book bottom right */
 .pick-grid {
   grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
-  grid-template-areas: "gallery explore" "info book";
+  grid-template-areas: "gallery explore" "film film" "info book";
   gap: var(--s7) clamp(32px, 5vw, 72px); align-items: start;
 }
 .prop-gallery { grid-area: gallery; display: grid; grid-template-columns: minmax(0, 1fr) clamp(90px, 10vw, 140px); gap: var(--s5); align-items: start; }
@@ -592,7 +592,7 @@ body::after {
 .next-links { margin-top: var(--s7); }
 
 @media (max-width: 1000px) {
-  .pick-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "gallery" "info" "explore" "book"; }
+  .pick-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "gallery" "film" "info" "explore" "book"; }
   .explore-3d { aspect-ratio: 16 / 10; }
   .book-box { justify-self: stretch; text-align: left; }
 }
@@ -1397,7 +1397,7 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 /* Property page: a film strip across the full width, the venue's pictures in its frames.
    Frame positions are measured from img/filmstrip.webp (1865 x 513); the strip lies on top. */
 .prop-gallery { grid-template-columns: minmax(0, 1fr); }
-.film-carousel { position: relative; overflow: hidden; margin: var(--s6) 0 0; padding: 10px 0;
+.film-carousel { grid-area: film; position: relative; overflow: hidden; margin: 0 calc(50% - 50vw); padding: 10px 0;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
 .film-track { list-style: none; margin: 0; padding: 0; display: flex; width: max-content;
   animation: film-roll calc(var(--strips, 3) * 16s) linear infinite; }
@@ -1513,12 +1513,105 @@ body[data-view="home"] .collage { height: 100vh; height: 100svh; }
 /* the clap measurement at the bottom of the acoustics page goes too */
 .view[data-view="acoustics"] .pr-measure { display: none !important; }
 
+
 /* results heading in the search page's style: bold Playfair, then an italic line */
 .results-page .page-title { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.02; font-size: clamp(34px, 4.4vw, 62px); }
 .results-page .rs-line { display: block; white-space: nowrap; }
 .results-page .rs-em { display: block; font-style: italic; font-weight: 600; color: var(--cherry); font-size: 0.82em; margin-top: 0.06em; }
 @media (max-width: 760px) { .results-page .rs-line { white-space: normal; } }
 
+/* ================================================================ the home page's palette, everywhere
+   Crinkled wine paper behind every page, cream type, cherry and blush accents. Cream cards
+   (polaroids, tickets, the cassette label) stay cream on top, like the cut-outs on the collage. */
+:root {
+  --paper: #3a1517;
+  --paper-2: #321214;
+  --card: #f1e6d8;
+  --ink: #f3e7d8;
+  --ink-2: #e2d2bf;
+  --ink-3: #c7b4a0;
+  --line: rgba(243, 231, 216, 0.2);
+  --line-strong: rgba(243, 231, 216, 0.7);
+  --wine: #5c2128;
+  --wine-deep: #2c0d10;
+  --olive: #2f0f12;
+  --olive-deep: #260b0e;
+  --sage: #e8a3b0;
+  --tape: rgba(214, 206, 170, 0.62);
+  --on-dark: #f3e7d8;
+  --on-dark-2: #ddcbb8;
+  --focus: #f3d27a;
+  --shadow-photo: 0 14px 30px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+body { background: #3a1517 url("img/home/paper.jpg") center top / 1600px auto repeat; color: var(--ink); }
+:focus-visible { outline-color: var(--focus); }
+/* cream cards keep dark ink */
+.polaroid, .polaroid figcaption, .card, .stub, .cassette-label, .ticket, .tp-receipt { color: #2a1012; }
+.polaroid { background: #f6efe6; }
+/* links and quiet buttons read on wine */
+.link, .link-dark, .pl-link, .tp-vote, .try button, .room-picker button, .rooms button { color: #f0c9a8; }
+.link:hover, .link-dark:hover, .pl-link:hover, .tp-vote:hover { color: #fff6ea; }
+/* main buttons: cream on wine, cherry shadow */
+.btn, .cta, .searchbar button, .pl-cta, #approve, #copy-email { background: var(--ink); color: #2a1012; box-shadow: var(--shadow-offset) var(--cherry); }
+.btn:hover, .cta:hover, .searchbar button:hover, .pl-cta:hover, #approve:hover, #copy-email:hover { color: #2a1012; box-shadow: 6px 6px 0 var(--cherry); }
+
+/* top bar: words in the collage's cream serif, no tabs */
+.masthead { background: rgba(44, 13, 16, 0.92); border-bottom: 1px solid rgba(243, 231, 216, 0.18); align-items: center; backdrop-filter: none; }
+.modes { align-items: center; gap: clamp(14px, 3vw, 44px); margin: 0 0 0 var(--s4); }
+.modes a { padding: 6px 2px; min-width: 0; background: none; border: 0; border-radius: 0;
+  font-family: "IM Fell English", Georgia, serif; font-weight: 400; font-size: clamp(19px, 1.6vw, 24px); letter-spacing: 0.12em; color: #ddcbb8; }
+.modes a:hover { background: none; color: #fff6ea; }
+.modes a.on { background: none; color: #f3e7d8; border: 0; }
+.modes a.on::after { left: 0; right: 0.12em; bottom: 0; height: 1px; background: #e8a3b0; }
+.nav-cta { font-family: "IM Fell English", Georgia, serif; font-weight: 400; font-size: 20px; letter-spacing: 0.08em; color: #f3e7d8; border-bottom-color: #e8a3b0; }
+.nav-cta:hover { color: #fff6ea; border-color: #fff6ea; }
+.logo { background: transparent; }
+.logo svg { color: #f3e7d8; }
+.logo .logo-star { fill: #3a1517; }
+
+/* readability fixes for the wine palette */
+input[type=date], input:not([type]), select { background: rgba(20, 5, 7, 0.35); color: var(--ink); border-color: rgba(243, 231, 216, 0.45); }
+select option { background: #2c0d10; color: var(--ink); }
+.seg button.on { background: var(--ink); color: #2a1012; }
+.save-btn { background: transparent; color: var(--ink); border-color: #e8a3b0; }
+.save-btn svg, .save-btn svg path { stroke: #e8a3b0; }
+.save-btn:hover { background: #e8a3b0; color: #2a1012; }
+.side-b.band.wine { background: linear-gradient(rgba(92, 33, 40, 0.55), rgba(92, 33, 40, 0.55)), #3a1517 url("img/home/paper.jpg") center / cover no-repeat; }
+.pl-rows li { background: rgba(20, 5, 7, 0.3); border-color: rgba(243, 231, 216, 0.35); }
+.stub, .stub .ledger { color: #2a1012; }
+.stub .ledger li { border-top-color: rgba(42, 16, 18, 0.18); }
+.stub .ledger span, .stub .ledger li > :first-child { color: #5c3a35; }
+.rs-card, .rs-card-name, .rs-card-foot { color: #2a1012; }
+.rs-card-meta { color: #5c3a35; }
+
+/* cream surfaces keep dark ink (found by scanning for cream backgrounds without a text colour) */
+.cassette-label, .search-band .try button, .ransom i, .rs-shot-name, .lab-rooms button, .lab-presets button,
+.lab-kinds button, .lab-list li, .lab-act, .ac-card, .ac-meter, .walk-switch button, .cal, .cal-nav .arrow, .cal-day,
+.card, .cutout .cw i, .ac-mic, .lab-meter, .pl-email { color: #2a1012; }
+.lab-rooms button small, .lab-kinds button small, .lab-meter dt, .lab-meter .note, .lab-meter p, .ac-card .note, .cal .note { color: #5c3a35; }
+.lab-rooms button.on, .lab-presets button.on, .lab-kinds button.on { color: #f3e7d8; }
+.pl-actions select { background: #f1e6d8; color: #2a1012; }
+.dl-map:empty { background: rgba(20, 5, 7, 0.3); }
+.lab-kinds button[aria-checked="true"], .lab-rooms button[aria-pressed="true"], .lab-presets button[aria-pressed="true"],
+.lab-rooms button[aria-checked="true"], .lab-presets button[aria-checked="true"] { color: #f3e7d8; }
+.lab-meter dt { color: #6b4a44; }
+
+.results-page .rs-em { color: #e8a3b0; }
+/* results on the wine paper too; the "why it fits" note stays a cream card */
+.view[data-view="results"] { background: transparent; }
+.view[data-view="results"] .rs-why, .rs-why { background: #f1e6d8; color: #2a1012; }
+.rs-why h3 { color: #8e1424; }
+.rs-price, .rs-price b { color: var(--ink); }
+.rs-why p { color: #2a1012; }
+.rs-tag { color: #e8a3b0; }
+
 /* "Working on the road?" in the same Playfair as the other headings */
 #sideb-title { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.02; font-size: clamp(36px, 4.4vw, 62px); }
 .side-b-list a { font-family: var(--serif); font-weight: 600; font-size: var(--fs-lg); letter-spacing: 0; }
+
+/* text typed on cream surfaces stays dark (the wine palette made --ink cream) */
+.cassette textarea, .book-sheet input:not([type=checkbox]), .book-sheet textarea, .book-sheet, .book-sheet legend + *, .book-sheet label,
+.searchbar textarea, .tp-form textarea, .stub .total, .stub .verdict, .stub .display, .stub h2 { color: #2a1012; }
+.cassette textarea::placeholder, .book-sheet input::placeholder, .book-sheet textarea::placeholder { color: #7a5a52; }
+.book-sheet .field label, .book-sheet .check { color: #5c3a35; }
