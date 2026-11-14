@@ -1514,6 +1514,12 @@ body[data-view="home"] .collage { height: 100vh; height: 100svh; }
 .view[data-view="acoustics"] .pr-measure { display: none !important; }
 
 
+/* results heading in the search page's style: bold Playfair, then an italic line */
+.results-page .page-title { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.02; font-size: clamp(34px, 4.4vw, 62px); }
+.results-page .rs-line { display: block; white-space: nowrap; }
+.results-page .rs-em { display: block; font-style: italic; font-weight: 600; color: var(--cherry); font-size: 0.82em; margin-top: 0.06em; }
+@media (max-width: 760px) { .results-page .rs-line { white-space: normal; } }
+
 /* ================================================================ the home page's palette, everywhere
    Crinkled wine paper behind every page, cream type, cherry and blush accents. Cream cards
    (polaroids, tickets, the cassette label) stay cream on top, like the cut-outs on the collage. */
@@ -1590,3 +1596,5 @@ select option { background: #2c0d10; color: var(--ink); }
 .lab-kinds button[aria-checked="true"], .lab-rooms button[aria-pressed="true"], .lab-presets button[aria-pressed="true"],
 .lab-rooms button[aria-checked="true"], .lab-presets button[aria-checked="true"] { color: #f3e7d8; }
 .lab-meter dt { color: #6b4a44; }
+
+.results-page .rs-em { color: #e8a3b0; }
