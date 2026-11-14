@@ -608,7 +608,7 @@ async function renderThumbs(id) {
   const urls = await pictureList(id);
   if (state.venueId !== id && state.venueId != null) return;
   $("explore-pic").style.backgroundImage = urls[0] ? `url("${urls[0]}")` : "";
-  $("prop-thumbs").innerHTML = urls.slice(1, 5).map((u, i) =>
+  $("prop-thumbs").innerHTML = urls.slice(1, 4).map((u, i) =>
     `<li style="--tilt:${[-4, 3, -2, 5][i]}deg"><button type="button" aria-label="Show picture ${i + 2}"><img src="${esc(u)}" alt="" loading="lazy"></button></li>`).join("");
   $("prop-thumbs").querySelectorAll("li").forEach((li) => {
     const img = li.querySelector("img");
@@ -1431,7 +1431,11 @@ function wireCollageSounds() {
   let stopMusic = null;
   gram.onclick = () => {
     if (stopMusic) { stopMusic(); stopMusic = null; gram.classList.remove("playing"); gram.setAttribute("aria-pressed", "false"); return; }
-    stopMusic = playGramophone();
+    stopMusic = playGramophone(() => { // the tune ends by itself after a few seconds
+      stopMusic = null;
+      gram.classList.remove("playing");
+      gram.setAttribute("aria-pressed", "false");
+    });
     gram.classList.add("playing");
     gram.setAttribute("aria-pressed", "true");
   };

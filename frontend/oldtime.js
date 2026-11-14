@@ -52,7 +52,7 @@ function piano(dest, midi, t, len, vel) {
 }
 
 /** The gramophone: returns stop(). */
-export function playGramophone() {
+export function playGramophone(onEnd) {
   const c = audio();
   c.resume();
   // the horn: a narrow, nasal band, plus a little saturation
@@ -86,31 +86,24 @@ export function playGramophone() {
   crackle.start();
 
   let nodes = [], stopped = false, timer = null;
-  const loopLen = 16 * BEAT; // eight bars of two beats; the melody is 16 beats long too
-  function schedule(t0) {
-    // bass and chords: oom on the beat, pah on the off-beat
-    BARS.forEach(([root, chord], bar) => {
-      const t = t0 + bar * 2 * BEAT;
-      nodes.push(...piano(bus, root, t, BEAT * 0.9, 0.22));
-      chord.forEach((m) => nodes.push(...piano(bus, m, t + BEAT, BEAT * 0.6, 0.09)));
-    });
-    let t = t0;
-    MELODY.forEach(([m, beats]) => {
-      nodes.push(...piano(bus, m, t, beats * BEAT * 0.9, 0.2));
-      t += beats * BEAT;
-    });
-    // drop finished notes so the list doesn't grow forever
-    nodes = nodes.slice(-400);
-  }
-  let next = c.currentTime + 0.15;
-  const tick = () => {
-    if (stopped) return;
-    while (next < c.currentTime + 1.5) { schedule(next); next += loopLen; }
-    timer = setTimeout(tick, 400);
-  };
-  tick();
+  // a short phrase, played once: the first two bars and a closing chord (about 3 seconds)
+  const t0 = c.currentTime + 0.15;
+  const SHORT = MELODY.slice(0, 7); // four beats of tune
+  BARS.slice(0, 2).forEach(([root, chord], bar) => {
+    const t = t0 + bar * 2 * BEAT;
+    nodes.push(...piano(bus, root, t, BEAT * 0.9, 0.22));
+    chord.forEach((m) => nodes.push(...piano(bus, m, t + BEAT, BEAT * 0.6, 0.09)));
+  });
+  let t = t0;
+  SHORT.forEach(([m, beats]) => { nodes.push(...piano(bus, m, t, beats * BEAT * 0.9, 0.2)); t += beats * BEAT; });
+  [48, 64, 67, 72].forEach((m) => nodes.push(...piano(bus, m, t, BEAT * 2.5, 0.16))); // the tonic, to end
+  const total = t - c.currentTime + BEAT * 2.5 + 0.6;
+  timer = setTimeout(() => { stop(); onEnd?.(); }, total * 1000);
 
-  return function stop() {
+  return stop;
+
+  function stop() {
+    if (stopped) return;
     stopped = true;
     clearTimeout(timer);
     const now = c.currentTime;
