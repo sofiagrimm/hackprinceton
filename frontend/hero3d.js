@@ -85,11 +85,14 @@ export function createHero(container, { shiftX = 0, zoom = 1 } = {}) {
   }
 
   /** site: the /api/venues/:id/site payload; imageUrl: the aerial JPEG. */
+  let origin = null; // the aerial tile's centre, for placing neighbours
   async function showVenue(site, imageUrl) {
     clear();
     const b = site.image_bounds;
     const lat0 = (b.north + b.south) / 2, lon0 = (b.east + b.west) / 2;
     const kx = M_PER_DEG * Math.cos((lat0 * Math.PI) / 180);
+    origin = { lat0, lon0, kx, venueId: site.venue_id };
+    neighbourGroup = null;
     const toLocal = ([lon, lat]) => [(lon - lon0) * kx, (lat - lat0) * M_PER_DEG]; // x east, y north
 
     const groundW = (b.east - b.west) * kx;
@@ -153,13 +156,55 @@ export function createHero(container, { shiftX = 0, zoom = 1 } = {}) {
     sun.shadow.camera.near = 1; sun.shadow.camera.far = sr * 8;
     sun.shadow.camera.updateProjectionMatrix();
     sun.target.position.copy(center);
+    shadowReach = 0;
     container.dataset.ready = "1";
+    if (pendingNeighbours?.site?.venue_id === site.venue_id) setNeighbours(pendingNeighbours.list, pendingNeighbours.site);
   }
+
+  /**
+   * Neighbouring buildings with known heights (from /api/daylight): footprints in metres east
+   * and north of the venue's point, height and ground offset in metres. They cast real shadows.
+   */
+  let neighbourGroup = null;
+  let pendingNeighbours = null;
+  function setNeighbours(list, site) {
+    pendingNeighbours = { list, site };
+    if (!origin || !site || origin.venueId !== site.venue_id) return; // drawn when that venue's scene is ready
+    if (neighbourGroup) {
+      neighbourGroup.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
+      world.remove(neighbourGroup);
+    }
+    neighbourGroup = new THREE.Group();
+    const dx = (site.lon - origin.lon0) * origin.kx, dy = (site.lat - origin.lat0) * M_PER_DEG;
+    const mat = new THREE.MeshStandardMaterial({ color: 0x8a8790, roughness: 0.8, transparent: true, opacity: 0.78 });
+    let reach = 0;
+    (list || []).forEach((n) => {
+      if (!n.height_m || !n.poly || n.poly.length < 3) return;
+      const pts = n.poly.map(([x, y]) => new THREE.Vector2(x + dx, y + dy));
+      const geo = new THREE.ExtrudeGeometry(new THREE.Shape(pts), { depth: n.height_m, bevelEnabled: false });
+      geo.rotateX(-Math.PI / 2);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.y = n.ground_m || 0;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      neighbourGroup.add(mesh);
+      reach = Math.max(reach, ...pts.map((p) => Math.hypot(p.x - center.x, p.y + center.z)));
+    });
+    world.add(neighbourGroup);
+    // Widen the sun's shadow camera so the neighbours' shadows can reach the venue.
+    const sr = Math.max(radius, framing, reach * 1.1);
+    sun.shadow.camera.left = -sr; sun.shadow.camera.right = sr;
+    sun.shadow.camera.top = sr; sun.shadow.camera.bottom = -sr;
+    sun.shadow.camera.far = sr * 8;
+    sun.shadow.camera.updateProjectionMatrix();
+    shadowReach = sr;
+  }
+  let shadowReach = 0;
 
   /** sun: {altitude, azimuth} in degrees (azimuth clockwise from north). */
   function setSun({ altitude, azimuth }) {
     const alt = (Math.max(altitude, -4) * Math.PI) / 180, az = (azimuth * Math.PI) / 180;
-    const dist = Math.max(radius, framing) * 3;
+    const dist = Math.max(radius, framing, shadowReach) * 3;
     sun.position.set(
       center.x + Math.sin(az) * Math.cos(alt) * dist,
       Math.max(Math.sin(alt) * dist, 2),
@@ -229,5 +274,5 @@ export function createHero(container, { shiftX = 0, zoom = 1 } = {}) {
   /** 0 at the top of the pinned hero, 1 at its end. */
   function setScroll(p) { scroll = Math.min(1, Math.max(0, p)); }
 
-  return { showVenue, setSun, setReverb, pulse, setScroll };
+  return { showVenue, setSun, setReverb, pulse, setScroll, setNeighbours };
 }

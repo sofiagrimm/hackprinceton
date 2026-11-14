@@ -5,6 +5,7 @@ import { createVinylHero } from "./vinyl.js";
 import { loadTour, sdkUsable } from "./tour.js";
 import { drawRoomMap } from "./roommap.js";
 import { createRoomViewer } from "./roomview.js";
+import { createDaylight } from "./daylight.js";
 import { createPlayRoom } from "./playroom.js";
 
 const $ = (id) => document.getElementById(id);
@@ -550,8 +551,23 @@ function drawScope() {
 
 function wireSun() {
   $("sun-date").value = new Date().toISOString().slice(0, 10);
-  $("sun-date").oninput = renderSun;
+  $("sun-date").oninput = () => { renderSun(); loadDaylight(); };
   $("sun-time").oninput = renderSun;
+}
+
+// Daylight: windows found in the 360 photo, the sun for the date, shade from neighbours.
+let daylight = null;
+let daylightRoom = null;
+function loadDaylight(room = daylightRoom) {
+  const v = state.venue;
+  if (!room || !v || !$("daylight")) return;
+  daylightRoom = room;
+  daylight ||= createDaylight($("daylight"), { viewer: () => roomViewer });
+  daylight.load({
+    venueId: v.venue_id, modelId: room.model_id, panoId: room.pano_id, area: room.area_sqft, height: room.height_ft,
+    name: `${room.scan || ""} ${room.room || ""}`, date: $("sun-date").value, rotation: room.rotation ?? null,
+    onNeighbours: (list) => lightScene?.setNeighbours?.(list, state.site[v.venue_id]),
+  });
 }
 
 function currentSun(site, metro) {
@@ -581,6 +597,7 @@ async function loadRooms(id) {
     try {
       await roomViewer.load(rooms[i].model_id, rooms[i].pano_id);
       $("roomview-empty").hidden = true;
+      loadDaylight(rooms[i]);
       renderSun();
     } catch { $("roomview-empty").textContent = "That photo didn't load. Try another room."; }
   };
@@ -619,6 +636,7 @@ function renderSun() {
   lightScene?.setSun(sun);
   const glassy = currentAcoustics()?.assumptions?.walls === "glass" ? 1 : 0.45;
   roomViewer?.setLight(sun, glassy);
+  daylight?.update(minute, sun);
   const day = dayTimeline(dateStr, site.lat, site.lon, offset);
   const lit = litFacades(site.footprint, sun).filter((f) => f.lit).map((f) => f.label);
   const shadowFt = sun.altitude > 0 ? Math.round(site.building_height_ft / Math.tan((sun.altitude * Math.PI) / 180)) : null;

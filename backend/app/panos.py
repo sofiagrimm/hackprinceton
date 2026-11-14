@@ -101,12 +101,16 @@ def rooms_for_venue(venue_id: int, limit_models: int = 10) -> list[dict]:
                 area *= 10.7639
             if area is not None and area < 250:
                 continue
+            height = dims.get("height")
+            if height and dims.get("units") == "metric":
+                height *= 3.28084
             out.append({
                 "model_id": model_id,
                 "pano_id": pano["id"],
                 "scan": model.get("name"),
                 "room": " / ".join(l for l in labels[:2] if l.lower() != "other") or "",
                 "area_sqft": round(area) if area else None,
+                "height_ft": round(height, 1) if height and height > 6 else None,
             })
     out.sort(key=lambda r: -(r["area_sqft"] or 0))
     return out
