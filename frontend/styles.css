@@ -1615,3 +1615,33 @@ select option { background: #2c0d10; color: var(--ink); }
 .searchbar textarea, .tp-form textarea, .stub .total, .stub .verdict, .stub .display, .stub h2 { color: #2a1012; }
 .cassette textarea::placeholder, .book-sheet input::placeholder, .book-sheet textarea::placeholder { color: #7a5a52; }
 .book-sheet .field label, .book-sheet .check { color: #5c3a35; }
+/* Explore buttons and other cream cards: dark text */
+.ex-choice, .ex-choice b, .ac-sample, .ac-sample b { color: #2a1012; }
+.ex-choice small, .ac-sample span { color: #5c3a35; }
+.ex-choice[aria-pressed="true"], .ex-choice[aria-pressed="true"] b, .ex-choice[aria-pressed="true"] small,
+.ac-sample[aria-pressed="true"], .ac-sample[aria-pressed="true"] b, .ac-sample[aria-pressed="true"] span { color: #fff6ea; }
+
+/* ================================================================ legibility on the wine palette
+   Every cream surface switches the ink variables back to dark, so whatever is inside reads. */
+.polaroid, .card, .stub, .cassette-label, .rs-why, .ac-card, .ac-sample, .ex-choice, .cal, .book-sheet,
+.lab-rooms button, .lab-kinds button, .lab-presets button, .lab-meter, .ac-mic, .pl-rows li, .rs-card,
+.ac-rooms .rooms button, .walk-switch button, .lab-list li, .lab-act, .liner, .jcard, .tp-stops, .pl-email, .rs-shot-name, .lab-readout {
+  --ink: #2a1012; --ink-2: #5c3a35; --ink-3: #7a5a52; --line: rgba(42, 16, 18, 0.18); --line-strong: rgba(42, 16, 18, 0.6);
+  color: var(--ink);
+}
+.pl-rows li .pl-link, .stub .link, .cal .link { color: #8e1424; }
+.ac-rooms .rooms button.on, .walk-switch button[aria-pressed="true"], .lab-rooms button[aria-pressed="true"],
+.lab-kinds button[aria-checked="true"], .lab-presets button[aria-pressed="true"] { --ink: #fff6ea; color: #fff6ea; }
+/* script accents read on the dark paper; on cream they stay cherry */
+.script, .cal-hint { color: #e8a3b0; }
+.polaroid .script, .card .script, .stub .script, .rs-why .script, .ac-card .script, .cal .script, .book-sheet .script { color: #8e1424; }
+.view .page-title .script, .view .display .script, .view h1 .script, .view h2 .script { color: #e8a3b0 !important; }
+.script-hint { color: #e8a3b0; }
+.daylight .link, .daylight summary, .daylight button.link { color: #f0c9a8; }
+.fig.good .n { color: #a9d79a; }
+.stub .cta, .stub #approve { background: #2a1012; color: #f6efe6; }
+.ac-crowd button[aria-pressed="true"] { background: #f3e7d8; color: #2a1012; }
+.lab-rooms button[aria-pressed="true"], .lab-kinds button[aria-checked="true"], .lab-presets button[aria-pressed="true"],
+.walk-switch button[aria-pressed="true"], .ac-rooms .rooms button.on { background: #8e1424; border-color: #8e1424; color: #fff6ea; }
+.lab-rooms button[aria-pressed="true"] small { color: #f6dfe2; }
+.daylight details > summary, .dl-assume > summary { color: #f0c9a8 !important; }
