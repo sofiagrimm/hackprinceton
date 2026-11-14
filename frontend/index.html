@@ -25,7 +25,6 @@
       <a href="#/tour" data-mode="tour">Tour</a>
       <a href="#/film" data-mode="film">Film</a>
       <a href="#/bookings" data-mode="bookings">Bookings</a>
-      <a href="#/cities" data-mode="cities">New cities</a>
     </nav>
     <a class="nav-cta" href="#/search" id="nav-cta">Find a room</a>
   </header>
@@ -192,7 +191,7 @@
         </div>
         <aside class="search-shelf" aria-labelledby="shelf-title">
           <div class="featured-head">
-            <h2 class="featured-title" id="shelf-title">Rooms on the shelf</h2>
+            <h2 class="featured-title" id="shelf-title">Browse spaces</h2>
             <div class="featured-arrows">
             <button type="button" class="arrow" id="feat-prev" aria-label="Earlier rooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             <button type="button" class="arrow" id="feat-next" aria-label="More rooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -213,7 +212,6 @@
             <li><a href="#/tour">Plan the whole tour</a><b class="leader" aria-hidden="true"></b><em>tour</em><span>A room for each stop and the drive between them, added up.</span></li>
             <li><a href="#/bookings">Keep every ask moving</a><b class="leader" aria-hidden="true"></b><em>bookings</em><span>Track which venues have answered.</span></li>
             <li><a href="#/film">Shooting instead?</a><b class="leader" aria-hidden="true"></b><em>film</em><span>Rooms quiet enough to record dialogue in.</span></li>
-            <li><a href="#/cities">Somewhere new</a><b class="leader" aria-hidden="true"></b><em>cities</em><span>Nine more cities, estimated from the outside of each building.</span></li>
           </ul>
         </div>
         <figure class="polaroid side-b-snap">
@@ -365,6 +363,61 @@
       </div>
     </section>
 
+
+
+  </div>
+
+  <!-- ============================================================ LIGHTING -->
+  <div class="view" data-view="lighting">
+    <section class="page lab" aria-labelledby="lab-title">
+      <div class="wrap wide">
+        <p class="crumbs"><a class="back" id="lab-back" href="#/">Back to explore</a></p>
+        <h1 class="page-title" id="lab-title">Light <span class="script venue-name"></span> your way</h1>
+        <p class="page-sub">Dim the house lights, pick a fixture, then click a wall, the floor or the ceiling to put it there. Drag to look around.</p>
+
+        <div class="lab-grid">
+          <div class="lab-tools">
+            <p class="mini-head">Room</p>
+            <div class="lab-rooms" id="lab-rooms"></div>
+
+            <p class="mini-head">Start from</p>
+            <div class="lab-presets" id="lab-presets">
+              <button type="button" data-preset="concert">Concert</button>
+              <button type="button" data-preset="candle">Candlelit</button>
+              <button type="button" data-preset="gala">Gala</button>
+            </div>
+
+            <p class="mini-head"><label for="lab-ambient">House lights</label></p>
+            <input type="range" id="lab-ambient" min="0.04" max="1" step="0.01" value="0.35">
+
+            <p class="mini-head">Place a light</p>
+            <div class="lab-kinds" id="lab-kinds" role="radiogroup" aria-label="Kind of light">
+              <button type="button" role="radio" data-kind="wash" aria-checked="true"><span class="sw" style="--c:#ffb36b"></span>Warm wash</button>
+              <button type="button" role="radio" data-kind="spot" aria-checked="false"><span class="sw" style="--c:#fff1d6"></span>Spotlight</button>
+              <button type="button" role="radio" data-kind="string" aria-checked="false"><span class="sw" style="--c:#ffcf7a"></span>String lights</button>
+              <button type="button" role="radio" data-kind="uplight" aria-checked="false"><span class="sw" style="--c:#ff3d8b"></span>Colour uplight</button>
+            </div>
+            <div class="lab-tune">
+              <label for="lab-color">Colour</label><input type="color" id="lab-color" value="#ffb36b">
+              <label for="lab-power">Brightness</label><input type="range" id="lab-power" min="0.2" max="2" step="0.05" value="1">
+            </div>
+
+            <p class="mini-head">In the room</p>
+            <ol class="lab-list" id="lab-list"></ol>
+            <p class="lab-actions"><button type="button" class="link-dark" id="lab-undo">Undo</button><button type="button" class="link-dark" id="lab-clear">Clear all</button></p>
+          </div>
+
+          <div class="viewer lab-viewer">
+            <div class="viewer-frame">
+              <div class="vf-bar"><span class="vf-dot" aria-hidden="true"></span><span class="vf-title" id="lab-room-name">The room</span><span class="vf-tag" id="lab-count">0 lights</span></div>
+              <div class="room-view lab-view" id="lab-view"><p class="room-view-empty" id="lab-empty">Loading the room…</p></div>
+            </div>
+            <p class="note">A sketch of the mood, not a lighting plan: the photo is treated as a box the size of the scanned room, so light falls off with distance and only lights what faces it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="frame light-frame" id="light" hidden>
       <div class="wrap wide location">
         <div class="loc-copy">
@@ -397,8 +450,6 @@
         </details>
       </div>
     </section>
-
-
   </div>
 
   <!-- ============================================================ ACOUSTICS -->

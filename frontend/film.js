@@ -66,7 +66,7 @@ function renderList(data) {
     : "Nothing big enough came up. Try a smaller crew.";
   $("#film-list").innerHTML = results.map((r, i) => `
     <li>
-      <button type="button" data-i="${i}" class="${i === 0 ? "on" : ""}">
+      <button type="button" data-i="${i}" data-venue="${r.venue_id}" class="${i === 0 ? "on" : ""}">
         <span class="film-rank">${i + 1}</span>
         <span class="film-row-main">
           <span class="film-row-name">${esc(r.name)}</span>

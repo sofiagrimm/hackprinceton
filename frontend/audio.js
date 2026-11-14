@@ -63,14 +63,15 @@ export class RoomSound {
       [48, 55, 64, 72], [45, 57, 64, 72], [41, 57, 65, 72], [43, 55, 62, 71], [48, 55, 64, 72],
     ];
     const vowels = ["ah", "oh", "ah", "ee", "ah"];
-    const dur = 1.1;
+    const dur = 1.3; // an unhurried choral tempo
     chords.forEach((chord, i) => {
       chord.forEach((note, v) => {
-        const len = i === chords.length - 1 ? dur * 2.2 : dur * 0.92;
+        // legato: each chord swells into the next instead of stopping short
+        const len = i === chords.length - 1 ? dur * 2.4 : dur * 1.04;
         this.voices.push(sing(this.ctx, this.input, midiToHz(note), t0 + i * dur, len, vowels[i], v));
       });
     });
-    return (chords.length + 1.2) * dur;
+    return (chords.length + 1.4) * dur;
   }
 
   stopChoir() {
@@ -119,53 +120,124 @@ function midiToHz(n) {
   return 440 * Math.pow(2, (n - 69) / 12);
 }
 
-// Formant frequencies (Hz) and bandwidths for sung vowels.
-const FORMANTS = {
-  ah: [[730, 90], [1090, 110], [2440, 170]],
-  oh: [[570, 80], [840, 100], [2410, 170]],
-  ee: [[300, 70], [2200, 140], [2960, 180]],
+// Sung-vowel formants for each voice type: [frequency Hz, level dB, bandwidth Hz] x 5.
+// From the classic choral formant tables (bass, tenor, alto, soprano).
+const VOWELS = {
+  a: [
+    [[600, 0, 60], [1040, -7, 70], [2250, -9, 110], [2450, -9, 120], [2750, -20, 130]],
+    [[650, 0, 80], [1080, -6, 90], [2650, -7, 120], [2900, -8, 130], [3250, -22, 140]],
+    [[800, 0, 80], [1150, -4, 90], [2800, -20, 120], [3500, -36, 130], [4950, -60, 140]],
+    [[800, 0, 80], [1150, -6, 90], [2900, -32, 120], [3900, -20, 130], [4950, -50, 140]],
+  ],
+  o: [
+    [[400, 0, 40], [750, -11, 80], [2400, -21, 100], [2600, -20, 120], [2900, -40, 120]],
+    [[400, 0, 40], [800, -10, 80], [2600, -12, 100], [2800, -12, 120], [3000, -26, 120]],
+    [[450, 0, 70], [800, -9, 80], [2830, -16, 100], [3500, -28, 130], [4950, -55, 135]],
+    [[450, 0, 70], [800, -11, 80], [2830, -22, 100], [3800, -22, 130], [4950, -50, 135]],
+  ],
+  u: [
+    [[350, 0, 40], [600, -20, 80], [2400, -32, 100], [2675, -28, 120], [2950, -36, 120]],
+    [[350, 0, 40], [600, -20, 60], [2700, -17, 100], [2900, -14, 120], [3300, -26, 120]],
+    [[325, 0, 50], [700, -12, 60], [2530, -30, 170], [3500, -40, 180], [4950, -64, 200]],
+    [[325, 0, 50], [700, -16, 60], [2700, -35, 170], [3800, -40, 180], [4950, -60, 200]],
+  ],
 };
+const VOWEL_OF = { ah: "a", oh: "o", ee: "u" }; // a warm "oo" instead of a bright "ee"
+const SINGERS = 4; // voices per part, so each line sounds like a section, not a synth
 
-/** One sung note: sawtooth glottal source + vibrato + vowel formant filters. */
+// A softer source than a raw sawtooth: harmonics fall off faster, like a relaxed voice.
+const waveCache = new WeakMap();
+function voiceWave(ctx) {
+  if (waveCache.has(ctx)) return waveCache.get(ctx);
+  const n = 48, re = new Float32Array(n), im = new Float32Array(n);
+  for (let k = 1; k < n; k++) im[k] = 1 / Math.pow(k, 1.55);
+  const w = ctx.createPeriodicWave(re, im);
+  waveCache.set(ctx, w);
+  return w;
+}
+
+const breathCache = new WeakMap();
+function breathBuffer(ctx) {
+  if (breathCache.has(ctx)) return breathCache.get(ctx);
+  const len = ctx.sampleRate * 2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  breathCache.set(ctx, buf);
+  return buf;
+}
+
+/**
+ * One chord tone for one part, sung by a small section: a few singers slightly out of tune
+ * with each other, each with their own vibrato and timing, through that voice type's vowel.
+ * voiceIndex: 0 bass, 1 tenor, 2 alto, 3 soprano.
+ */
 function sing(ctx, dest, hz, start, len, vowel, voiceIndex) {
-  const osc = ctx.createOscillator();
-  osc.type = "sawtooth";
-  osc.frequency.value = hz;
-  // Natural vibrato that grows into the note, slightly different per voice.
-  const vib = ctx.createOscillator();
-  vib.frequency.value = 5.2 + voiceIndex * 0.23;
-  const vibAmt = ctx.createGain();
-  vibAmt.gain.setValueAtTime(0, start);
-  vibAmt.gain.linearRampToValueAtTime(hz * 0.012, start + 0.35);
-  vib.connect(vibAmt).connect(osc.frequency);
-  osc.detune.value = (Math.random() - 0.5) * 8;
-
-  const env = ctx.createGain();
-  const level = [0.22, 0.16, 0.15, 0.14][voiceIndex];
-  env.gain.setValueAtTime(0, start);
-  env.gain.linearRampToValueAtTime(level, start + 0.09);
-  env.gain.setValueAtTime(level, start + len - 0.12);
-  env.gain.linearRampToValueAtTime(0, start + len);
-
-  const mix = ctx.createGain();
-  mix.gain.value = 1;
-  FORMANTS[vowel].forEach(([f, bw], k) => {
+  const formants = VOWELS[VOWEL_OF[vowel] || "a"][voiceIndex];
+  // the vowel: five resonances in parallel, then a gentle top cut
+  const bus = ctx.createGain();
+  const out = ctx.createGain();
+  out.gain.value = 7.8; // about as loud as the old synth, so nothing else needs re-levelling
+  const air = ctx.createBiquadFilter();
+  air.type = "lowpass";
+  air.frequency.value = voiceIndex >= 2 ? 5200 : 4200;
+  formants.forEach(([f, db, bw]) => {
     const bp = ctx.createBiquadFilter();
     bp.type = "bandpass";
     bp.frequency.value = f;
     bp.Q.value = f / bw;
     const g = ctx.createGain();
-    g.gain.value = [1.0, 0.55, 0.25][k] * 6;
-    osc.connect(bp).connect(g).connect(mix);
+    g.gain.value = Math.pow(10, db / 20);
+    bus.connect(bp).connect(g).connect(out);
   });
-  mix.connect(env).connect(dest);
+  out.connect(air).connect(dest);
 
-  osc.start(start);
-  vib.start(start);
-  osc.stop(start + len + 0.05);
-  vib.stop(start + len + 0.05);
+  const level = [0.2, 0.15, 0.14, 0.13][voiceIndex] / Math.sqrt(SINGERS);
+  const end = start + len;
+  const nodes = [];
+  for (let s = 0; s < SINGERS; s++) {
+    const osc = ctx.createOscillator();
+    osc.setPeriodicWave(voiceWave(ctx));
+    osc.frequency.value = hz;
+    osc.detune.value = (Math.random() - 0.5) * 22; // a section is never perfectly in tune
+    // vibrato that blooms after the note settles, each singer at their own speed
+    const vib = ctx.createOscillator();
+    vib.frequency.value = 4.6 + Math.random() * 1.2;
+    const vibAmt = ctx.createGain();
+    const onset = start + Math.random() * 0.07;
+    vibAmt.gain.setValueAtTime(0, onset);
+    vibAmt.gain.linearRampToValueAtTime(hz * (0.005 + Math.random() * 0.004), onset + 0.45 + Math.random() * 0.2);
+    vib.connect(vibAmt).connect(osc.frequency);
+    // slow pitch drift
+    const drift = ctx.createOscillator();
+    drift.frequency.value = 0.15 + Math.random() * 0.35;
+    const driftAmt = ctx.createGain();
+    driftAmt.gain.value = 4 + Math.random() * 4; // cents
+    drift.connect(driftAmt).connect(osc.detune);
+    // a swell in, a soft release that overlaps the next chord
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0, onset);
+    env.gain.setTargetAtTime(level, onset, 0.09);
+    env.gain.setTargetAtTime(level * 0.85, onset + 0.4, 0.4);
+    env.gain.setTargetAtTime(0, end - 0.05, 0.12);
+    osc.connect(env).connect(bus);
+    [osc, vib, drift].forEach((o) => { o.start(onset); o.stop(end + 0.7); });
+    nodes.push(osc, vib, drift);
+  }
+  // a little breath through the same vowel
+  const breath = ctx.createBufferSource();
+  breath.buffer = breathBuffer(ctx);
+  breath.loop = true;
+  const bEnv = ctx.createGain();
+  bEnv.gain.setValueAtTime(0, start);
+  bEnv.gain.setTargetAtTime(level * 0.18, start, 0.05);
+  bEnv.gain.setTargetAtTime(level * 0.06, start + 0.25, 0.2);
+  bEnv.gain.setTargetAtTime(0, end - 0.05, 0.1);
+  breath.connect(bEnv).connect(bus);
+  breath.start(start, Math.random());
+  breath.stop(end + 0.6);
+  nodes.push(breath);
+
   return () => {
-    try { osc.stop(); vib.stop(); } catch (_) { /* already stopped */ }
+    nodes.forEach((n) => { try { n.stop(); } catch (_) { /* already stopped */ } });
   };
 }
 

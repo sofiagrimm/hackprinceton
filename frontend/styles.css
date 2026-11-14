@@ -364,9 +364,12 @@ input[type=range] { accent-color: var(--wine); }
 .search-main .cassette { max-width: 640px; }
 .search-shelf { min-width: 0; padding-top: clamp(24px, 6vw, 96px); }
 .search-shelf .featured-head { margin-top: 0; padding-top: 0; border-top: 0; }
+/* exactly two whole cards in view; the arrows move two at a time */
 .search-shelf .featured {
-  grid-auto-columns: min(250px, 72%); gap: var(--s5); padding: var(--s6) var(--s2) var(--s5) var(--s2); margin: 0 calc(-1 * var(--s2));
+  grid-auto-columns: calc((100% - var(--s5)) / 2); gap: var(--s5); padding: var(--s6) 12px var(--s5); margin: 0 -12px;
+  scroll-padding-inline: 12px; overflow-x: hidden; scroll-snap-type: x mandatory;
 }
+.search-shelf .featured li { scroll-snap-align: start; }
 @media (max-width: 1000px) {
   .search-layout { grid-template-columns: 1fr; }
   .search-shelf { padding-top: 0; }
@@ -454,7 +457,8 @@ body::after {
 .back:hover { color: var(--wine); }
 .results-page .page-title .script { font-size: 0.9em; }
 .results-layout { margin-top: var(--s7); }
-.rs-aside { margin-top: var(--s8); max-width: 560px; }
+/* the agent's step-by-step plan stays in the page for app.js but isn't shown */
+.rs-aside { display: none; }
 .rs-wait { font-family: var(--script); font-size: 28px; color: var(--wine); padding: var(--s7) 0; }
 
 /* the slider: the current room big, the next ones smaller to its right */
@@ -627,6 +631,43 @@ body::after {
   .explore-grid { grid-template-columns: 1fr; gap: var(--s6); }
   .explore-snap { order: -1; max-width: 240px; }
   .ex-choices li:nth-child(2) .ex-choice { margin-left: 0; }
+}
+
+/* ---------------------------------------------------------------- LIGHTING LAB */
+body[data-view="lighting"] .view[data-view="lighting"] { display: block; }
+.lab .page-title .script { font-size: 0.9em; color: var(--cherry); }
+.lab-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--s7); margin-top: var(--s6); align-items: start; }
+.lab-tools .mini-head { margin: var(--s5) 0 var(--s2); }
+.lab-tools .mini-head:first-child { margin-top: 0; }
+.lab-rooms, .lab-presets { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.lab-rooms button, .lab-presets button {
+  font: 500 var(--fs-xs)/1.2 var(--body); padding: 8px 12px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--card); text-align: left;
+}
+.lab-rooms button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.lab-presets button { font-family: var(--script); font-size: 22px; padding: 6px 16px; }
+.lab-presets button:hover, .lab-rooms button:hover { background: var(--blush); color: var(--ink); }
+#lab-ambient, #lab-power { width: 100%; accent-color: var(--cherry); }
+.lab-kinds { display: grid; gap: var(--s2); }
+.lab-kinds button {
+  display: flex; align-items: center; gap: var(--s3); padding: 10px 14px; text-align: left; font-size: var(--fs-sm);
+  background: var(--card); border: 2px solid var(--ink); border-radius: 255px 14px 225px 14px / 14px 225px 14px 255px; box-shadow: 3px 4px 0 var(--ink);
+}
+.lab-kinds button[aria-checked="true"] { background: var(--cherry); color: var(--paper); box-shadow: 1px 1px 0 var(--ink); transform: translate(2px, 3px); }
+.sw { width: 18px; height: 18px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); flex: none; border: 1px solid rgba(0, 0, 0, 0.2); }
+.lab-tune { display: grid; grid-template-columns: auto 1fr; gap: var(--s2) var(--s3); align-items: center; margin-top: var(--s4); font-size: var(--fs-sm); }
+.lab-tune input[type=color] { width: 44px; height: 30px; padding: 0; border: 1.5px solid var(--ink); border-radius: 6px; background: none; }
+.lab-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: var(--fs-sm); counter-reset: l; }
+.lab-list li { counter-increment: l; display: flex; align-items: center; gap: var(--s2); padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.lab-list li::before { content: counter(l, decimal-leading-zero); font-family: var(--type); color: var(--ink-3); font-size: 12px; }
+.lab-list li button { margin-left: auto; color: var(--wine); font-size: var(--fs-xs); text-decoration: underline; }
+.lab-list:empty::after { content: "Nothing yet. Click the room to add a light."; color: var(--ink-3); }
+.lab-actions { display: flex; gap: var(--s5); margin-top: var(--s3); }
+.lab-viewer .viewer-frame { box-shadow: 14px 14px 0 var(--sage); }
+.lab-view { aspect-ratio: 16 / 10; max-height: 74vh; }
+@media (max-width: 1000px) {
+  .lab-grid { grid-template-columns: 1fr; }
+  .lab-viewer { order: -1; }
+  .lab-view { aspect-ratio: 4 / 3; }
 }
 
 /* ---------------------------------------------------------------- ACOUSTICS */
