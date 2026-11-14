@@ -61,10 +61,26 @@ export function createStandView(container, { onMove } = {}) {
   const sun = new THREE.DirectionalLight(0xffffff, 0.8);
   sun.position.set(5, 12, 6);
   scene.add(sun);
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 2000);
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  let roomGroup = null, dims = { length: 12, width: 8, height: 3.5 }, pano = null;
+  let roomGroup = null, dims = { length: 12, width: 8, height: 3.5 }, pano = null, view = "3d";
+
+  /** Frame the room: a three-quarter view, or straight down for the plan. */
+  function fitCamera() {
+    const { length: L, width: W } = dims;
+    const half = Math.tan((camera.fov * Math.PI) / 360);
+    if (view === "top") {
+      // a long way up with a narrow lens: nearly flat, like a floor plan
+      camera.fov = 8; camera.updateProjectionMatrix();
+      const h8 = Math.tan((8 * Math.PI) / 360);
+      orbit = { theta: -Math.PI / 2, phi: 0.001, r: (Math.max(L / Math.max(camera.aspect, 0.3), W) / 2 / h8) * 1.1 };
+    } else {
+      camera.fov = 45; camera.updateProjectionMatrix();
+      orbit = { theta: -0.9, phi: 0.82, r: Math.max(L, W) * 1.35 + 4 };
+    }
+    dirty = true;
+  }
   const singers = [];
   const listener = person(CREAM, 1.65);
   scene.add(listener);
@@ -85,16 +101,14 @@ export function createStandView(container, { onMove } = {}) {
       uniforms: { map: { value: pano }, eye: { value: new THREE.Vector3(0, PANO_EYE, 0) }, shade: { value: shade }, calm: { value: calm } },
       vertexShader: PANO_VERT, fragmentShader: PANO_FRAG, side: THREE.BackSide,
     });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W),
-      pano ? panoMat(0.78, 1) : new THREE.MeshStandardMaterial({ color: 0x6e3f3f, roughness: 0.9 }));
-    if (pano) floor.material.side = THREE.DoubleSide;
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W), new THREE.MeshStandardMaterial({ color: 0x9a7058, roughness: 0.85 }));
     floor.rotation.x = -Math.PI / 2;
     floor.name = "floor";
     roomGroup.add(floor);
     const grid = new THREE.GridHelper(Math.max(L, W), Math.round(Math.max(L, W)), 0x9a6a64, 0x7d4b4b);
     grid.scale.set(L / Math.max(L, W), 1, W / Math.max(L, W));
     grid.position.y = 0.005;
-    if (pano) { grid.material.transparent = true; grid.material.opacity = 0.18; }
+    grid.material.transparent = true; grid.material.opacity = 0.55;
     roomGroup.add(grid);
     // the stage: the front few metres
     const stage = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(3, L * 0.25), W * 0.8), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 0.22 }));
@@ -108,12 +122,14 @@ export function createStandView(container, { onMove } = {}) {
       : new THREE.MeshStandardMaterial({ color: 0xe9ddd0, transparent: true, opacity: 0.1, side: THREE.BackSide, depthWrite: false }));
     if (pano) box.material[3].visible = false; // the floor plane already covers the bottom
     box.position.y = H / 2;
+    box.name = "walls";
+    box.visible = view !== "top";
     roomGroup.add(box);
     const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(L, H, W)), new THREE.LineBasicMaterial({ color: CREAM }));
     edges.position.y = H / 2;
     roomGroup.add(edges);
     scene.add(roomGroup);
-    orbit.r = Math.max(L, W) * 1.45 + 4;
+    fitCamera();
   }
 
   function setSingers(n) {
@@ -157,6 +173,8 @@ export function createStandView(container, { onMove } = {}) {
       ray.setFromCamera(ndc(e), camera);
       const p = new THREE.Vector3();
       if (ray.ray.intersectPlane(floorPlane, p)) { place(drag, p.x, p.z); dirty = true; onMove?.(true); }
+    } else if (spin && view === "top") {
+      spin = { x: e.clientX, y: e.clientY };
     } else if (spin) {
       orbit.theta -= (e.clientX - spin.x) * 0.006;
       orbit.phi = Math.max(0.25, Math.min(1.45, orbit.phi - (e.clientY - spin.y) * 0.005));
@@ -193,7 +211,9 @@ export function createStandView(container, { onMove } = {}) {
     dirty = false;
     const { r, theta, phi } = orbit;
     camera.position.set(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi) + 1, r * Math.sin(phi) * Math.sin(theta));
-    camera.lookAt(0, dims.height * 0.25, 0);
+    camera.up.set(0, 1, 0);
+    if (view === "top") camera.up.set(0, 0, -1);
+    camera.lookAt(0, view === "top" ? 0 : dims.height * 0.25, 0);
     renderer.render(scene, camera);
   })();
 
@@ -215,6 +235,13 @@ export function createStandView(container, { onMove } = {}) {
       dirty = true;
     },
     reset: arrange,
+    /** "3d" or "top" (straight down, walls hidden). */
+    setView(v) {
+      view = v;
+      const walls = roomGroup?.getObjectByName("walls");
+      if (walls) walls.visible = v !== "top";
+      fitCamera();
+    },
     /** Positions in metres with the room's corner at the origin: x along the length, z across, y up. */
     positions() {
       const off = (o, y) => [o.position.x + dims.length / 2, y, o.position.z + dims.width / 2];
