@@ -177,6 +177,7 @@ export function createVinylHero(root) {
     const idle = still.matches ? 0 : speed;
     discs.left.angle += dt * (idle + boost) * 0.8;
     discs.right.angle -= dt * (idle + boost);
+    if (!W || !H || !discs.left.tex || !discs.right.tex) { layout(); if (!discs.left.tex) return; }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
     ctx.save();

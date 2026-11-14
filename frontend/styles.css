@@ -119,6 +119,8 @@ p { margin: 0; }
 .view { display: none; }
 body[data-view="home"] .view[data-view="home"],
 body[data-view="search"] .view[data-view="search"],
+body[data-view="explore"] .view[data-view="explore"],
+body[data-view="book"] .view[data-view="book"],
 body[data-view="results"] .view[data-view="results"],
 body[data-view="property"] .view[data-view="property"],
 body[data-view="tour"] .view[data-view="tour"],
@@ -305,12 +307,6 @@ input[type=range] { accent-color: var(--wine); }
 /* the zoom: a sheet the colour of the search page, moved with transform and opacity only */
 .zoom-veil { position: fixed; inset: 0; z-index: 60; background: var(--olive); pointer-events: none; transform-origin: 50% 50%; will-change: transform, opacity; }
 
-/* top left: paint chips */
-.swatches { position: absolute; z-index: 2; top: clamp(20px, 6vh, 64px); left: clamp(16px, 4vw, 64px); display: flex; }
-.swatches span { display: block; width: clamp(46px, 4.6vw, 64px); padding: 5px 5px 0; background: var(--card); box-shadow: var(--shadow-photo); transform: rotate(var(--r)); margin-left: -12px; }
-.swatches span:first-child { margin-left: 0; }
-.swatches span::before { content: ""; display: block; aspect-ratio: 1; background: var(--c); }
-.swatches i { display: block; font: normal 10px/1 var(--type); padding: 6px 0 7px; color: var(--ink-2); white-space: nowrap; overflow: hidden; }
 
 /* top right: real buildings, cut out as polaroids and a sticker */
 .houses { position: absolute; z-index: 2; top: clamp(16px, 4vh, 48px); right: clamp(12px, 3vw, 56px); width: clamp(220px, 26vw, 380px); aspect-ratio: 1 / 0.92; }
@@ -486,6 +482,68 @@ input[type=range] { accent-color: var(--wine); }
 .pick .figures { margin-top: var(--s7); }
 .pick .fig .n { font-size: clamp(28px, 2.8vw, 40px); white-space: nowrap; }
 
+/* the property's top: pictures top left, info and rent below, Explore in 3D on the right, Ready to book bottom right */
+.pick-grid {
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  grid-template-areas: "gallery explore" "info book";
+  gap: var(--s7) clamp(32px, 5vw, 72px); align-items: start;
+}
+.prop-gallery { grid-area: gallery; display: grid; grid-template-columns: minmax(0, 1fr) clamp(90px, 10vw, 140px); gap: var(--s5); align-items: start; }
+.prop-photo { --tilt: -1.5deg; margin: 0; max-width: none; }
+.prop-photo img { aspect-ratio: 4 / 3; }
+.prop-thumbs { list-style: none; margin: var(--s4) 0 0; padding: 0; display: grid; gap: var(--s4); }
+.prop-thumbs li { transform: rotate(var(--tilt)); }
+.prop-thumbs button { display: block; width: 100%; padding: 6px; background: var(--card); box-shadow: var(--shadow-photo); transition: transform .15s; }
+.prop-thumbs button:hover { transform: scale(1.05); }
+.prop-thumbs img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #2b2722; }
+.pick-main { grid-area: info; }
+.pick .figures { margin-top: var(--s6); }
+.prop-rent { margin-top: var(--s5); padding-top: var(--s4); border-top: 2px dashed var(--line-strong); }
+.rent-row { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s4); }
+.rent-label { font-family: var(--type); font-size: var(--fs-sm); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.rent-price { font-family: var(--display); font-size: var(--fs-2xl); letter-spacing: -0.03em; line-height: 1; }
+.pick-actions { margin-top: var(--s5); }
+
+.explore-3d {
+  grid-area: explore; position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--s2);
+  aspect-ratio: 1; padding: var(--s6); overflow: hidden; text-decoration: none; color: var(--on-dark);
+  background: #23241f; border: 2px solid var(--ink); border-radius: 6px; box-shadow: 14px 14px 0 var(--sage); transition: transform .2s, box-shadow .2s;
+}
+.explore-pic { position: absolute; inset: 0; background: center / cover no-repeat; opacity: 0.55; transition: transform .6s ease-out, opacity .3s; }
+.explore-3d::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 18, 16, 0.1), rgba(20, 18, 16, 0.75)); }
+.explore-cube, .explore-label, .explore-sub { position: relative; z-index: 1; }
+.explore-cube { width: 64px; margin-bottom: auto; color: var(--on-dark); }
+.explore-label { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 3.4vw, 48px); letter-spacing: -0.03em; line-height: 1; }
+.explore-label::after { content: " \2192"; }
+.explore-sub { color: var(--on-dark-2); font-size: var(--fs-sm); }
+.explore-3d:hover { color: var(--on-dark); transform: translate(-2px, -2px); box-shadow: 18px 18px 0 var(--sage); }
+.explore-3d:hover .explore-pic { transform: scale(1.06); opacity: 0.7; }
+
+.book-box { grid-area: book; align-self: end; justify-self: end; text-align: right; }
+.ready-book {
+  display: inline-flex; align-items: center; gap: var(--s3); padding: 18px 34px; border-radius: 999px;
+  background: var(--blush); color: var(--wine-deep); border: 2px solid var(--cherry); text-decoration: none;
+  font-family: var(--script); font-size: clamp(26px, 2.6vw, 34px); line-height: 1; box-shadow: 0 6px 0 var(--cherry); transition: transform .15s, box-shadow .15s;
+}
+.ready-book svg { width: 26px; height: 26px; }
+.ready-book:hover { color: var(--wine-deep); background: #f0b6c2; transform: translateY(-2px); box-shadow: 0 8px 0 var(--cherry); }
+.ready-book:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--cherry); }
+.book-box .note { margin-top: var(--s4); }
+
+.next-page { min-height: 60vh; }
+.next-links { margin-top: var(--s7); }
+
+@media (max-width: 1000px) {
+  .pick-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "gallery" "info" "explore" "book"; }
+  .explore-3d { aspect-ratio: 16 / 10; }
+  .book-box { justify-self: stretch; text-align: left; }
+}
+@media (max-width: 760px) {
+  .prop-gallery { grid-template-columns: 1fr; }
+  .prop-thumbs { grid-template-columns: repeat(4, 1fr); margin: 0; }
+  .ready-book { width: 100%; justify-content: center; }
+}
+
 /* the agent's report, as liner notes */
 .liner { margin-top: var(--s8); background: var(--card); border: 1.5px solid var(--line-strong); padding: clamp(20px, 4vw, 48px); position: relative; }
 .liner::before { content: ""; position: absolute; top: -14px; left: 40px; width: 120px; height: 28px; background: var(--tape); transform: rotate(-3deg); }
@@ -621,7 +679,6 @@ input[type=range] { accent-color: var(--wine); }
   .rs-why { grid-column: 1 / -1; justify-self: end; max-width: 520px; }
   .houses { width: clamp(200px, 30vw, 300px); }
   .location, .sound-top, .pick-grid { grid-template-columns: 1fr; }
-  .prop-photo { max-width: 420px; }
 }
 
 /* ---------------------------------------------------------------- phones */
@@ -640,10 +697,6 @@ input[type=range] { accent-color: var(--wine); }
   .hero-cta { width: min(300px, 78vw); }
   .cta-hint { display: none; }
   .hero-sub { font-size: var(--fs-sm); max-width: 300px; }
-  .swatches { top: 14px; left: 10px; }
-  .swatches span { width: 34px; padding: 3px 3px 0; margin-left: -8px; }
-  .swatches i { display: none; }
-  .swatches span::after { content: ""; display: block; height: 6px; }
   .houses { top: 10px; right: 6px; width: 150px; }
   .snap-a, .snap-b { padding: 6px 6px 0; }
   .hero-snap figcaption { display: none; }

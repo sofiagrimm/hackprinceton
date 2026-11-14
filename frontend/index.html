@@ -35,15 +35,6 @@
   <div class="view" data-view="home">
     <header class="paper-hero" id="top">
       <div class="hero-stage" id="hero3d">
-        <!-- top left: paint chips in the palette -->
-        <div class="swatches" aria-hidden="true">
-          <span style="--c:#8e1424;--r:-10deg"><i>cherry</i></span>
-          <span style="--c:#4a0c14;--r:-3deg"><i>oxblood</i></span>
-          <span style="--c:#e8a3b0;--r:5deg"><i>blush</i></span>
-          <span style="--c:#4a5140;--r:-6deg"><i>olive</i></span>
-          <span style="--c:#d9a441;--r:9deg"><i>brass</i></span>
-        </div>
-
         <!-- top right: real buildings from the data, as polaroids and a sticker -->
         <div class="houses">
           <figure class="polaroid hero-snap snap-a">
@@ -241,19 +232,40 @@
 
     <section class="frame pick" id="pick" hidden>
       <div class="wrap wide pick-grid">
-        <figure class="polaroid prop-photo">
-          <img id="prop-photo" alt="" width="520" height="420">
-          <figcaption id="prop-cap"></figcaption>
-        </figure>
+        <!-- top left: pictures of the space -->
+        <div class="prop-gallery">
+          <figure class="polaroid prop-photo">
+            <img id="prop-photo" alt="" width="520" height="420">
+            <figcaption id="prop-cap"></figcaption>
+          </figure>
+          <ul class="prop-thumbs" id="prop-thumbs" aria-label="More pictures"></ul>
+        </div>
+
+        <!-- right: the way into the 3D scan -->
+        <a class="explore-3d" id="explore-3d" href="#/">
+          <span class="explore-pic" id="explore-pic" aria-hidden="true"></span>
+          <svg class="explore-cube" viewBox="0 0 80 80" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M40 8 70 24v32L40 72 10 56V24z"/><path d="M10 24l30 16 30-16M40 40v32"/></g></svg>
+          <span class="explore-label">Explore in 3D</span>
+          <span class="explore-sub">Walk the scanned rooms, hear each one</span>
+        </a>
+
+        <!-- below the pictures: info and rent -->
         <div class="pick-main">
           <p class="kicker eyebrow" id="d-kicker">The pick</p>
           <h1 class="display" id="d-name"></h1>
           <p class="lede-dark" id="d-address"></p>
+          <div class="figures" id="d-stats"></div>
+          <div class="prop-rent" id="prop-rent"></div>
           <div class="pick-actions">
-            <a class="btn" href="#sound">Hear the room</a>
+            <a class="link-dark" href="#sound">Hear the room</a>
             <div id="pl-add" hidden></div>
           </div>
-          <div class="figures" id="d-stats"></div>
+        </div>
+
+        <!-- bottom right: ready to book -->
+        <div class="book-box">
+          <a class="ready-book" id="ready-book" href="#/">Ready to book <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="note">Hold a date and send the ask to the venue.</p>
         </div>
       </div>
       <div class="wrap wide">
@@ -390,6 +402,32 @@
         <h2 class="display">Other rooms <span class="script">worth a listen.</span></h2>
       </div>
       <div class="rail" id="cards"></div>
+    </section>
+  </div>
+
+  <!-- ============================================================ EXPLORE IN 3D (placeholder until its design arrives) -->
+  <div class="view" data-view="explore">
+    <section class="page next-page" aria-labelledby="ex-title">
+      <div class="wrap wide">
+        <p class="crumbs"><a class="back" id="ex-back" href="#/">Back to the room</a></p>
+        <p class="eyebrow">Explore in 3D</p>
+        <h1 class="page-title" id="ex-title">Explore in 3D.</h1>
+        <p class="page-sub">The full walk-through of <b class="venue-name"></b> opens here. This page is being designed next.</p>
+        <p class="next-links"><a class="btn" id="ex-tour" href="#/">Walk the 3D scan for now</a></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ BOOKING (placeholder until its design arrives) -->
+  <div class="view" data-view="book">
+    <section class="page next-page" aria-labelledby="bk-title">
+      <div class="wrap wide">
+        <p class="crumbs"><a class="back" id="bk-back" href="#/">Back to the room</a></p>
+        <p class="eyebrow">Booking</p>
+        <h1 class="page-title" id="bk-title">Ready to <span class="script">book.</span></h1>
+        <p class="page-sub">Booking <b class="venue-name"></b> happens here: pick a date, hold the room and send the ask. This page is being designed next.</p>
+        <p class="next-links"><a class="btn" id="bk-ask" href="#/">See the email we drafted</a></p>
+      </div>
     </section>
   </div>
 

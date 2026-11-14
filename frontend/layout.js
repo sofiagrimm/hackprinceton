@@ -16,12 +16,12 @@ import { detectCity } from "./regions.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "book", "tour", "film", "bookings", "cities"];
+const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
-  bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
+  explore: "Explore in 3D · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
 const CHERRY = "#8e1424"; // the button
@@ -54,7 +54,8 @@ function go(hash) {
 /** Work out the view from the address bar. */
 function route() {
   const h = location.hash;
-  const m = h.match(/^#\/venue\/(\d+)/);
+  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book))?/);
+  if (m && m[2]) { showNextPage(Number(m[1]), m[2] === "3d" ? "explore" : "book"); return; }
   if (m) { show("property"); openVenue(Number(m[1])); return; }
   if (h.startsWith("#/") || !h) {
     const name = h.slice(2) || "home";
@@ -427,6 +428,62 @@ function setPhoto(id) {
   showPicture(img, id);
   img.alt = v ? `${v.name}, ${v.best_space.space_name}` : "The venue";
   $("prop-cap").textContent = v ? `${v.best_space.space_name.toLowerCase()} / ${v.metro}` : "the room";
+  $("explore-3d").href = `#/venue/${id}/3d`;
+  $("ready-book").href = `#/venue/${id}/book`;
+  renderThumbs(id);
+  venueFor(id).then((venue) => { if (venue && state.venueId === id) renderRent(venue); });
+}
+
+/** The venue record, from the last search or from the API. */
+function venueFor(id) {
+  const v = state.search?.results?.find((r) => r.venue_id === id);
+  if (v) return Promise.resolve(v);
+  // audience before use, so pipeline.js doesn't mistake this for the venue on screen
+  return fetch(`/api/venues/${id}?audience=${state.search?.audience || 80}&use=${state.search?.use || "a_cappella_performance"}`)
+    .then((r) => (r.ok ? r.json() : null)).then((x) => { remember(x); return x; }).catch(() => null);
+}
+
+/** Small pictures beside the big one; pressing one swaps it in. The 3D square gets an inside view. */
+async function renderThumbs(id) {
+  const urls = await pictureList(id);
+  if (state.venueId !== id && state.venueId != null) return;
+  $("explore-pic").style.backgroundImage = urls[0] ? `url("${urls[0]}")` : "";
+  $("prop-thumbs").innerHTML = urls.slice(1, 5).map((u, i) =>
+    `<li style="--tilt:${[-4, 3, -2, 5][i]}deg"><button type="button" aria-label="Show picture ${i + 2}"><img src="${esc(u)}" alt="" loading="lazy"></button></li>`).join("");
+  $("prop-thumbs").querySelectorAll("li").forEach((li) => {
+    const img = li.querySelector("img");
+    img.onerror = () => li.remove(); // that picture doesn't exist for this building
+    li.querySelector("button").onclick = () => {
+      const main = $("prop-photo");
+      const was = main.src;
+      main.onerror = null;
+      main.src = img.src;
+      img.src = was;
+    };
+  });
+}
+
+function renderRent(v) {
+  const s = v.best_space || {};
+  const fee = feeEstimate(v);
+  const kind = v.hotel || v.is_hotel ? "hotel event space" : v.property_type === "Multifamily" ? "a residential amenity room" : "commercial space";
+  $("prop-rent").innerHTML = `
+    <div class="rent-row"><span class="rent-label">Rent, one evening</span><b class="rent-price">$${fee.toLocaleString()}</b></div>
+    <p class="note">Our estimate for ${esc(kind)} of ${(s.area_sqft || 1500).toLocaleString()} sq ft. The venue confirms the real rate when you book. Beds and the full budget are further down.</p>`;
+}
+
+// ------------------------------------------------------------------ the next pages (placeholders for now)
+
+async function showNextPage(id, which) {
+  show(which);
+  const v = await venueFor(id);
+  document.querySelectorAll(`.view[data-view="${which}"] .venue-name`).forEach((el) => { el.textContent = v?.name || "this venue"; });
+  if (v && which !== "property") document.title = `${which === "explore" ? "Explore" : "Book"} ${v.name} · Stagehand`;
+  const back = `#/venue/${id}`;
+  ["ex-back", "bk-back"].forEach((b) => { $(b).href = back; });
+  const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
+  $("ex-tour").href = back; $("ex-tour").onclick = jump("walk");
+  $("bk-ask").href = back; $("bk-ask").onclick = jump("reach");
 }
 
 function watchVenueName() {
