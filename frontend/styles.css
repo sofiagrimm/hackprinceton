@@ -1489,3 +1489,7 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .view[data-view="acoustics"] .pr-model,
 .view[data-view="acoustics"] #d-rtchart,
 .view[data-view="acoustics"] #sound details.fold { display: none !important; }
+
+/* The opening page is the collage alone: no tab bar, and the collage fills the whole screen. */
+body[data-view="home"] .masthead { display: none; }
+body[data-view="home"] .collage { height: 100vh; height: 100svh; }

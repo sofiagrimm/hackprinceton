@@ -163,6 +163,13 @@ function zoomIn() {
 /** Back out of the search page: the sheet shrinks back into the blob. Runs as the home view appears. */
 function zoomOut() {
   if (reduced()) return;
+  // The collage's name isn't a button shape, so don't shrink a coloured blob into it:
+  // the page has already switched, so just fade the screen back in from the search page's colour.
+  if ($("hero-cta")?.classList.contains("cl-hit")) {
+    const v = veil();
+    v.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: "ease-out", fill: "forwards" }).onfinish = () => v.remove();
+    return;
+  }
   state.zooming = true;
   const v = veil();
   requestAnimationFrame(() => {
