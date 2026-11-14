@@ -1518,3 +1518,7 @@ body[data-view="home"] .collage { height: 100vh; height: 100svh; }
 .results-page .rs-line { display: block; white-space: nowrap; }
 .results-page .rs-em { display: block; font-style: italic; font-weight: 600; color: var(--cherry); font-size: 0.82em; margin-top: 0.06em; }
 @media (max-width: 760px) { .results-page .rs-line { white-space: normal; } }
+
+/* "Working on the road?" in the same Playfair as the other headings */
+#sideb-title { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.02; font-size: clamp(36px, 4.4vw, 62px); }
+.side-b-list a { font-family: var(--serif); font-weight: 600; font-size: var(--fs-lg); letter-spacing: 0; }
