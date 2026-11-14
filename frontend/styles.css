@@ -1169,7 +1169,7 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .collage .cl-staff { opacity: 0.92; }
 /* The name is the way in: it lifts a little and glows when you point at it. */
 #hero-cta .cl-logo { transition: transform .25s ease, filter .25s ease; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35)); }
-#hero-cta:hover .cl-logo, #hero-cta:focus-visible .cl-logo { transform: translateY(-3px) rotate(-1deg); filter: drop-shadow(0 0 18px rgba(255, 214, 224, 0.55)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4)); }
+/* No glow or lift on the name: it stays exactly as designed. */
 #hero-cta:focus-visible { outline: none; }
 /* The record: only the disc itself is clickable, and it breathes while a chord plays. */
 .cl-record-hit { border-radius: 50%; }
