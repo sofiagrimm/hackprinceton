@@ -504,7 +504,7 @@ function whyFilm(v) {
 function whyHTML(v) {
   const intent = briefIntent();
   if (intent === "film") return `<h3 class="script">Why it works for your shoot</h3><p>${esc(whyFilm(v))}</p>`;
-  if (intent === "sound") return `<h3 class="script">Why it fits your show</h3><p>${esc(whySound(v))}</p>`;
+  if (intent === "sound") return `<h3 class="script">Why it fits your group's needs</h3><p>${esc(whySound(v))}</p>`;
   return `<h3 class="script">Why it works for you</h3>
     <p><b>For a show.</b> ${esc(whySound(v))}</p>
     <p><b>For a shoot.</b> ${esc(whyFilm(v))}</p>`;
