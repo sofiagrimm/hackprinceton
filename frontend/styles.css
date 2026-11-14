@@ -629,6 +629,57 @@ body::after {
   .ex-choices li:nth-child(2) .ex-choice { margin-left: 0; }
 }
 
+/* ---------------------------------------------------------------- ACOUSTICS */
+body[data-view="acoustics"] .view[data-view="acoustics"] { display: block; }
+.ac-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s6); flex-wrap: wrap; }
+.ac-head .page-title .script { font-size: 0.9em; color: var(--cherry); }
+.ac-rooms .mini-head { margin: 0 0 var(--s2); }
+.ac-rooms .rooms { justify-content: flex-start; }
+.ac-rooms .rooms button { color: var(--ink); font: 500 var(--fs-sm)/1 var(--body); text-decoration: none; padding: 10px 14px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--card); margin: 0; }
+.ac-rooms .rooms button.on { background: var(--cherry); border-color: var(--cherry); color: var(--paper); }
+.ac-h { font-size: var(--fs-xl); margin: var(--s8) 0 var(--s5); }
+.ac-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s5); }
+.ac-card { position: relative; background: var(--card); border: 1.5px solid var(--line-strong); padding: var(--s5); box-shadow: var(--shadow-photo); transform: rotate(var(--tilt)); }
+.ac-card::before { content: ""; position: absolute; top: -11px; left: 30%; width: 70px; height: 22px; background: var(--tape); transform: rotate(-4deg); }
+.ac-card h3 { font-family: var(--script); font-weight: 400; font-size: 30px; color: var(--cherry); }
+.ac-big { font-family: var(--display); font-weight: 800; font-size: clamp(36px, 3.6vw, 52px); letter-spacing: -0.03em; line-height: 1; margin-top: var(--s2); }
+.ac-big small { font-size: 0.4em; color: var(--ink-2); margin-left: 3px; }
+.ac-meter { position: relative; height: 10px; margin-top: var(--s4); border-radius: 5px; background: var(--paper-2); }
+.ac-band { position: absolute; top: 0; bottom: 0; background: var(--sage); border-radius: 5px; }
+.ac-dot { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--cherry); border: 2px solid var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
+.ac-ends { display: flex; justify-content: space-between; font-family: var(--type); font-size: 11px; color: var(--ink-3); margin-top: 6px; }
+.ac-text { color: var(--ink-2); font-size: var(--fs-sm); margin-top: var(--s4); }
+
+.ac-try .lede { color: var(--on-dark-2); }
+.ac-crowd { display: inline-flex; margin-top: var(--s6); padding: 3px; border: 1.5px solid rgba(243, 236, 225, 0.5); border-radius: 999px; }
+.ac-crowd button { padding: 8px 18px; border-radius: 999px; color: var(--on-dark-2); font-size: var(--fs-sm); }
+.ac-crowd button[aria-pressed="true"] { background: var(--on-dark); color: var(--ink); font-weight: 600; }
+.ac-samples { list-style: none; padding: 0; margin: var(--s6) 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s5); }
+.ac-sample {
+  display: grid; grid-template-columns: 56px 1fr; grid-template-rows: auto 1fr; gap: 4px var(--s4); width: 100%; height: 100%; text-align: left;
+  padding: var(--s5); background: var(--card); color: var(--ink); border: 2.5px solid var(--ink);
+  border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px; box-shadow: 5px 6px 0 var(--wine-deep); transition: transform .15s, box-shadow .15s, background .15s;
+}
+.ac-sample svg { grid-row: span 2; width: 52px; height: 52px; color: var(--cherry); }
+.ac-sample b { font-family: var(--script); font-weight: 400; font-size: 30px; line-height: 1; }
+.ac-sample span { color: var(--ink-2); font-size: var(--fs-sm); }
+.ac-sample:hover { background: var(--blush); transform: translateY(-2px); box-shadow: 7px 9px 0 var(--wine-deep); }
+.ac-sample:active { transform: translateY(3px); box-shadow: 2px 2px 0 var(--wine-deep); }
+.ac-sample[aria-pressed="true"] { background: var(--cherry); color: var(--paper); }
+.ac-sample[aria-pressed="true"] svg, .ac-sample[aria-pressed="true"] span { color: var(--paper); }
+.ac-try #scope { margin-top: var(--s6); }
+.ac-try #ac-now { color: var(--on-dark-2); }
+/* on this page the details section doesn't need its own player: the samples above drive it */
+.view[data-view="acoustics"] .sound-console { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.view[data-view="acoustics"] .sound-top { grid-template-columns: 1fr; }
+@media (max-width: 1000px) {
+  .ac-cards { grid-template-columns: 1fr 1fr; }
+  .ac-samples { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .ac-cards { grid-template-columns: 1fr; }
+}
+
 /* ---------------------------------------------------------------- 3D WALKTHROUGH */
 body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .walk-page { padding: var(--s5) var(--gutter) var(--s6); max-width: 1600px; margin: 0 auto; }

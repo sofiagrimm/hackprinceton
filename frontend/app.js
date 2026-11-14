@@ -132,11 +132,15 @@ async function onRecordTap(e) {
   if (e.target.closest("form, button, textarea, a")) return;
   const rect = $("hero3d").getBoundingClientRect();
   if (!hero?.hitTest(e.clientX - rect.left, e.clientY - rect.top)) return;
+  // A second tap while the chord is still playing stops it.
+  if (Date.now() < recordPlayingUntil) { sound.stopChoir(); recordPlayingUntil = 0; return; }
   if (!state.venue) await openVenue(DEFAULT_VENUE);
   applyRoomSound();
   const seconds = await sound.playChoir();
+  recordPlayingUntil = Date.now() + seconds * 1000;
   hero?.pulse(seconds);
 }
+let recordPlayingUntil = 0;
 
 // ------------------------------------------------------------------ agent run
 

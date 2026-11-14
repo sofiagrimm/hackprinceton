@@ -16,12 +16,12 @@ import { detectCity } from "./regions.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "explore", "walk3d", "book", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", walk3d: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "walk3d", "book", "tour", "film", "bookings", "cities"];
+const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", walk3d: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
-  explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
+  explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", acoustics: "Acoustics · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
 const CHERRY = "#8e1424"; // the button
@@ -54,8 +54,8 @@ function go(hash) {
 /** Work out the view from the address bar. */
 function route() {
   const h = location.hash;
-  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk))?/);
-  if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d" }[m[2]]); return; }
+  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk|sound))?/);
+  if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d", sound: "acoustics" }[m[2]]); return; }
   if (m) { show("property"); openVenue(Number(m[1])); return; }
   if (h.startsWith("#/") || !h) {
     const name = h.slice(2) || "home";
@@ -66,6 +66,11 @@ function route() {
   const el = h.length > 1 && document.getElementById(h.slice(1));
   const holder = el?.closest("[data-view]");
   if (holder?.dataset.view === "walk3d" && state.venueId) { go(`#/venue/${state.venueId}/walk`); return; }
+  if (holder?.dataset.view === "acoustics" && state.venueId) {
+    if (document.body.dataset.view !== "acoustics") go(`#/venue/${state.venueId}/sound`);
+    requestAnimationFrame(() => el.scrollIntoView());
+    return;
+  }
   if (holder?.dataset.view === "explore") {
     const key = EXPLORE.find((k) => $(k).contains(el));
     if (holder.dataset.view !== document.body.dataset.view) show("explore", { keepScroll: true });
@@ -82,7 +87,7 @@ function firstView() {
   const q = new URLSearchParams(location.search);
   if (q.get("tour")) return show("tour");
   if (q.get("film")) return show("film");
-  if (q.get("venue") && /^#\/venue\/\d+\/(3d|book|walk)/.test(location.hash)) {
+  if (q.get("venue") && /^#\/venue\/\d+\/(3d|book|walk|sound)/.test(location.hash)) {
     state.venueId = Number(q.get("venue"));
     return route();
   }
@@ -549,7 +554,7 @@ async function showNextPage(id, which) {
   show(which);
   const v = await venueFor(id);
   document.querySelectorAll(`.view[data-view="${which}"] .venue-name`).forEach((el) => { el.textContent = v?.name || "this venue"; });
-  if (v) document.title = `${{ explore: "Explore", book: "Book", walk3d: "Walk through" }[which]} ${v.name} · Stagehand`;
+  if (v) document.title = `${{ explore: "Explore", book: "Book", walk3d: "Walk through", acoustics: "How it sounds:" }[which]} ${v.name} · Stagehand`;
   const back = `#/venue/${id}`;
   ["ex-back", "bk-back"].forEach((b) => { $(b).href = back; });
   const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
@@ -557,11 +562,12 @@ async function showNextPage(id, which) {
   if (which === "book") startBooking(id, v);
   if (which === "explore") startExplore(id);
   if (which === "walk3d") startWalk(id);
+  if (which === "acoustics") startAcoustics(id);
 }
 
 // ------------------------------------------------------------------ explore: acoustics, lighting, 3D walkthrough
 
-const EXPLORE = ["sound", "light"];
+const EXPLORE = ["light"];
 
 /** The evaluations are app.js's sections, so the venue must be open in app.js first. */
 function ensureVenue(id, hash) {
@@ -578,8 +584,93 @@ function startExplore(id) {
   EXPLORE.forEach((k) => $(k).classList.add("ex-off"));
   document.querySelectorAll(".ex-choice").forEach((b) => {
     b.setAttribute("aria-pressed", "false");
-    b.onclick = () => (b.dataset.ex === "walk" ? go(`#/venue/${id}/walk`) : selectExplore(b.dataset.ex));
+    b.onclick = () => (b.dataset.ex === "walk" ? go(`#/venue/${id}/walk`)
+      : b.dataset.ex === "sound" ? go(`#/venue/${id}/sound`) : selectExplore(b.dataset.ex));
   });
+}
+
+// ------------------------------------------------------------------ the acoustics page
+
+/** The numbers app.js shows for the room on screen (it re-renders them when the room changes). */
+function readAcoustics() {
+  const rows = {};
+  $("d-acoustics").querySelectorAll("div").forEach((d) => { rows[d.querySelector("dt")?.textContent] = d.querySelector("dd")?.textContent || ""; });
+  const num = (re, txt) => { const m = (txt || "").match(re); return m ? parseFloat(m[1]) : null; };
+  const target = ($("d-rtchart").textContent.match(/Target ([\d.]+) to ([\d.]+)s/) || []).slice(1).map(Number);
+  return {
+    empty: num(/([\d.]+)s empty/, rows.Reverb), full: num(/([\d.]+)s with/, rows.Reverb), guests: num(/with (\d+) guests/, rows.Reverb),
+    bass: num(/Bass ratio ([\d.]+)/, rows.Warmth), c80: num(/C80 \+?(-?[\d.]+)/, rows.Clarity), sti: num(/Speech index ([\d.]+)/, rows.Words),
+    target: target.length === 2 ? target : null, room: rows.Room || "",
+  };
+}
+
+function meter(value, min, max, lo, hi, left, right) {
+  const pct = (v) => Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100));
+  return `<div class="ac-meter" aria-hidden="true">
+      <span class="ac-band" style="left:${pct(lo)}%;width:${pct(hi) - pct(lo)}%"></span>
+      <span class="ac-dot" style="left:${pct(value)}%"></span>
+    </div><div class="ac-ends" aria-hidden="true"><span>${left}</span><span>${right}</span></div>`;
+}
+
+function renderAcCards() {
+  const a = readAcoustics();
+  if (a.full == null) return;
+  $("ac-verdict").textContent = $("d-verdict").textContent;
+  const [lo, hi] = a.target || [1.2, 2];
+  const echo = a.full < lo
+    ? "Notes stop quickly. Tight harmony sounds exposed and close, so sing a little fuller than usual."
+    : a.full > hi
+      ? "Sound hangs around. Slow ballads bloom, but quick rhythms smear, so leave room between phrases."
+      : "A held chord hangs in the air just long enough to blend the parts, and fast songs still sound clean.";
+  const cards = [
+    { k: "Echo", big: `${a.full}<small>s</small>`, m: meter(a.full, 0, 3.5, lo, hi, "dry", "cathedral"),
+      t: `${echo} Empty, it rings for ${a.empty}s; ${a.guests || "your"} guests soak some of that up.` },
+    a.bass != null && { k: "Warmth", big: a.bass.toFixed(2), m: meter(a.bass, 0.6, 1.6, 1.0, 1.3, "bright", "warm"),
+      t: a.bass >= 1.1 ? "Low voices bloom. Basses carry without pushing." : a.bass < 0.9 ? "A bright room: sopranos sparkle, basses may need to lean in." : "Even from bass to soprano; nobody has to fight to be heard." },
+    a.c80 != null && { k: "Clarity", big: `${a.c80 > 0 ? "+" : ""}${a.c80}<small>dB</small>`, m: meter(a.c80, -6, 8, 0, 4, "blended", "crisp"),
+      t: a.c80 > 3 ? "Every line stays distinct, good for busy arrangements and vocal percussion." : a.c80 < -2 ? "The parts melt into one sound. Slow, chordal pieces suit it best." : "Each part is clear, with a little warmth around it." },
+    a.sti != null && { k: "Words", big: a.sti.toFixed(2), m: meter(a.sti, 0, 1, 0.6, 1, "lost", "every word"),
+      t: a.sti >= 0.6 ? "Lyrics and the talk between songs come through." : a.sti >= 0.45 ? "Lyrics carry if you sing them clearly." : "Words blur here; keep the patter short or bring a microphone." },
+  ].filter(Boolean);
+  $("ac-cards").innerHTML = cards.map((c, i) => `
+    <article class="ac-card" style="--tilt:${[-1, 0.8, -0.6, 1.2][i]}deg">
+      <h3>${c.k}</h3><p class="ac-big">${c.big}</p>${c.m}<p class="ac-text">${c.t}</p>
+    </article>`).join("");
+}
+
+function playStatus(what) {
+  const room = document.querySelector("#d-spaces button.on")?.textContent || $("d-name").textContent;
+  const crowd = document.querySelector("#sound [data-crowd].on")?.dataset.crowd === "empty" ? "an empty room" : "a full house";
+  $("ac-now").textContent = `Playing ${what} in the ${room.toLowerCase()} with ${crowd}.`;
+}
+
+let acWired = false;
+function startAcoustics(id) {
+  $("ac-back").href = `#/venue/${id}/3d`;
+  ensureVenue(id, `#/venue/${id}/sound`);
+  if (!acWired) {
+    acWired = true;
+    const watch = new MutationObserver(() => renderAcCards());
+    watch.observe($("d-acoustics"), { childList: true, subtree: true, characterData: true });
+    watch.observe($("d-rtchart"), { childList: true, subtree: true });
+    // the sample buttons drive app.js's own player
+    $("ac-chord").onclick = () => { $("play-choir").click(); playStatus("a four-part chord"); };
+    $("ac-clap").onclick = () => { $("clap").click(); playStatus("a clap"); };
+    $("ac-mic").onclick = () => {
+      $("mic").click();
+      setTimeout(() => {
+        const live = $("mic").classList.contains("live");
+        $("ac-mic-label").textContent = live ? "Stop singing" : "Sing into the room";
+        $("ac-mic").setAttribute("aria-pressed", String(live));
+        $("ac-now").textContent = live ? "Listening. Sing, and you'll hear yourself back with the room around you." : "Microphone off.";
+      }, 600);
+    };
+    document.querySelectorAll("[data-ac-crowd]").forEach((b) => (b.onclick = () => {
+      document.querySelector(`#sound [data-crowd="${b.dataset.acCrowd}"]`)?.click();
+      document.querySelectorAll("[data-ac-crowd]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    }));
+  }
+  whenVenueOpen(id, renderAcCards);
 }
 
 // ------------------------------------------------------------------ the 3D walkthrough page
