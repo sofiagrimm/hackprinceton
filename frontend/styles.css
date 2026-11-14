@@ -1751,3 +1751,6 @@ body:is([data-view="acoustics"], [data-view="lighting"], [data-view="walk3d"], [
 /* sound card numbers: taller and narrower, in Playfair */
 .ac-big { font-family: var(--serif); font-weight: 700; font-size: clamp(30px, 2.6vw, 38px); letter-spacing: 0; line-height: 1; font-variant-numeric: lining-nums; }
 .ac-big small { font-family: var(--body); font-weight: 600; font-size: 0.42em; margin-left: 3px; }
+/* the venue switcher on the overview page too, sitting in the "All results" bar */
+body[data-view="property"] .venue-switch { display: flex; top: calc(var(--nav-h) + 4px); padding: 3px; }
+body[data-view="property"] .venue-switch a { padding: 5px 11px; }

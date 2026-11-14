@@ -66,7 +66,7 @@ function route() {
   const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk|sound|light))?/);
   if (m) rememberVenue(Number(m[1]));
   if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d", sound: "acoustics", light: "lighting" }[m[2]]); return; }
-  if (m) { show("property"); openVenue(Number(m[1])); return; }
+  if (m) { show("property"); openVenue(Number(m[1])); updateVenueSwitch(Number(m[1]), "overview", venueInfo[Number(m[1])]?.name || $("d-name").textContent); return; }
   // the Acoustics and Lighting tabs browse every venue by sound or by light
   if (h === "#/acoustics") { show("by-sound"); renderBrowseSound(); return; }
   if (h === "#/lighting") { show("by-light"); renderBrowseLight(); return; }
@@ -1885,6 +1885,7 @@ function watchVenueName() {
     const name = $("d-name").textContent;
     if (!name) return;
     $("vf-title").textContent = name;
+    if (document.body.dataset.view === "property") $("vs-name").textContent = name;
     if (document.body.dataset.view === "property") document.title = `${name} · Stagehand`;
     const v = state.search?.results?.find((r) => r.name === name);
     if (v && v.venue_id !== state.venueId) { state.venueId = v.venue_id; setPhoto(v.venue_id); }
