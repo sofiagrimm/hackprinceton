@@ -156,7 +156,8 @@ def _budget_line(budget: dict) -> str:
 def _call(name: str, args: dict):
     yield {"type": "tool", "name": name, "input": args}
     try:
-        result = scout.TOOLS[name](**args)
+        from .toolbox import all_tools
+        result = all_tools()[name](**args)
     except Exception as exc:  # surface tool failures instead of crashing the stream
         result = {"error": f"{type(exc).__name__}: {exc}"}
     yield {"type": "tool_result", "name": name, "result": result}
@@ -181,7 +182,12 @@ occupied RT60 lands in the target band; a room that is a little dry is better th
 5. Call find_housing for the top pick with the group size and nights.
 6. Call tour_budget for the top pick to check the group's fund; if it is over budget, consider a cheaper \
 backup or lodging option and say so.
-7. Call draft_outreach for the top pick, naming the specific room.
+7. Call draft_outreach for the top pick, naming the specific room, then add_to_pipeline so the group can
+track the reply.
+If the brief lists several shows, call plan_tour with the whole brief instead of steps 2-7.
+If the city is in Northern California (San Francisco, Oakland, Berkeley, Stanford, San Jose, Sacramento, Davis)
+or the Florida Panhandle (Pensacola, Tallahassee), use the region tools instead: those venues have no interior
+scan, so say their numbers are estimates.
 8. Finish with a short recommendation: the pick and why (cite RT60 numbers and capacity), lodging and \
 estimated cost, one or two backups, and any caveats. Keep it under 150 words. Write it the way a friend who \
 books venues would text it: two short plain paragraphs, first person, no headings, no bullet points, no bold \
@@ -299,7 +305,7 @@ class ClaudeScout:
                     model=SCOUT_MODEL,
                     max_tokens=16000,
                     system=SYSTEM_PROMPT,
-                    tools=TOOL_SCHEMAS,
+                    tools=TOOL_SCHEMAS + _feature_schemas(),
                     thinking={"type": "adaptive"},
                     output_config={"effort": "medium"},
                     betas=["server-side-fallback-2026-07-01"],
@@ -327,7 +333,8 @@ class ClaudeScout:
             for block in response.content:
                 if block.type != "tool_use":
                     continue
-                if block.name not in scout.TOOLS:
+                from .toolbox import all_tools
+                if block.name not in all_tools():
                     out = {"error": f"Unknown tool {block.name}"}
                     yield {"type": "tool_result", "name": block.name, "result": out}
                 else:
@@ -337,6 +344,11 @@ class ClaudeScout:
                                 "is_error": "error" in out})
             messages.append({"role": "user", "content": results})
         yield {"type": "done", "brief": parse_brief(brief_text)}
+
+
+def _feature_schemas() -> list[dict]:
+    from .toolbox import feature_schemas
+    return feature_schemas()
 
 
 def make_scout(prefer: str | None = None):

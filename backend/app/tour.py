@@ -118,7 +118,8 @@ def parse_tour_brief(text: str, today: date | None = None) -> dict:
 def travel_leg(a: dict, b: dict, group_size: int) -> dict:
     """Driving distance and time between two venues, and whether the group should fly instead."""
     straight = data.miles_between(a["lat"], a["lon"], b["lat"], b["lon"])
-    road = straight * ROAD_FACTOR
+    # Short city hops wind a lot; long interstate trips run close to the straight line.
+    road = straight * (ROAD_FACTOR if straight < 150 else 1.13)
     hours = road / DRIVE_MPH
     vans = math.ceil(group_size / VAN_SEATS)
     leg = {

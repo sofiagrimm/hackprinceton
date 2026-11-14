@@ -40,7 +40,9 @@ whether they want to stay and perform in the same building.
 3. Delegate to the acoustics-analyst subagent with the venue_ids of your top 3 and the use and audience; \
 ask it which room fits best and why.
 4. Delegate to the stay-planner subagent with the chosen venue_id, group size and nights.
-5. Call draft_outreach for the chosen venue and room.
+5. Call draft_outreach for the chosen venue and room, then add_to_pipeline to track it.
+If the brief lists several shows, call plan_tour with the whole brief instead. For Northern California or the
+Florida Panhandle, use search_region_venues and the other region tools; those numbers are estimates.
 6. Write the final recommendation to /report.md with write_file, then reply with the same text: the pick and \
 why (cite RT60 and capacity), lodging with estimated cost, one or two backups, caveats. Under 150 words.
 
@@ -82,7 +84,8 @@ class DeepScout:
         events: queue.Queue = queue.Queue()
 
         def traced(name):
-            fn = scout.TOOLS[name]
+            from .toolbox import all_tools
+            fn = all_tools()[name]
 
             def tool(**kwargs):
                 gen = _call(name, kwargs)
@@ -102,10 +105,13 @@ class DeepScout:
             tool.__signature__ = inspect.signature(fn).replace(return_annotation=str)
             return tool
 
-        tools = {n: traced(n) for n in scout.TOOLS}
+        from .toolbox import all_tools
+        tools = {n: traced(n) for n in all_tools()}
+        extra = [tools[n] for n in ("plan_tour", "add_to_pipeline", "search_region_venues", "analyze_region_venue",
+                                    "find_region_lodging") if n in tools]
         agent = create_deep_agent(
             model=_make_model(self.spec),
-            tools=[tools["search_venues"], tools["draft_outreach"]],
+            tools=[tools["search_venues"], tools["draft_outreach"], *extra],
             system_prompt=LEAD_PROMPT,
             subagents=[
                 {"name": "acoustics-analyst",
