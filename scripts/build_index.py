@@ -71,6 +71,32 @@ def parking_spaces(prop: dict) -> int | None:
     return total or None
 
 
+def hotel_profile(prop: dict) -> dict | None:
+    h = prop.get("propertyHospitality")
+    if not h:
+        return None
+    rates = [r.get("averageDailyRate") for r in h.get("rooms") or [] if r.get("averageDailyRate")]
+    return {
+        "brand": h.get("hotelBrandName"),
+        "keys": h.get("numUnits"),
+        "adr": h.get("averageDailyPricePerRoom") or (min(rates) if rates else None),
+        "meeting_rooms": h.get("numMeetingRooms"),
+        "meeting_sf": h.get("totalMeetingSpaceSquareFeet"),
+        "largest_meeting_sf": h.get("largestMeetingSpaceSquareFeet"),
+        "seats": h.get("numSeats"),
+        "email": h.get("emailAddress"),
+        "phone": h.get("phoneNumber"),
+    }
+
+
+def short_term_profile(prop: dict) -> dict:
+    """Short-term leasing terms across an apartment community's floor plans."""
+    models = (prop.get("propertyApartment") or {}).get("models") or []
+    short = any(m.get("isShortTermLeaseAvailable") for m in models)
+    mins = [m["minLeaseTermsMonths"] for m in models if m.get("minLeaseTermsMonths")]
+    return {"short_term": short, "min_lease_months": min(mins) if mins else None}
+
+
 def listing_contacts(listing: dict) -> list[dict]:
     out = []
     for c in listing.get("listingContacts") or []:
@@ -149,11 +175,27 @@ def build_venues() -> list[dict]:
             "photo": photo,
             "matterport_models": models[pid],
             "listings": listings.get(pid, []),
+            "hotel": hotel_profile(prop),
         })
+        if prop.get("propertyApartment"):
+            SHORT_TERM[pid] = short_term_profile(prop)
     return venues
 
 
+# PropertyId -> short-term leasing terms, filled while building venues and
+# also from every apartment property (scanned or not) in build_housing.
+SHORT_TERM: dict[int, dict] = {}
+
+
 def build_housing() -> list[dict]:
+    apartment_ids = set()
+    for apt in iter_jsonl("apartment-listing"):
+        if apt.get("propertyId"):
+            apartment_ids.add(apt["propertyId"])
+    for prop in iter_jsonl("commercial-property"):
+        if prop["id"] in apartment_ids and prop["id"] not in SHORT_TERM:
+            SHORT_TERM[prop["id"]] = short_term_profile(prop)
+
     homes = []
     for apt in iter_jsonl("apartment-listing"):
         addr = apt.get("address") or {}
@@ -176,8 +218,12 @@ def build_housing() -> list[dict]:
             })
         if not plans:
             continue
+        terms = SHORT_TERM.get(apt.get("propertyId"), {})
         homes.append({
             "id": apt["id"],
+            "kind": "apartment",
+            "short_term": terms.get("short_term", False),
+            "min_lease_months": terms.get("min_lease_months"),
             "property_id": apt.get("propertyId"),
             "name": apt.get("buildingName") or address_line(addr),
             "address": address_line(addr),
