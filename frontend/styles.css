@@ -1695,3 +1695,12 @@ select option { background: #2c0d10; color: var(--ink); }
 /* venue page title: smaller, in the Playfair used by the other headings */
 .pick-head .display, #d-name { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.05; font-size: clamp(30px, 3.6vw, 52px); }
 .pick-head .lede-dark { margin-top: var(--s2); }
+
+/* venue-named titles: one flowing line of Playfair (wraps to two at most), the name in italic blush */
+#ex-title, #lab-title, #ac-title, #walk-title, #bk-title {
+  font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.08; font-size: clamp(30px, 3.6vw, 52px); max-width: 26ch;
+}
+#ex-title .venue-name, #lab-title .venue-name, #ac-title .venue-name, #walk-title .venue-name, #bk-title .venue-name {
+  display: inline; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1em; transform: none; color: #e8a3b0 !important;
+}
+@media (max-width: 760px) { #ex-title, #lab-title, #ac-title, #walk-title, #bk-title { font-size: clamp(20px, 6vw, 26px); max-width: none; } }
