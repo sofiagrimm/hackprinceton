@@ -18,7 +18,7 @@ import { createLightLab, fixturesFor, KINDS, EYE } from "./lightlab.js";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "saved", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", lighting: "concerts", walk3d: "concerts", saved: "saved", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const TAB_OF = { home: null, search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", lighting: "concerts", walk3d: "concerts", saved: "saved", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
