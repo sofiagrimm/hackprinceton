@@ -125,3 +125,34 @@ BUILD: track outreach to venues, compare rooms, and a phone line for the scout.
    (import RoomSound from frontend/audio.js).
 4. Demo: add two venues to the pipeline, compare them, A/B listen, draft a follow-up.
 ```
+
+---
+
+## Agent 5: New regions, NorCal and the Florida Panhandle (branch `feat/regions`)
+
+```text
+[paste the shared rules above]
+
+CONTEXT: CoStar records and Matterport scans only cover Los Angeles and Houston. Vexcel imagery also
+covers Northern California and the Florida Panhandle. Vexcel returns 403 outside these four boxes:
+MULTIPOLYGON (((-119.0134 33.0945, -116.8949 33.0945, -116.8949 34.3154, -119.0134 34.3154, -119.0134 33.0945)),
+((-96.2185 29.0173, -94.5758 29.0173, -94.5758 30.3804, -96.2185 30.3804, -96.2185 29.0173)),
+((-124.7437 38.0655, -118.9869 38.0655, -118.9869 41.9596, -124.7437 41.9596, -124.7437 38.0655)),
+((-88.2145 30.8016, -88.3285 30.132, -86.2124 30.2269, -85.5125 29.6277, -84.8004 29.5039, -84.9062 30.7876, -88.2145 30.8016)))
+
+BUILD: "estimated" venues for Northern California (Bay Area, Sacramento, Davis, Berkeley, Stanford)
+and the Florida Panhandle (Pensacola, Tallahassee).
+1. scripts/build_regions.py: pull candidate venues from OpenStreetMap via the Overpass API
+   (amenity=place_of_worship, theatre, arts_centre, community_centre, events_venue, concert_hall;
+   tourism=hotel for lodging). Save data/index/regions.json (git-ignored like the rest of data/).
+   You will need overpass-api.de allowed; if blocked, tell the user the exact host to allow.
+2. backend/app/regions.py: for a region venue, get the building footprint and height from Vexcel
+   property/extract (backend/app/vexcel.py; add a geofence check so no call leaves the polygons),
+   estimate interior volume and use backend/app/acoustics.estimate with a preset picked from the
+   building type (chapel for churches, theater for theatres, ballroom for halls). Mark every result
+   "estimated, no interior scan". Agent tool search_region_venues + TOOL_SCHEMAS + /api/regions routes.
+3. frontend: let the city picker and the brief accept these cities; show an "Estimated" note on
+   these venues and hide the Matterport tour for them. Keep frontend changes in frontend/regions.js.
+4. Demo: "Our Berkeley group wants to sing in San Francisco for 120 people" -> a ranked list of SF
+   churches and halls with estimated reverb, the 3D building from Vexcel, and nearby hotels.
+```
