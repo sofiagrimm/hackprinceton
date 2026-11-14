@@ -206,17 +206,61 @@ function feeEstimate(v) {
   return Math.round(fee / 10) * 10;
 }
 
-function photoTag(v) {
-  const aerial = `/api/venues/${v.venue_id}/aerial.jpg`;
-  return `<img src="${esc(v.photo || aerial)}" alt="${esc(v.name)}" loading="lazy" data-fallback="${aerial}">`;
+// ------------------------------------------------------------------ pictures of a property
+// Never the straight-down aerial. In order: the room you'd perform in (its 360 photo), CoStar's
+// photo of the outside, then Vexcel's 45-degree obliques that show the front and back.
+
+const venueInfo = {}; // id -> { photo, model } from whatever list we've seen it in
+const roomsCache = {};
+
+function remember(v) {
+  if (!v?.venue_id) return;
+  venueInfo[v.venue_id] = { photo: v.photo || venueInfo[v.venue_id]?.photo, model: v.best_space?.model_id || venueInfo[v.venue_id]?.model };
 }
 
-/** CoStar photos fall back to the building's aerial when they don't load. */
-function fallback(img) {
-  img.addEventListener("error", () => {
-    if (img.dataset.fallback && img.src.indexOf(img.dataset.fallback) < 0) img.src = img.dataset.fallback;
-    else img.style.visibility = "hidden";
-  });
+function rooms(id) {
+  roomsCache[id] ||= fetch(`/api/venues/${id}/rooms`).then((r) => (r.ok ? r.json() : { rooms: [] })).then((d) => d.rooms || []).catch(() => []);
+  return roomsCache[id];
+}
+
+async function pictureList(id) {
+  const info = venueInfo[id] || {};
+  const list = await rooms(id);
+  const inside = list.filter((r) => r.model_id === info.model).concat(list.filter((r) => r.model_id !== info.model));
+  const pano = (r) => `/api/pano/${r.model_id}/${r.pano_id}/2.jpg`;
+  return [
+    ...inside.slice(0, 1).map(pano),
+    info.photo,
+    `/api/film/${id}/oblique/s.jpg`,
+    ...inside.slice(1, 3).map(pano),
+    `/api/film/${id}/oblique/n.jpg`,
+    `/api/film/${id}/oblique/e.jpg`,
+  ].filter(Boolean);
+}
+
+/** Point an <img> at a property's best picture, stepping down the list when one doesn't load. */
+async function showPicture(img, id) {
+  img.dataset.pic = id;
+  const urls = await pictureList(id);
+  if (img.dataset.pic !== String(id)) return; // reused for another venue meanwhile
+  let k = 0;
+  img.onerror = () => {
+    k += 1;
+    if (k < urls.length) img.src = urls[k];
+    else { img.onerror = null; img.style.visibility = "hidden"; }
+  };
+  img.onload = () => { img.style.visibility = ""; };
+  if (urls.length) img.src = urls[0];
+}
+
+function photoTag(v) {
+  remember(v);
+  return `<img alt="${esc(v.name)}" loading="lazy" data-venue="${v.venue_id}">`;
+}
+
+/** Fill every placeholder <img data-venue> inside a container. */
+function hydrate(root) {
+  root.querySelectorAll("img[data-venue]").forEach((img) => showPicture(img, Number(img.dataset.venue)));
 }
 
 function roomCard(v, n, extra = "") {
@@ -246,7 +290,7 @@ async function renderShelf() {
     fetch(`/api/venues/${id}?audience=80&use=a_cappella_performance`).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   list.innerHTML = venues.filter((v) => v?.best_space?.acoustics)
     .map((v, i) => `<li>${roomCard(v, i, `${esc(v.metro)}. `)}</li>`).join("");
-  list.querySelectorAll("img[data-fallback]").forEach(fallback);
+  hydrate(list);
   const step = () => Math.max(260, list.clientWidth * 0.8);
   const move = (dir) => list.scrollBy({ left: dir * step(), behavior: reduced() ? "auto" : "smooth" });
   $("feat-next").onclick = () => move(1);
@@ -264,6 +308,7 @@ function why(v) {
 
 function renderResults(r) {
   state.search = r;
+  r.results.forEach(remember);
   $("last-results").hidden = false;
   const n = r.results.length;
   $("rs-title").innerHTML = n
@@ -295,7 +340,9 @@ function renderResults(r) {
     </div>
     <div class="rs-detail" id="rs-detail" aria-live="polite"></div>
     <p class="note">Prices are rough evening rates from the room's size and type. The email to the venue asks for the real number.</p>`;
-  $("rs-list").querySelectorAll("img[data-fallback]").forEach(fallback);
+  hydrate($("rs-list"));
+  // "Other rooms" on the property page: same pictures, not CoStar's photo alone.
+  document.querySelectorAll("#cards .card").forEach((c) => showPicture(c.querySelector("img"), Number(c.dataset.id)));
   wireSlider(r.results);
 }
 
@@ -371,11 +418,9 @@ function openVenue(id) {
 function setPhoto(id) {
   const v = state.search?.results?.find((r) => r.venue_id === id);
   const img = $("prop-photo");
-  const aerial = `/api/venues/${id}/aerial.jpg`;
-  img.dataset.fallback = aerial;
-  img.src = v?.photo || aerial;
-  img.alt = v ? v.name : "The building from the air";
-  $("prop-cap").textContent = v ? `${v.best_space.space_name.toLowerCase()} / ${v.metro}` : "from above";
+  showPicture(img, id);
+  img.alt = v ? `${v.name}, ${v.best_space.space_name}` : "The venue";
+  $("prop-cap").textContent = v ? `${v.best_space.space_name.toLowerCase()} / ${v.metro}` : "the room";
 }
 
 function watchVenueName() {
@@ -388,14 +433,6 @@ function watchVenueName() {
     if (v && v.venue_id !== state.venueId) { state.venueId = v.venue_id; setPhoto(v.venue_id); }
   };
   new MutationObserver(sync).observe($("d-name"), { childList: true, characterData: true, subtree: true });
-  // Photos that fail in "Other rooms" fall back to the aerial (app.js would hide them).
-  $("cards").addEventListener("error", (e) => {
-    const img = e.target, card = img.closest?.(".card");
-    if (!card || img.dataset.aerial) return;
-    img.dataset.aerial = "1";
-    img.addEventListener("load", () => { img.style.visibility = ""; }, { once: true });
-    img.src = `/api/venues/${card.dataset.id}/aerial.jpg`;
-  }, true);
   // A card in "Other rooms" opens another venue in place; keep the address in step.
   $("cards").addEventListener("click", (e) => {
     const card = e.target.closest(".card");
@@ -412,8 +449,9 @@ function watchVenueName() {
 wireSearch();
 wireZoom();
 watchVenueName();
-fallback($("prop-photo"));
-document.querySelectorAll(".houses img").forEach(fallback);
+// The opening page and Side B: real buildings from the inside or from the side, never straight down.
+[["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330]]
+  .forEach(([id, venue]) => $(id) && showPicture($(id), venue));
 window.addEventListener("popstate", route);
 window.addEventListener("hashchange", route);
 firstView();
