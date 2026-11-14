@@ -14,6 +14,7 @@
 
 import { detectCity } from "./regions.js";
 import { createLightLab, fixturesFor, KINDS, EYE } from "./lightlab.js";
+import { playGramophone, playShutter } from "./oldtime.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -45,6 +46,7 @@ function show(view, { keepScroll = false } = {}) {
   });
   if (view !== "property") document.title = TITLES[view];
   if (view === "saved") renderSaved();
+  if (view !== "home") window.dispatchEvent(new Event("stagehand:leavehome"));
   if (from !== view && !keepScroll) window.scrollTo(0, 0);
 }
 
@@ -141,13 +143,14 @@ function zoomIn() {
   // Starts as the button itself (same cherry), fills the screen, then turns the search page's olive.
   const grow = v.animate([
     { transform: blobTransform(), borderRadius: "48%", backgroundColor: CHERRY },
-    { transform: "none", borderRadius: "0%", backgroundColor: CHERRY, offset: 0.62 },
+    { transform: "none", borderRadius: "0%", backgroundColor: CHERRY, offset: 0.7 },
     { transform: "none", borderRadius: "0%", backgroundColor: OLIVE },
-  ], { duration: ZOOM_MS + 250, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" });
+  ], { duration: 1300, easing: "cubic-bezier(.45,0,.2,1)", fill: "forwards" });
   grow.onfinish = () => {
     go("#/search");
     focusBrief();
-    v.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: "ease-out", fill: "forwards" }).onfinish = () => {
+    // once the screen is coloured, the search page fades in through it
+    v.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1100, easing: "ease-in-out", fill: "forwards" }).onfinish = () => {
       v.remove();
       state.zooming = false;
     };
@@ -1329,11 +1332,32 @@ function watchVenueName() {
   });
 }
 
+// ------------------------------------------------------------------ the collage's sounds
+
+function wireCollageSounds() {
+  const gram = $("hero-gramophone"), cam = $("hero-camera");
+  if (!gram || !cam) return;
+  let stopMusic = null;
+  gram.onclick = () => {
+    if (stopMusic) { stopMusic(); stopMusic = null; gram.classList.remove("playing"); gram.setAttribute("aria-pressed", "false"); return; }
+    stopMusic = playGramophone();
+    gram.classList.add("playing");
+    gram.setAttribute("aria-pressed", "true");
+  };
+  // leaving the opening page stops the music
+  window.addEventListener("stagehand:leavehome", () => { if (stopMusic) gram.click(); });
+  cam.onclick = () => {
+    playShutter();
+    cam.classList.remove("snap"); void cam.offsetWidth; cam.classList.add("snap");
+  };
+}
+
 // ------------------------------------------------------------------ boot
 
 wireSearch();
 wireZoom();
 wireSaving();
+wireCollageSounds();
 watchVenueName();
 // The opening page and Side B: real buildings from the inside or from the side, never straight down.
 [["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330],
