@@ -16,12 +16,12 @@ import { detectCity } from "./regions.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "explore", "book", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "walk3d", "book", "tour", "film", "bookings", "cities"];
+const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", walk3d: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
-  explore: "Explore in 3D · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
+  explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", acoustics: "Acoustics · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
 const CHERRY = "#8e1424"; // the button
@@ -54,8 +54,8 @@ function go(hash) {
 /** Work out the view from the address bar. */
 function route() {
   const h = location.hash;
-  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book))?/);
-  if (m && m[2]) { showNextPage(Number(m[1]), m[2] === "3d" ? "explore" : "book"); return; }
+  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk|sound))?/);
+  if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d", sound: "acoustics" }[m[2]]); return; }
   if (m) { show("property"); openVenue(Number(m[1])); return; }
   if (h.startsWith("#/") || !h) {
     const name = h.slice(2) || "home";
@@ -65,6 +65,18 @@ function route() {
   // A plain anchor (#sound, #tour-plan): show the view that holds it, leave the scroll to the browser.
   const el = h.length > 1 && document.getElementById(h.slice(1));
   const holder = el?.closest("[data-view]");
+  if (holder?.dataset.view === "walk3d" && state.venueId) { go(`#/venue/${state.venueId}/walk`); return; }
+  if (holder?.dataset.view === "acoustics" && state.venueId) {
+    if (document.body.dataset.view !== "acoustics") go(`#/venue/${state.venueId}/sound`);
+    requestAnimationFrame(() => el.scrollIntoView());
+    return;
+  }
+  if (holder?.dataset.view === "explore") {
+    const key = EXPLORE.find((k) => $(k).contains(el));
+    if (holder.dataset.view !== document.body.dataset.view) show("explore", { keepScroll: true });
+    if (key) selectExplore(key);
+    return;
+  }
   if (holder && holder.dataset.view !== document.body.dataset.view) {
     show(holder.dataset.view, { keepScroll: true });
     requestAnimationFrame(() => el.scrollIntoView());
@@ -75,6 +87,10 @@ function firstView() {
   const q = new URLSearchParams(location.search);
   if (q.get("tour")) return show("tour");
   if (q.get("film")) return show("film");
+  if (q.get("venue") && /^#\/venue\/\d+\/(3d|book|walk|sound)/.test(location.hash)) {
+    state.venueId = Number(q.get("venue"));
+    return route();
+  }
   if (q.get("venue")) {
     state.venueId = Number(q.get("venue"));
     setPhoto(state.venueId);
@@ -231,7 +247,7 @@ function rooms(id) {
 }
 
 // Rooms worth showing: big, open, made for people. Never a bathroom or a back corridor.
-const DULL = /bath|rest ?room|toilet|\bwc\b|powder|closet|laundry|storage|utility|mechanical|electrical|elevator|stair|corridor|hallway|garage|janitor|trash|locker|shower|server|mail|bedroom|kitchen(?!.*living)/i;
+const DULL = /fitness|gym|bath|rest ?room|toilet|\bwc\b|powder|closet|laundry|storage|utility|mechanical|electrical|elevator|stair|corridor|hallway|garage|janitor|trash|locker|shower|server|mail|bedroom|kitchen(?!.*living)/i;
 const SHOWY = /ballroom|lounge|rooftop|roof|terrace|hall\b|theat|stage|studio|gallery|atrium|chapel|sanctuary|auditorium|event|great room|club|courtyard|pool|bar\b|library|lobby|living|loft|music|dance|ballet|meeting|conference/i;
 
 function rankRooms(list, model) {
@@ -345,7 +361,7 @@ function roomCard(v, n, extra = "") {
 // ------------------------------------------------------------------ the shelf of real rooms (search page)
 
 // Scanned rooms across both cities, to browse before you search.
-const FEATURED = [6531330, 9956355, 8917689, 9530669, 275472, 9169656, 4029966, 9168400, 406577, 11445467];
+const FEATURED = [6531330, 9438497, 9956355, 10183484, 9530669, 10064886, 5316122, 10610091, 9252592, 4029966];
 
 async function renderShelf() {
   const list = $("featured");
@@ -538,12 +554,435 @@ async function showNextPage(id, which) {
   show(which);
   const v = await venueFor(id);
   document.querySelectorAll(`.view[data-view="${which}"] .venue-name`).forEach((el) => { el.textContent = v?.name || "this venue"; });
-  if (v && which !== "property") document.title = `${which === "explore" ? "Explore" : "Book"} ${v.name} · Stagehand`;
+  if (v) document.title = `${{ explore: "Explore", book: "Book", walk3d: "Walk through", acoustics: "How it sounds:" }[which]} ${v.name} · Stagehand`;
   const back = `#/venue/${id}`;
   ["ex-back", "bk-back"].forEach((b) => { $(b).href = back; });
   const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
-  $("ex-tour").href = back; $("ex-tour").onclick = jump("walk");
   $("bk-ask").href = back; $("bk-ask").onclick = jump("reach");
+  if (which === "book") startBooking(id, v);
+  if (which === "explore") startExplore(id);
+  if (which === "walk3d") startWalk(id);
+  if (which === "acoustics") startAcoustics(id);
+}
+
+// ------------------------------------------------------------------ explore: acoustics, lighting, 3D walkthrough
+
+const EXPLORE = ["light"];
+
+/** The evaluations are app.js's sections, so the venue must be open in app.js first. */
+function ensureVenue(id, hash) {
+  if (state.venueId === id && !$("pick").hidden) return;
+  state.venueId = id;
+  const card = document.querySelector(`#cards .card[data-id="${id}"]`);
+  if (card) { state.quietCard = true; card.click(); state.quietCard = false; return; }
+  location.href = `/?venue=${id}${hash}`;
+}
+
+function startExplore(id) {
+  ensureVenue(id, `#/venue/${id}/3d`);
+  showPicture($("explore-photo"), id);
+  EXPLORE.forEach((k) => $(k).classList.add("ex-off"));
+  document.querySelectorAll(".ex-choice").forEach((b) => {
+    b.setAttribute("aria-pressed", "false");
+    b.onclick = () => (b.dataset.ex === "walk" ? go(`#/venue/${id}/walk`)
+      : b.dataset.ex === "sound" ? go(`#/venue/${id}/sound`) : selectExplore(b.dataset.ex));
+  });
+}
+
+// ------------------------------------------------------------------ the acoustics page
+
+/** The numbers app.js shows for the room on screen (it re-renders them when the room changes). */
+function readAcoustics() {
+  const rows = {};
+  $("d-acoustics").querySelectorAll("div").forEach((d) => { rows[d.querySelector("dt")?.textContent] = d.querySelector("dd")?.textContent || ""; });
+  const num = (re, txt) => { const m = (txt || "").match(re); return m ? parseFloat(m[1]) : null; };
+  const target = ($("d-rtchart").textContent.match(/Target ([\d.]+) to ([\d.]+)s/) || []).slice(1).map(Number);
+  return {
+    empty: num(/([\d.]+)s empty/, rows.Reverb), full: num(/([\d.]+)s with/, rows.Reverb), guests: num(/with (\d+) guests/, rows.Reverb),
+    bass: num(/Bass ratio ([\d.]+)/, rows.Warmth), c80: num(/C80 \+?(-?[\d.]+)/, rows.Clarity), sti: num(/Speech index ([\d.]+)/, rows.Words),
+    target: target.length === 2 ? target : null, room: rows.Room || "",
+  };
+}
+
+function meter(value, min, max, lo, hi, left, right) {
+  const pct = (v) => Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100));
+  return `<div class="ac-meter" aria-hidden="true">
+      <span class="ac-band" style="left:${pct(lo)}%;width:${pct(hi) - pct(lo)}%"></span>
+      <span class="ac-dot" style="left:${pct(value)}%"></span>
+    </div><div class="ac-ends" aria-hidden="true"><span>${left}</span><span>${right}</span></div>`;
+}
+
+function renderAcCards() {
+  const a = readAcoustics();
+  if (a.full == null) return;
+  $("ac-verdict").textContent = $("d-verdict").textContent;
+  const [lo, hi] = a.target || [1.2, 2];
+  const echo = a.full < lo
+    ? "Notes stop quickly. Tight harmony sounds exposed and close, so sing a little fuller than usual."
+    : a.full > hi
+      ? "Sound hangs around. Slow ballads bloom, but quick rhythms smear, so leave room between phrases."
+      : "A held chord hangs in the air just long enough to blend the parts, and fast songs still sound clean.";
+  const cards = [
+    { k: "Echo", big: `${a.full}<small>s</small>`, m: meter(a.full, 0, 3.5, lo, hi, "dry", "cathedral"),
+      t: `${echo} Empty, it rings for ${a.empty}s; ${a.guests || "your"} guests soak some of that up.` },
+    a.bass != null && { k: "Warmth", big: a.bass.toFixed(2), m: meter(a.bass, 0.6, 1.6, 1.0, 1.3, "bright", "warm"),
+      t: a.bass >= 1.1 ? "Low voices bloom. Basses carry without pushing." : a.bass < 0.9 ? "A bright room: sopranos sparkle, basses may need to lean in." : "Even from bass to soprano; nobody has to fight to be heard." },
+    a.c80 != null && { k: "Clarity", big: `${a.c80 > 0 ? "+" : ""}${a.c80}<small>dB</small>`, m: meter(a.c80, -6, 8, 0, 4, "blended", "crisp"),
+      t: a.c80 > 3 ? "Every line stays distinct, good for busy arrangements and vocal percussion." : a.c80 < -2 ? "The parts melt into one sound. Slow, chordal pieces suit it best." : "Each part is clear, with a little warmth around it." },
+    a.sti != null && { k: "Words", big: a.sti.toFixed(2), m: meter(a.sti, 0, 1, 0.6, 1, "lost", "every word"),
+      t: a.sti >= 0.6 ? "Lyrics and the talk between songs come through." : a.sti >= 0.45 ? "Lyrics carry if you sing them clearly." : "Words blur here; keep the patter short or bring a microphone." },
+  ].filter(Boolean);
+  $("ac-cards").innerHTML = cards.map((c, i) => `
+    <article class="ac-card" style="--tilt:${[-1, 0.8, -0.6, 1.2][i]}deg">
+      <h3>${c.k}</h3><p class="ac-big">${c.big}</p>${c.m}<p class="ac-text">${c.t}</p>
+    </article>`).join("");
+}
+
+function playStatus(what) {
+  const room = document.querySelector("#d-spaces button.on")?.textContent || $("d-name").textContent;
+  const crowd = document.querySelector("#sound [data-crowd].on")?.dataset.crowd === "empty" ? "an empty room" : "a full house";
+  $("ac-now").textContent = `Playing ${what} in the ${room.toLowerCase()} with ${crowd}.`;
+}
+
+let acWired = false;
+function startAcoustics(id) {
+  $("ac-back").href = `#/venue/${id}/3d`;
+  ensureVenue(id, `#/venue/${id}/sound`);
+  if (!acWired) {
+    acWired = true;
+    const watch = new MutationObserver(() => renderAcCards());
+    watch.observe($("d-acoustics"), { childList: true, subtree: true, characterData: true });
+    watch.observe($("d-rtchart"), { childList: true, subtree: true });
+    // the sample buttons drive app.js's own player
+    $("ac-chord").onclick = () => { $("play-choir").click(); playStatus("a four-part chord"); };
+    $("ac-clap").onclick = () => { $("clap").click(); playStatus("a clap"); };
+    $("ac-mic").onclick = () => {
+      $("mic").click();
+      setTimeout(() => {
+        const live = $("mic").classList.contains("live");
+        $("ac-mic-label").textContent = live ? "Stop singing" : "Sing into the room";
+        $("ac-mic").setAttribute("aria-pressed", String(live));
+        $("ac-now").textContent = live ? "Listening. Sing, and you'll hear yourself back with the room around you." : "Microphone off.";
+      }, 600);
+    };
+    document.querySelectorAll("[data-ac-crowd]").forEach((b) => (b.onclick = () => {
+      document.querySelector(`#sound [data-crowd="${b.dataset.acCrowd}"]`)?.click();
+      document.querySelectorAll("[data-ac-crowd]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    }));
+  }
+  whenVenueOpen(id, renderAcCards);
+}
+
+// ------------------------------------------------------------------ the 3D walkthrough page
+
+/** Wait until app.js has this venue open (it loads asynchronously), then run fn. */
+function whenVenueOpen(id, fn, tries = 60) {
+  const v = venueInfo[id];
+  const ready = !$("pick").hidden && $("d-name").textContent && state.venueId === id;
+  if (ready) { fn(); return; }
+  if (tries > 0) setTimeout(() => whenVenueOpen(id, fn, tries - 1), 250);
+}
+
+function startWalk(id) {
+  $("wk-back").href = `#/venue/${id}/3d`;
+  ensureVenue(id, `#/venue/${id}/walk`);
+  whenVenueOpen(id, () => {
+    // One button per scanned space, mirroring app.js's own room buttons, which switch the model.
+    const spaces = [...document.querySelectorAll("#d-spaces button")];
+    const on = () => document.querySelector("#d-spaces button.on")?.dataset.i;
+    const draw = () => {
+      $("walk-switch").innerHTML = spaces.length > 1
+        ? spaces.map((b) => `<button type="button" data-i="${b.dataset.i}" aria-pressed="${b.dataset.i === on()}">${esc(b.textContent)}</button>`).join("")
+        : `<span class="note">One scanned space: ${esc($("d-name").textContent)}</span>`;
+      $("walk-switch").querySelectorAll("button").forEach((btn) => (btn.onclick = () => {
+        spaces.find((b) => b.dataset.i === btn.dataset.i)?.click();
+        draw();
+        openModel();
+      }));
+    };
+    draw();
+    openModel();
+  });
+}
+
+/** Load the 3D model straight away instead of waiting for a click on the poster. */
+function openModel() {
+  if (!$("tour-poster").hidden) $("tour-poster").click();
+}
+
+function selectExplore(key, scroll = true) {
+  EXPLORE.forEach((k) => $(k).classList.toggle("ex-off", k !== key));
+  document.querySelectorAll(".ex-choice").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.ex === key)));
+  if (scroll) revealAndScroll($(key));
+}
+
+// ------------------------------------------------------------------ booking: pick dates, then the next step appears
+
+const DAY = 86400000;
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const nice = (d) => d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+const booking = { id: null, venue: null, month: null, start: null, end: null };
+
+/**
+ * Which days are taken. There's no venue calendar in the data yet, so this is a fixed sample per venue
+ * (the page says so). Swap this for the venue's real calendar when one exists.
+ */
+function isTaken(id, d) {
+  let h = (id * 2654435761) ^ (d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate()) * 40503;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  const r = ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  const weekend = d.getDay() === 5 || d.getDay() === 6;
+  return r < (weekend ? 0.38 : 0.16);
+}
+
+function briefMonth() {
+  const m = ($("brief")?.value || "").match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?(?:\s+(\d{1,2}))?/i);
+  const now = new Date();
+  if (!m) return new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const mi = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"].indexOf(m[1].toLowerCase());
+  let d = new Date(now.getFullYear(), mi, 1);
+  if (d < new Date(now.getFullYear(), now.getMonth(), 1)) d = new Date(now.getFullYear() + 1, mi, 1);
+  return d;
+}
+
+function startBooking(id, v) {
+  if (booking.id !== id) Object.assign(booking, { id, venue: v, month: briefMonth(), start: null, end: null });
+  booking.venue = v || booking.venue;
+  $("book-next").hidden = true;
+  $("book-done").hidden = true;
+  wireBookForm();
+  const img = $("book-photo");
+  showPicture(img, id);
+  $("cal-prev").onclick = () => { booking.month = new Date(booking.month.getFullYear(), booking.month.getMonth() - 1, 1); drawCalendar(); };
+  $("cal-next").onclick = () => { booking.month = new Date(booking.month.getFullYear(), booking.month.getMonth() + 1, 1); drawCalendar(); };
+  $("cal-confirm").onclick = confirmDates;
+  $("bk-change").onclick = (e) => { e.preventDefault(); $("book-pick").scrollIntoView({ behavior: reduced() ? "auto" : "smooth" }); };
+  drawCalendar();
+}
+
+function rangeProblem() {
+  const { start, end, id } = booking;
+  if (!start) return null;
+  for (let t = start.getTime(); t <= (end || start).getTime(); t += DAY) {
+    const d = new Date(t);
+    if (isTaken(id, d)) return d;
+  }
+  return null;
+}
+
+function drawCalendar() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const first = booking.month;
+  const firstAllowed = new Date(today.getFullYear(), today.getMonth(), 1);
+  $("cal-prev").disabled = first <= firstAllowed;
+  const bad = rangeProblem();
+  const months = [0, 1].map((k) => new Date(first.getFullYear(), first.getMonth() + k, 1));
+  $("cal-months").innerHTML = months.map((m) => {
+    const lead = (m.getDay() + 6) % 7; // weeks start on Monday
+    const days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < lead; i++) cells.push(`<span aria-hidden="true"></span>`);
+    for (let n = 1; n <= days; n++) {
+      const d = new Date(m.getFullYear(), m.getMonth(), n);
+      const past = d < today, taken = isTaken(booking.id, d);
+      const t = d.getTime(), s = booking.start?.getTime(), e = (booking.end || booking.start)?.getTime();
+      const cls = [past && "past", taken && "taken", s === t && "start", e === t && "end", s != null && t > s && t < e && "in", bad && t >= s && t <= e && "bad"].filter(Boolean).join(" ");
+      const label = `${nice(d)}${taken ? ", taken" : past ? ", in the past" : ", open"}`;
+      cells.push(`<button type="button" class="cal-day ${cls}" data-day="${iso(d)}" aria-label="${label}" aria-pressed="${s != null && t >= s && t <= e}" ${past || taken ? "disabled" : ""}>${n}</button>`);
+    }
+    return `<div class="cal-month"><h3>${MONTHS[m.getMonth()]} ${m.getFullYear()}</h3>
+      <div class="cal-grid">${["M", "T", "W", "T", "F", "S", "S"].map((x) => `<span class="cal-dow" aria-hidden="true">${x}</span>`).join("")}${cells.join("")}</div></div>`;
+  }).join("");
+  $("cal-months").querySelectorAll("button[data-day]").forEach((b) => (b.onclick = () => pickDay(b.dataset.day)));
+  renderStatus(bad);
+}
+
+function pickDay(dayIso) {
+  const [y, m, d] = dayIso.split("-").map(Number);
+  const day = new Date(y, m - 1, d);
+  if (!booking.start || booking.end || day < booking.start) { booking.start = day; booking.end = null; }
+  else booking.end = day;
+  drawCalendar();
+  $("cal-months").querySelector(`[data-day="${dayIso}"]`)?.focus();
+}
+
+function renderStatus(bad) {
+  const st = $("cal-status"), btn = $("cal-confirm");
+  st.classList.toggle("bad", !!bad);
+  if (!booking.start) { st.textContent = "Pick the first day, then the last."; btn.disabled = true; return; }
+  if (bad) {
+    st.textContent = `${nice(bad)} is taken. Pick dates around it.`;
+    btn.disabled = true;
+    return;
+  }
+  const days = Math.round(((booking.end || booking.start) - booking.start) / DAY) + 1;
+  st.textContent = booking.end
+    ? `${nice(booking.start)} to ${nice(booking.end)}, ${days} days. All open.`
+    : `${nice(booking.start)}, one day. Pick a last day too, or confirm just this one.`;
+  btn.disabled = false;
+}
+
+function confirmDates() {
+  if ($("cal-confirm").disabled) return;
+  const { start, venue, id } = booking;
+  const end = booking.end || start;
+  const days = Math.round((end - start) / DAY) + 1;
+  const fee = venue ? feeEstimate(venue) : null;
+  $("book-stub").innerHTML = `
+    <p class="stub-dates">${nice(start)}${days > 1 ? ` to<br>${nice(end)}` : ""}</p>
+    <p class="stub-venue">${esc(venue?.name || "This venue")}${venue?.best_space ? `, ${esc(venue.best_space.space_name)}` : ""}</p>
+    <dl class="specs">
+      <div><dt>Days</dt><dd>${days}</dd></div>
+      <div><dt>Rent, our estimate</dt><dd>${fee ? `$${(fee * days).toLocaleString()}` : "Ask"}</dd></div>
+      <div><dt>Status</dt><dd>Pencilled in, not confirmed</dd></div>
+    </dl>`;
+  $("book-done").hidden = true;
+  revealAndScroll($("book-next"));
+  try { sessionStorage.setItem(`stagehand.dates.${id}`, JSON.stringify({ start: iso(start), end: iso(end) })); } catch { /* private window */ }
+  prefillForm();
+}
+
+function revealAndScroll(el) {
+  el.hidden = false;
+  el.classList.remove("reveal");
+  void el.offsetWidth;
+  if (!reduced()) el.classList.add("reveal");
+  requestAnimationFrame(() => el.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }));
+}
+
+// ------------------------------------------------------------------ booking: the form
+
+const digits = (v) => String(v || "").replace(/\D/g, "");
+
+function luhn(num) {
+  let sum = 0, dbl = false;
+  for (let i = num.length - 1; i >= 0; i--) {
+    let d = Number(num[i]);
+    if (dbl) { d *= 2; if (d > 9) d -= 9; }
+    sum += d; dbl = !dbl;
+  }
+  return num.length >= 13 && num.length <= 19 && sum % 10 === 0;
+}
+
+function prefillForm() {
+  const brief = $("brief")?.value || "";
+  const audience = Number((brief.match(/(\d+)\s*(?:guests|people|audience|seats)/i) || [])[1]);
+  const group = Number((brief.match(/(\d+)\s*(?:singers|members|voices|performers|crew)/i) || [])[1]);
+  if (audience) $("bf-guests").value = audience;
+  if (group) $("bf-crew").value = group;
+}
+
+const CHECKS = {
+  "bf-name": (v) => v.trim().length >= 2 || "Add your name.",
+  "bf-email": (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) || "That email doesn't look right.",
+  "bf-phone": (v) => digits(v).length >= 7 || "Add a phone number the venue can call.",
+  "bf-ccname": (v) => v.trim().length >= 2 || "Add the name on the card.",
+  "bf-cc": (v) => luhn(digits(v)) || "That card number doesn't check out.",
+  "bf-exp": (v) => {
+    const m = v.match(/^(\d{2})\s*\/\s*(\d{2})$/);
+    if (!m || +m[1] < 1 || +m[1] > 12) return "Use MM/YY.";
+    const end = new Date(2000 + +m[2], +m[1], 1);
+    return end > new Date() || "That card has expired.";
+  },
+  "bf-cvc": (v) => /^\d{3,4}$/.test(v.trim()) || "3 or 4 digits.",
+  "bf-zip": (v) => /^[A-Za-z0-9 -]{3,10}$/.test(v.trim()) || "Add the billing ZIP.",
+  "bf-guests": (v) => (+v >= 1 && +v <= 5000) || "How many guests?",
+  "bf-crew": (v) => (+v >= 1 && +v <= 500) || "How many performers?",
+};
+
+function check(id) {
+  const el = $(id);
+  const res = id === "bf-ok" ? (el.checked || "Tick this to send the request.") : CHECKS[id](el.value);
+  const msg = res === true ? "" : res;
+  $(`${id}-err`).textContent = msg;
+  el.setAttribute("aria-invalid", msg ? "true" : "false");
+  el.setAttribute("aria-describedby", `${id}-err`);
+  return !msg;
+}
+
+let formWired = false;
+function wireBookForm() {
+  if (formWired) return;
+  formWired = true;
+  const form = $("book-form");
+  Object.keys(CHECKS).forEach((id) => $(id).addEventListener("blur", () => { if ($(id).value) check(id); }));
+  // the card picture fills in as you type
+  $("bf-cc").addEventListener("input", (e) => {
+    const d = digits(e.target.value).slice(0, 19);
+    e.target.value = d.replace(/(.{4})/g, "$1 ").trim();
+    $("card-num").textContent = (d + "\u2022".repeat(Math.max(0, 16 - d.length))).replace(/(.{4})/g, "$1 ").trim();
+  });
+  $("bf-ccname").addEventListener("input", (e) => { $("card-name").textContent = e.target.value.toUpperCase() || "YOUR NAME"; });
+  $("bf-exp").addEventListener("input", (e) => {
+    const d = digits(e.target.value).slice(0, 4);
+    e.target.value = d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+    $("card-exp").textContent = e.target.value || "MM/YY";
+  });
+  $("bf-cvc").addEventListener("input", (e) => { e.target.value = digits(e.target.value).slice(0, 4); });
+  // once a field has been flagged, re-check it as it's fixed
+  const recheck = (e) => {
+    const id = e.target.id;
+    if ((CHECKS[id] || id === "bf-ok") && e.target.getAttribute("aria-invalid") === "true") check(id);
+    if (!form.querySelector('[aria-invalid="true"]')) $("bf-status").textContent = "";
+  };
+  form.addEventListener("input", recheck);
+  form.addEventListener("change", recheck);
+  form.addEventListener("submit", submitBooking);
+}
+
+async function submitBooking(e) {
+  e.preventDefault();
+  const ids = [...Object.keys(CHECKS), "bf-ok"];
+  const ok = ids.map(check).every(Boolean);
+  if (!ok) {
+    $("bf-status").textContent = "A few things need a look.";
+    $(ids.find((id) => $(id).getAttribute("aria-invalid") === "true"))?.focus();
+    return;
+  }
+  const { start, id, venue } = booking;
+  const end = booking.end || start;
+  const days = Math.round((end - start) / DAY) + 1;
+  const when = days > 1 ? `${nice(start)} to ${nice(end)}` : nice(start);
+  const name = $("bf-name").value.trim();
+  const notes = [
+    `Booking request for ${when}.`,
+    `Contact: ${name}, ${$("bf-email").value.trim()}, ${$("bf-phone").value.trim()}.`,
+    $("bf-time").value ? `Doors at ${$("bf-time").value}.` : "",
+    $("bf-notes").value.trim(),
+  ].filter(Boolean).join(" ");
+  const btn = $("bf-go");
+  btn.disabled = true;
+  btn.textContent = "Sending";
+  $("bf-status").textContent = "";
+  // Only the booking details go to the server. Card fields are never sent anywhere.
+  try {
+    const res = await fetch("/api/pipeline", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        venue_id: id, event_date: when, audience: +$("bf-guests").value, group_size: +$("bf-crew").value,
+        nights: Math.max(1, days), group_name: $("bf-group").value.trim() || name, status: "drafted", notes,
+      }),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(out.detail || `HTTP ${res.status}`);
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = "Request booking";
+    $("bf-status").textContent = `That didn't go through: ${err.message}. Try again in a moment.`;
+    return;
+  }
+  const last4 = digits($("bf-cc").value).slice(-4);
+  ["bf-cc", "bf-exp", "bf-cvc"].forEach((x) => { $(x).value = ""; });
+  $("card-num").textContent = "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022";
+  $("card-exp").textContent = "MM/YY";
+  btn.disabled = false;
+  btn.textContent = "Request booking";
+  window.dispatchEvent(new CustomEvent("pipeline:changed"));
+  $("done-stub").innerHTML = $("book-stub").innerHTML.replace("Pencilled in, not confirmed", "Requested, waiting on the venue")
+    + `<p class="stub-venue">For ${esc(name)}. Card ending ${esc(last4)} checked, not charged.</p>`;
+  document.querySelectorAll("#book-done .venue-name").forEach((el) => { el.textContent = venue?.name || "the venue"; });
+  revealAndScroll($("book-done"));
 }
 
 function watchVenueName() {
@@ -559,7 +998,7 @@ function watchVenueName() {
   // A card in "Other rooms" opens another venue in place; keep the address in step.
   $("cards").addEventListener("click", (e) => {
     const card = e.target.closest(".card");
-    if (!card) return;
+    if (!card || state.quietCard) return;
     const id = Number(card.dataset.id);
     state.venueId = id;
     setPhoto(id);
@@ -573,7 +1012,8 @@ wireSearch();
 wireZoom();
 watchVenueName();
 // The opening page and Side B: real buildings from the inside or from the side, never straight down.
-[["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330]]
+[["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330],
+  ["snap-left-a", 9438497], ["snap-left-b", 10183484], ["snap-left-c", 5316122]]
   .forEach(([id, venue]) => $(id) && showPicture($(id), venue));
 window.addEventListener("popstate", route);
 window.addEventListener("hashchange", route);

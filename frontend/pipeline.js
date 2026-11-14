@@ -351,6 +351,7 @@ function boot() {
   const v = Number(new URLSearchParams(location.search).get("venue"));
   if (v) state.current = state.current || v;
   loadBoard().then(renderAddBar);
+  window.addEventListener("pipeline:changed", () => loadBoard().then(renderAddBar)); // layout.js: a booking request was sent
 }
 
 boot();
