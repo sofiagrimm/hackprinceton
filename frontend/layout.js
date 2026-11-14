@@ -834,6 +834,14 @@ async function startLighting(id) {
     showLumens();
     $("lab-presets").querySelectorAll("button").forEach((b) => (b.onclick = () => applyPreset(b.dataset.preset)));
     $("lab-undo").onclick = () => { lab.placed.pop(); labLights(); };
+    // Ctrl+Z (Cmd+Z on a Mac) takes out the last light, like Undo last
+    window.addEventListener("keydown", (e) => {
+      if (document.body.dataset.view !== "lighting" || e.shiftKey || e.altKey) return;
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.target.type !== "range" && e.target.type !== "color") return;
+      e.preventDefault();
+      if (lab.placed.length) { lab.placed.pop(); labLights(); }
+    });
     $("lab-clear").onclick = () => { lab.placed = []; labLights(); };
   }
   // while this venue's rooms are still loading, that first call will restore any saved design itself
