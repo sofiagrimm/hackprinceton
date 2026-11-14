@@ -17,15 +17,15 @@ import { createLightLab, fixturesFor, KINDS, EYE } from "./lightlab.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", lighting: "concerts", walk3d: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "saved", "tour", "film", "bookings", "cities"];
+const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", lighting: "concerts", walk3d: "concerts", saved: "saved", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
-  explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", acoustics: "Acoustics · Stagehand", lighting: "Lighting · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
+  explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", acoustics: "Acoustics · Stagehand", lighting: "Lighting · Stagehand", saved: "Saved · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
-const CHERRY = "#8e1424"; // the button
+const CHERRY = "#7d4b4b"; // a lighter take on the opening page's maroon paper
 const OLIVE = "#4a5140"; // the search page
 
 const state = { search: null, venueId: null, scouting: false, zooming: false, cameFromHome: false };
@@ -44,6 +44,7 @@ function show(view, { keepScroll = false } = {}) {
     if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
   if (view !== "property") document.title = TITLES[view];
+  if (view === "saved") renderSaved();
   if (from !== view && !keepScroll) window.scrollTo(0, 0);
 }
 
@@ -606,8 +607,6 @@ async function showNextPage(id, which) {
   if (v) document.title = `${{ explore: "Explore", book: "Book", walk3d: "Walk through", acoustics: "How it sounds:", lighting: "Light" }[which]} ${v.name} · Stagehand`;
   const back = `#/venue/${id}`;
   ["ex-back", "bk-back"].forEach((b) => { $(b).href = back; });
-  const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
-  $("bk-ask").href = back; $("bk-ask").onclick = jump("reach");
   if (which === "book") startBooking(id, v);
   if (which === "explore") startExplore(id);
   if (which === "walk3d") startWalk(id);
@@ -621,15 +620,16 @@ const EXPLORE = [];
 
 /** The evaluations are app.js's sections, so the venue must be open in app.js first. */
 function ensureVenue(id, hash) {
-  if (state.venueId === id && (!$("pick").hidden || addressVenue() === id)) return;
+  if (state.venueId === id && (!$("pick").hidden || addressVenue() === id)) return false;
   state.venueId = id;
   const card = document.querySelector(`#cards .card[data-id="${id}"]`);
-  if (card) { state.quietCard = true; card.click(); state.quietCard = false; return; }
+  if (card) { state.quietCard = true; card.click(); state.quietCard = false; return false; }
   location.href = `/?venue=${id}${hash}`;
+  return true; // the page is reloading; callers should stop here
 }
 
 function startExplore(id) {
-  ensureVenue(id, `#/venue/${id}/3d`);
+  if (ensureVenue(id, `#/venue/${id}/3d`)) return;
   showPicture($("explore-photo"), id);
   EXPLORE.forEach((k) => $(k).classList.add("ex-off"));
   document.querySelectorAll(".ex-choice").forEach((b) => {
@@ -696,6 +696,7 @@ function applyPreset(name) {
 }
 
 async function loadLabRoom(r) {
+  lab.current = r;
   $("lab-rooms").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.key === `${r.model_id}/${r.pano_id}`)));
   $("lab-empty").hidden = false;
   $("lab-empty").textContent = "Loading the room…";
@@ -712,7 +713,7 @@ async function loadLabRoom(r) {
 
 async function startLighting(id) {
   $("lab-back").href = `#/venue/${id}/3d`;
-  ensureVenue(id, `#/venue/${id}/light`);
+  if (ensureVenue(id, `#/venue/${id}/light`)) return;
   if (!lab.viewer) {
     lab.viewer = createLightLab($("lab-view"));
     lab.viewer.onPick((hit) => (lab.kind === "erase" ? eraseNear(hit) : placeLight(lab.kind, hit)));
@@ -727,17 +728,188 @@ async function startLighting(id) {
     $("lab-undo").onclick = () => { lab.placed.pop(); labLights(); };
     $("lab-clear").onclick = () => { lab.placed = []; labLights(); };
   }
-  if (lab.id === id) return;
+  // while this venue's rooms are still loading, that first call will restore any saved design itself
+  if (lab.id === id) { if (!lab.loading && hasPending("light")) restoreDesign(); return; }
   lab.id = id;
+  lab.loading = true;
   lab.placed = [];
   const info = venueInfo[id] || {};
   lab.rooms = rankRooms(await rooms(id), info.model).slice(0, 6);
+  lab.loading = false;
   $("lab-rooms").innerHTML = lab.rooms.map((r) =>
     `<button type="button" data-key="${r.model_id}/${r.pano_id}" aria-pressed="false">${esc((r.room || r.scan).replace(/^.* - /, ""))}${r.area_sqft ? ` <small>${r.area_sqft.toLocaleString()} sq ft</small>` : ""}</button>`).join("");
   $("lab-rooms").querySelectorAll("button").forEach((b, i) => (b.onclick = () => { lab.placed = []; loadLabRoom(lab.rooms[i]); }));
   if (!lab.rooms.length) { $("lab-empty").textContent = "No 360 photos for this building."; return; }
+  if (hasPending("light")) { await restoreDesign(); return; }
   await loadLabRoom(lab.rooms[0]);
   applyPreset("concert");
+}
+
+// ------------------------------------------------------------------ saved favourites (kept in this browser)
+
+const SAVED_KEY = "stagehand.saved";
+// what to restore after opening a favourite; kept in session storage so it survives a page load
+const PENDING_KEY = "stagehand.open";
+function takePending(type) {
+  try {
+    const x = JSON.parse(sessionStorage.getItem(PENDING_KEY));
+    if (x?.type !== type) return null;
+    sessionStorage.removeItem(PENDING_KEY);
+    return x;
+  } catch { return null; }
+}
+function hasPending(type) { try { return JSON.parse(sessionStorage.getItem(PENDING_KEY))?.type === type; } catch { return false; } }
+
+function loadSaved() {
+  try { return JSON.parse(localStorage.getItem(SAVED_KEY)) || []; } catch { return []; }
+}
+function storeSaved(list) {
+  try { localStorage.setItem(SAVED_KEY, JSON.stringify(list)); return true; } catch { return false; }
+}
+function updateSavedCount() {
+  const n = loadSaved().length;
+  $("saved-count").hidden = !n;
+  $("saved-count").textContent = n;
+}
+function toast(html) {
+  const t = $("toast");
+  t.innerHTML = html;
+  t.hidden = false;
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => { t.hidden = true; }, 3200);
+}
+function addSaved(item) {
+  const list = loadSaved();
+  list.unshift({ ...item, at: Date.now(), key: `${item.type}-${Date.now()}` });
+  if (!storeSaved(list.slice(0, 60))) { toast("Couldn't save: this browser's storage is full or turned off."); return false; }
+  updateSavedCount();
+  toast(`Saved to your favourites. <a href="#/saved">See them</a>`);
+  return true;
+}
+function popButton(btn) {
+  btn.setAttribute("aria-pressed", "true");
+  btn.classList.add("pop");
+  setTimeout(() => btn.classList.remove("pop"), 180);
+}
+const venueName = (id) => (state.venueId === id && $("d-name").textContent) || state.search?.results?.find((r) => r.venue_id === id)?.name || "This venue";
+
+/** A small picture of the lit room for the favourites page. */
+function labThumb() {
+  const src = $("lab-view").querySelector("canvas");
+  if (!src) return "";
+  lab.viewer.snapshot();
+  const c = document.createElement("canvas");
+  c.width = 360; c.height = Math.round(360 * src.height / src.width);
+  c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.72);
+}
+
+function wireSaving() {
+  $("save-light").onclick = () => {
+    if (!lab.current) return;
+    const ok = addSaved({
+      type: "light", venue: lab.id, name: venueName(lab.id), room: $("lab-room-name").textContent,
+      roomKey: `${lab.current.model_id}/${lab.current.pano_id}`, ambient: Number($("lab-ambient").value),
+      lights: lab.placed.map((x) => ({ kind: x.kind, color: x.color, at: x.at, fixtures: x.fixtures })), thumb: labThumb(),
+    });
+    if (ok) popButton($("save-light"));
+  };
+  $("save-sound").onclick = () => {
+    const a = readAcoustics();
+    if (a.full == null) return;
+    const room = document.querySelector("#d-spaces button.on")?.textContent || "";
+    const crowd = document.querySelector("#sound [data-crowd].on")?.dataset.crowd || "full";
+    const ok = addSaved({ type: "sound", venue: state.venueId, name: venueName(state.venueId), room, crowd, numbers: a, verdict: $("d-verdict").textContent });
+    if (ok) popButton($("save-sound"));
+  };
+  $("save-space").onclick = () => {
+    const id = state.venueId;
+    const list = loadSaved();
+    const existing = list.find((x) => x.type === "space" && x.venue === id);
+    if (existing) {
+      storeSaved(list.filter((x) => x !== existing));
+      $("save-space").setAttribute("aria-pressed", "false");
+      $("save-space").querySelector("span").textContent = "Save this space";
+      updateSavedCount();
+      toast("Removed from your favourites.");
+      return;
+    }
+    if (addSaved({ type: "space", venue: id, name: venueName(id), address: $("d-address").textContent })) {
+      popButton($("save-space"));
+      $("save-space").querySelector("span").textContent = "Saved";
+    }
+  };
+  // the space button shows whether this venue is already saved
+  new MutationObserver(() => {
+    const on = loadSaved().some((x) => x.type === "space" && x.venue === state.venueId);
+    $("save-space").setAttribute("aria-pressed", String(on));
+    $("save-space").querySelector("span").textContent = on ? "Saved" : "Save this space";
+  }).observe($("d-name"), { childList: true, characterData: true, subtree: true });
+  // a fresh design or sound can be saved again
+  $("lab-view").addEventListener("pointerup", () => $("save-light").setAttribute("aria-pressed", "false"));
+  $("lab-list").addEventListener("click", () => $("save-light").setAttribute("aria-pressed", "false"));
+  $("d-spaces").addEventListener("click", () => $("save-sound").setAttribute("aria-pressed", "false"));
+  updateSavedCount();
+}
+
+function renderSaved() {
+  const list = loadSaved();
+  const when = (t) => new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const card = (x, i, face, kind, meta, open, openLabel) => `
+    <li><div class="polaroid sv-card" style="--tilt:${[-1.2, 1, -0.6, 1.4][i % 4]}deg">
+      ${face}
+      <div class="sv-body">
+        <span class="sv-kind">${kind} · ${when(x.at)}</span>
+        <span class="sv-name">${esc(x.name)}</span>
+        <span class="sv-meta">${meta}</span>
+        <div class="sv-actions"><a href="${open}" data-open="${x.key}">${openLabel}</a><button type="button" data-remove="${x.key}">Remove</button></div>
+      </div></div></li>`;
+  const lights = list.filter((x) => x.type === "light");
+  const sounds = list.filter((x) => x.type === "sound");
+  const spaces = list.filter((x) => x.type === "space");
+  $("sv-light").innerHTML = lights.map((x, i) => card(x, i,
+    x.thumb ? `<img src="${x.thumb}" alt="The lighting design in ${esc(x.room)}">` : `<div class="sv-sound-face">${x.lights.length}<small>lights</small></div>`,
+    "Lighting", `${esc(x.room)}. ${x.lights.length} light${x.lights.length === 1 ? "" : "s"}, house lights at ${Math.round(x.ambient * 100)}%.`,
+    `#/venue/${x.venue}/light`, "Open the design")).join("");
+  $("sv-sound").innerHTML = sounds.map((x, i) => card(x, i,
+    `<div class="sv-sound-face"><span>${x.numbers.full}s<small>echo, ${x.crowd === "empty" ? "empty room" : "full house"}</small></span></div>`,
+    "Sound", `${esc(x.room || "Main room")}. ${esc(x.verdict)}`, `#/venue/${x.venue}/sound`, "Listen again")).join("");
+  $("sv-space").innerHTML = spaces.map((x, i) => card(x, i, `<img data-venue="${x.venue}" alt="${esc(x.name)}">`,
+    "Space", esc(x.address || ""), `#/venue/${x.venue}`, "Open the space")).join("");
+  $("sv-light").dataset.empty = "Nothing yet. In the lighting lab, press Save this lighting.";
+  $("sv-sound").dataset.empty = "Nothing yet. On a room's Acoustics page, press Save this sound.";
+  $("sv-space").dataset.empty = "Nothing yet. On a space's page, press Save this space.";
+  hydrate($("sv-space"));
+  document.querySelectorAll("[data-remove]").forEach((b) => (b.onclick = () => {
+    storeSaved(loadSaved().filter((x) => x.key !== b.dataset.remove));
+    updateSavedCount();
+    renderSaved();
+  }));
+  document.querySelectorAll("[data-open]").forEach((a) => (a.onclick = () => {
+    const x = loadSaved().find((y) => y.key === a.dataset.open);
+    try { sessionStorage.setItem(PENDING_KEY, JSON.stringify({ ...x, thumb: undefined })); } catch { /* private window */ }
+  }));
+}
+
+async function restoreDesign() {
+  const d = takePending("light");
+  if (!d || d.venue !== lab.id) return;
+  const r = lab.rooms.find((x) => `${x.model_id}/${x.pano_id}` === d.roomKey) || lab.rooms[0];
+  await loadLabRoom(r);
+  $("lab-ambient").value = d.ambient;
+  lab.viewer.setAmbient(d.ambient);
+  lab.placed = d.lights.map((x) => ({ ...x }));
+  labLights();
+  $("save-light").setAttribute("aria-pressed", "true");
+}
+
+function restoreSound() {
+  const s = takePending("sound");
+  if (!s) return;
+  const btn = [...document.querySelectorAll("#d-spaces button")].find((b) => b.textContent === s.room);
+  if (btn && !btn.classList.contains("on")) btn.click();
+  document.querySelector(`[data-ac-crowd="${s.crowd}"]`)?.click();
+  $("save-sound").setAttribute("aria-pressed", "true");
 }
 
 // ------------------------------------------------------------------ the acoustics page
@@ -798,7 +970,7 @@ function playStatus(what) {
 let acWired = false;
 function startAcoustics(id) {
   $("ac-back").href = `#/venue/${id}/3d`;
-  ensureVenue(id, `#/venue/${id}/sound`);
+  if (ensureVenue(id, `#/venue/${id}/sound`)) return;
   if (!acWired) {
     acWired = true;
     const watch = new MutationObserver(() => renderAcCards());
@@ -821,7 +993,7 @@ function startAcoustics(id) {
       document.querySelectorAll("[data-ac-crowd]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     }));
   }
-  whenVenueOpen(id, renderAcCards);
+  whenVenueOpen(id, () => { renderAcCards(); if (hasPending("sound")) restoreSound(); });
 }
 
 // ------------------------------------------------------------------ the 3D walkthrough page
@@ -836,7 +1008,7 @@ function whenVenueOpen(id, fn, tries = 60) {
 
 function startWalk(id) {
   $("wk-back").href = `#/venue/${id}/3d`;
-  ensureVenue(id, `#/venue/${id}/walk`);
+  if (ensureVenue(id, `#/venue/${id}/walk`)) return;
   whenVenueOpen(id, () => {
     // One button per scanned space, mirroring app.js's own room buttons, which switch the model.
     const spaces = [...document.querySelectorAll("#d-spaces button")];
@@ -1171,6 +1343,7 @@ $("film-list").addEventListener("click", (e) => {
 
 wireSearch();
 wireZoom();
+wireSaving();
 watchVenueName();
 // The opening page and Side B: real buildings from the inside or from the side, never straight down.
 [["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330],
