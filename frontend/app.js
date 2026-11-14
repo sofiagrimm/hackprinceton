@@ -2,6 +2,7 @@ import { RoomSound } from "./audio.js";
 import { sunPosition, dayTimeline, utcOffsetFor, localToUtc, fmtMinute, litFacades } from "./sun.js";
 import { createHero } from "./hero3d.js";
 import { loadTour, sdkUsable } from "./tour.js";
+import { drawRoomMap } from "./roommap.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -65,6 +66,7 @@ async function boot() {
 
   try { hero = createHero($("hero3d")); } catch (err) { console.warn("WebGL unavailable", err); }
   try { state.config = await (await fetch("/api/config")).json(); } catch { /* offline */ }
+  loadValidation();
 
   wireStage();
   wireListen();
@@ -82,6 +84,16 @@ async function boot() {
   } else {
     showHeroVenue(DEFAULT_VENUE);
   }
+}
+
+async function loadValidation() {
+  try {
+    const v = await (await fetch("/api/validation")).json();
+    $("d-validation").innerHTML = dlRows(v.halls.map((h) => [
+      `${esc(h.hall)}, ${esc(h.city)}`,
+      `Measured ${h.published_rt60_s}s, we estimate ${h.estimated_rt60_s}s (${h.error_pct > 0 ? "+" : ""}${h.error_pct}%)`,
+    ])) + `<div><dt>Source</dt><dd>${esc(v.source)}</dd></div>`;
+  } catch { /* optional */ }
 }
 
 async function getSite(id) {
@@ -356,11 +368,49 @@ function renderAcoustics() {
     ["Room", state.roomOverride ? `${esc(state.roomOverride.label)}, from the 3D tour` : roomLabel(cleanSpace(s.space_name, state.venue.name), a.space_label)],
     ["Size", state.roomOverride ? `${Math.round(state.roomOverride.areaSqft).toLocaleString()} sq ft` : `${s.area_sqft.toLocaleString()} sq ft${s.height_ft ? `, ${s.height_ft} ft ceiling` : ""}`],
     ["Reverb", `${a.rt60_empty_s}s empty, ${a.rt60_occupied_s}s with ${a.audience} guests`],
+    ["Warmth", a.bass_ratio != null ? `Bass ratio ${a.bass_ratio}. ${a.bass_ratio >= 1.1 ? "Low voices bloom." : a.bass_ratio < 0.9 ? "Bright, a little light in the low end." : "Balanced."}` : "Unknown"],
+    ["Clarity", a.c80_db != null ? `C80 ${a.c80_db > 0 ? "+" : ""}${a.c80_db} dB. ${a.c80_db > 3 ? "Every line stays distinct." : a.c80_db < -2 ? "Lines run together; slow arrangements suit it." : "Clear without sounding dry."}` : "Unknown"],
+    ["Words", a.sti != null ? `Speech index ${a.sti}. ${a.sti >= 0.6 ? "Lyrics and dialogue come through." : a.sti >= 0.45 ? "Lyrics are understandable if you sing them clearly." : "Words get lost; skip the patter between songs."}` : "Unknown"],
     ["Capacity", `${a.capacity_seated} seated, ${a.capacity_standing} standing`],
-    ["Assumed finishes", `${a.assumptions.floor} floor, ${a.assumptions.walls} walls, ${a.assumptions.ceiling} ceiling`.replaceAll("_", " ")],
+    ["Finishes", finishesLine(a)],
   ]);
   renderRtChart(a);
+  renderBands(a);
+  if (a.dims_m) $("d-mapnote").textContent = drawRoomMap($("roommap"), a);
   applyRoomSound();
+}
+
+const FINISH = {
+  wood_floor: "wood", polished_stone: "polished stone", acoustic_tile: "acoustic tile", metal_deck: "exposed deck",
+  rubber_floor: "rubber", wood_panel: "wood paneling", gypsum: "drywall", open: "open sky",
+};
+const finish = (m) => FINISH[m] || String(m).replaceAll("_", " ");
+
+function finishesLine(a) {
+  const f = `${finish(a.assumptions.floor)} floor, ${finish(a.assumptions.walls)} walls, ${finish(a.assumptions.ceiling)} ceiling`;
+  if (a.materials_evidence?.length) {
+    return `${esc(f)}. Read from the scan: "${a.materials_evidence.slice(0, 3).map(esc).join('", "')}".`;
+  }
+  return `${esc(f)}. Assumed from the type of room.`;
+}
+
+function renderBands(a) {
+  const bands = a.rt60_bands_occupied_s;
+  if (!bands) { $("d-bands").innerHTML = ""; return; }
+  const W = 1000, H = 220, max = Math.max(...bands, a.target_s[1]) * 1.15;
+  const bw = (W - 120) / bands.length;
+  const y = (v) => H - 40 - (v / max) * (H - 70);
+  const bars = bands.map((v, i) => `
+      <rect x="${70 + i * bw + bw * 0.22}" y="${y(v)}" width="${bw * 0.56}" height="${H - 40 - y(v)}" rx="6" fill="#2997ff"/>
+      <text x="${70 + i * bw + bw / 2}" y="${H - 16}" font-size="15" fill="#86868b" text-anchor="middle">${a.bands_hz[i] >= 1000 ? a.bands_hz[i] / 1000 + "k" : a.bands_hz[i]}</text>
+      <text x="${70 + i * bw + bw / 2}" y="${y(v) - 10}" font-size="15" fill="#f5f5f7" text-anchor="middle">${v}s</text>`).join("");
+  $("d-bands").innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Reverberation time in each octave band">
+      <rect x="70" y="${y(a.target_s[1])}" width="${W - 120}" height="${y(a.target_s[0]) - y(a.target_s[1])}" fill="rgba(48,209,88,0.12)"/>
+      <text x="62" y="${y(a.target_s[1]) + 14}" font-size="13" fill="#30d158" text-anchor="end">target</text>
+      ${bars}
+      <text x="${W - 50}" y="${H - 16}" font-size="13" fill="#86868b" text-anchor="end">Hz</text>
+    </svg>`;
 }
 
 function renderRtChart(a) {
@@ -383,8 +433,10 @@ function renderRtChart(a) {
 function applyRoomSound() {
   const a = currentAcoustics();
   if (!a) return;
-  const rt = state.crowd === "full" ? a.rt60_occupied_s : a.rt60_empty_s;
-  sound.setRoom(rt, a.volume_m3);
+  const full = state.crowd === "full";
+  const rt = full ? a.rt60_occupied_s : a.rt60_empty_s;
+  const bands = full ? a.rt60_bands_occupied_s : a.rt60_bands_empty_s;
+  sound.setRoom(rt, a.volume_m3, bands && a.dims_m ? { bands, dims: a.dims_m } : null);
   hero?.setReverb(rt);
   lightScene?.setReverb(rt);
 }

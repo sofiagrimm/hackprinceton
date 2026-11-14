@@ -37,11 +37,16 @@ export class RoomSound {
     this.setRoom(this.room.rt60, this.room.volume);
   }
 
-  /** Rebuild the impulse response for a room. */
-  setRoom(rt60, volumeM3 = 500) {
-    this.room = { rt60, volume: volumeM3 };
+  /**
+   * Rebuild the impulse response for a room.
+   * detail (optional): { bands: [RT60 per octave 125..4k], dims: {length, width, height} in metres }
+   */
+  setRoom(rt60, volumeM3 = 500, detail = null) {
+    this.room = { rt60, volume: volumeM3, detail };
     if (!this.ctx) return;
-    this.convolver.buffer = makeImpulse(this.ctx, rt60, volumeM3);
+    this.convolver.buffer = detail?.bands && detail?.dims
+      ? makeRoomImpulse(this.ctx, detail.bands, detail.dims)
+      : makeImpulse(this.ctx, rt60, volumeM3);
     // Bigger, livelier rooms put more of the sound in the reverberant field.
     const wet = Math.min(0.85, 0.25 + rt60 * 0.22);
     this.wet.gain.setTargetAtTime(wet, this.ctx.currentTime, 0.05);
@@ -194,4 +199,96 @@ export function makeImpulse(ctx, rt60, volumeM3) {
     }
   }
   return buf;
+}
+
+// ---------------------------------------------------------------------------
+// Physically based impulse response for a rectangular room.
+//
+// Early part: the image-source method (Allen & Berkley, 1979). Every wall is a
+// mirror; each mirrored copy of the singers is a reflection that arrives after
+// distance / 343 m/s, quieter by 1/distance and by the energy each wall bounce
+// absorbs. We go up to third-order reflections.
+// Late part: from 80 ms on, the sound field is diffuse, so we use noise split
+// into six octave bands, each fading 60 dB over that band's RT60. Low bands
+// can ring longer than high ones, exactly as the per-band numbers say.
+
+const OCTAVES = [125, 250, 500, 1000, 2000, 4000];
+const C = 343;
+
+export function makeRoomImpulse(ctx, bands, dims) {
+  const sr = ctx.sampleRate;
+  const rtMax = Math.max(...bands);
+  const len = Math.floor(sr * Math.min(6, Math.max(0.4, rtMax * 1.15)));
+  const buf = ctx.createBuffer(2, len, sr);
+  const L = Math.max(dims.length, 2), W = Math.max(dims.width, 2), H = Math.max(dims.height, 2);
+  // Singers near the front, listener 60 % of the way back; ears a little apart for stereo.
+  const src = [0.18 * L, 0.5 * W, 1.6];
+  const ears = [[0.6 * L, 0.5 * W - 0.09, 1.2], [0.6 * L, 0.5 * W + 0.09, 1.2]];
+  const rtMid = (bands[2] + bands[3]) / 2;
+  // Mean wall reflection coefficient implied by the mid-band reverberation (Sabine, inverted).
+  const V = L * W * H, S = 2 * (L * W + L * H + W * H);
+  const alpha = Math.min(0.9, (0.161 * V) / (rtMid * S));
+  const refl = Math.sqrt(1 - alpha);
+
+  for (let ch = 0; ch < 2; ch++) {
+    const out = buf.getChannelData(ch);
+    const [lx, ly, lz] = ears[ch];
+    // --- early reflections (image sources up to order 3)
+    const N = 3;
+    for (let i = -N; i <= N; i++) for (let j = -N; j <= N; j++) for (let k = -N; k <= N; k++) {
+      const order = Math.abs(i) + Math.abs(j) + Math.abs(k);
+      if (order > N) continue;
+      const ix = i % 2 === 0 ? i * L + src[0] : i * L + (L - src[0]);
+      const iy = j % 2 === 0 ? j * W + src[1] : j * W + (W - src[1]);
+      const iz = k % 2 === 0 ? k * H + src[2] : k * H + (H - src[2]);
+      const d = Math.hypot(ix - lx, iy - ly, iz - lz);
+      const t = Math.floor((d / C) * sr);
+      if (t >= len) continue;
+      const amp = Math.pow(refl, order) / Math.max(d, 1);
+      // A short smeared click so higher orders sound diffuse rather than like a comb.
+      const spread = 1 + order * 6;
+      for (let s = 0; s < spread && t + s < len; s++) {
+        out[t + s] += (order === 0 ? 1.4 : 1) * amp * (s === 0 ? 1 : (Math.random() * 2 - 1) * 0.35);
+      }
+    }
+    // --- late diffuse tail, band by band
+    const start = Math.floor(0.03 * sr);
+    const fade = Math.floor(0.08 * sr);
+    const tail = new Float32Array(len);
+    for (let b = 0; b < OCTAVES.length; b++) {
+      const noise = new Float32Array(len);
+      for (let s = start; s < len; s++) noise[s] = Math.random() * 2 - 1;
+      const filtered = bandpass(noise, OCTAVES[b], sr);
+      const decay = 6.91 / Math.max(bands[b], 0.05);
+      for (let s = start; s < len; s++) {
+        tail[s] += filtered[s] * Math.exp(-decay * (s / sr));
+      }
+    }
+    // Level of the diffuse field relative to the direct sound grows with reverberation.
+    const lateGain = 0.06 * Math.sqrt(rtMid) * (10 / Math.max(Math.cbrt(V), 3));
+    for (let s = start; s < len; s++) {
+      const ramp = Math.min(1, (s - start) / fade);
+      out[s] += tail[s] * lateGain * ramp;
+    }
+  }
+  // Normalise so rooms are compared at the same loudness.
+  let peak = 0;
+  for (let ch = 0; ch < 2; ch++) for (const v of buf.getChannelData(ch)) peak = Math.max(peak, Math.abs(v));
+  if (peak > 0) for (let ch = 0; ch < 2; ch++) { const d = buf.getChannelData(ch); for (let s = 0; s < len; s++) d[s] /= peak * 1.2; }
+  return buf;
+}
+
+/** Second-order band-pass (RBJ cookbook), one octave wide, run forward over the signal. */
+function bandpass(x, f0, sr) {
+  const w0 = (2 * Math.PI * f0) / sr;
+  const q = Math.SQRT2; // one-octave bandwidth
+  const alpha = Math.sin(w0) / (2 * q);
+  const b0 = alpha, b2 = -alpha, a0 = 1 + alpha, a1 = -2 * Math.cos(w0), a2 = 1 - alpha;
+  const y = new Float32Array(x.length);
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  for (let n = 0; n < x.length; n++) {
+    const v = (b0 * x[n] + b2 * x2 - a1 * y1 - a2 * y2) / a0;
+    x2 = x1; x1 = x[n]; y2 = y1; y1 = v; y[n] = v;
+  }
+  return y;
 }
