@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="tourplan.css">
   <link rel="stylesheet" href="pipeline.css">
   <link rel="stylesheet" href="regions.css">
-  <link rel="stylesheet" href="film.css">
   <link rel="stylesheet" href="playroom.css">
 </head>
 <body data-view="home">
@@ -23,7 +22,6 @@
     <nav class="modes" aria-label="Modes">
       <a href="#/search" data-mode="concerts">Browse spaces</a>
       <a href="#/tour" data-mode="tour">Tour</a>
-      <a href="#/film" data-mode="film">Film</a>
       <a href="#/bookings" data-mode="bookings">Bookings</a>
       <a href="#/saved" data-mode="saved">Saved <span class="tab-count" id="saved-count" hidden></span></a>
     </nav>
@@ -105,7 +103,6 @@
           <ul class="side-b-list">
             <li><a href="#/tour">Plan the whole tour</a><b class="leader" aria-hidden="true"></b><em>tour</em><span>A room for each stop and the drive between them, added up.</span></li>
             <li><a href="#/bookings">Keep every ask moving</a><b class="leader" aria-hidden="true"></b><em>bookings</em><span>Track which venues have answered.</span></li>
-            <li><a href="#/film">Shooting instead?</a><b class="leader" aria-hidden="true"></b><em>film</em><span>Rooms quiet enough to record dialogue in.</span></li>
           </ul>
         </div>
         <figure class="polaroid side-b-snap">
@@ -734,67 +731,6 @@
     </section>
   </div>
 
-  <!-- ============================================================ FILM -->
-  <div class="view" data-view="film">
-    <section class="page film" id="film" aria-labelledby="film-title">
-      <div class="wrap wide">
-        <p class="eyebrow">Film / Location scout</p>
-        <div class="film-head">
-          <h1 class="page-title" id="film-title">Film mode.</h1>
-          <svg class="film-cam" viewBox="0 0 220 150" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="48" width="150" height="86" rx="8"/><circle cx="62" cy="26" r="22"/><circle cx="122" cy="26" r="22"/><circle cx="62" cy="26" r="6"/><circle cx="122" cy="26" r="6"/><path d="M164 74l42-20v74l-42-20z"/><circle cx="60" cy="91" r="20"/><path d="M104 70h40M104 84h28"/><path d="M40 134l-12 14M138 134l12 14"/></g></svg>
-        </div>
-        <p class="page-sub">The same buildings, scouted for a crew. Find a room quiet enough for dialogue, see the building from four sides, and check the trucks fit outside.</p>
-        <form class="searchbar film-ask" id="film-ask">
-          <label class="sr-only" for="film-brief">Describe your shoot</label>
-          <textarea id="film-brief" rows="2">25 crew, quiet interior, LA, 3 weeks in April. Dialogue-heavy.</textarea>
-          <button id="film-go" type="submit">Find locations</button>
-        </form>
-        <p class="film-status" id="film-status" aria-live="polite"></p>
-
-        <div id="film-results" hidden>
-          <ol class="film-list" id="film-list"></ol>
-        </div>
-
-        <div class="film-detail" id="film-detail" hidden>
-          <h2 class="display" id="film-name"></h2>
-          <p class="lede-dark" id="film-address"></p>
-          <p class="film-room" id="film-room"></p>
-          <div class="figures" id="film-figures"></div>
-
-          <div class="film-part">
-            <h3>Four sides, from the air.</h3>
-            <div class="film-obliques" id="film-obliques"></div>
-          </div>
-
-          <div class="film-part film-camp">
-            <div>
-              <h3>Base camp.</h3>
-              <p class="film-big" id="film-trailers"></p>
-              <p class="film-text" id="film-camp-verdict"></p>
-              <p class="film-text" id="film-overflow"></p>
-              <dl class="specs" id="film-camp-specs"></dl>
-            </div>
-            <figure id="film-camp-map" hidden>
-              <img alt="The parcel from above, with the paved ground left bright">
-              <figcaption>The bright ground is paved and wide enough for a trailer.</figcaption>
-            </figure>
-          </div>
-          <p class="note" id="film-camp-note"></p>
-
-          <div class="film-part">
-            <h3>Outside noise.</h3>
-            <div id="film-noise"></div>
-          </div>
-
-          <div class="film-part">
-            <h3>Light on the shoot days.</h3>
-            <div class="film-light" id="film-light"></div>
-            <p class="note" id="film-light-note"></p>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
 
   </main>
 
@@ -812,6 +748,5 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="tourplan.js"></script>
   <script type="module" src="pipeline.js"></script>
-  <script type="module" src="film.js"></script>
 </body>
 </html>
