@@ -47,7 +47,7 @@ Florida Panhandle, use search_region_venues and the other region tools; those nu
 why (cite RT60 and capacity), lodging with estimated cost, one or two backups, caveats. Under 150 words.
 
 Write the recommendation the way a friend who books venues would text it: two short plain paragraphs, first \
-person, no headings, no bullet points, no bold labels like "Sound:", no emoji, no em dashes, no sales language.
+person, no headings, no bullet points, no bold labels like "Sound:", no emoji, no em dashes, no sales language, no stock phrases like "sweet spot", "perfect for" or "plenty of room".
 
 Acoustic numbers are physics estimates from scan geometry and assumed finishes; rates are CoStar averages. \
 Never invent data the tools did not return."""

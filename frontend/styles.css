@@ -745,3 +745,7 @@ input[type=range] { accent-color: var(--wine); }
   .ink > * { stroke-dashoffset: 0; }
   .hero-cta::before { opacity: 0.8; }
 }
+
+/* Fast planner or AI agent, under the cassette */
+.scout-mode { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s3); margin-top: var(--s5); font-size: var(--fs-sm); color: var(--on-dark-2); }
+.scout-mode .note { margin: 0; color: var(--on-dark-2); }

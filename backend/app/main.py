@@ -31,6 +31,7 @@ class ScoutRequest(BaseModel):
 def config() -> dict:
     return {
         "agent": make_scout().name,
+        "ai_agent": None if make_scout().name == "planner" else make_scout().name,
         "matterport_sdk_key": MATTERPORT_SDK_KEY,
         "venues": len(data.venues()),
         "housing": len(data.housing()),

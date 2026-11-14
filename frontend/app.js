@@ -48,6 +48,23 @@ let lightScene = null;
 
 // ------------------------------------------------------------------ boot
 
+// Fast planner (fixed steps, a few seconds) or the AI agent (plans its own steps, a minute or two).
+function wireScoutMode() {
+  const ai = state.config?.ai_agent;
+  if (!ai || !$("scout-mode")) return;
+  state.mode = "planner";
+  $("scout-mode").hidden = false;
+  $("mode-ai").textContent = `AI agent (${AGENT_LABEL[ai] || ai})`;
+  const notes = { planner: "A few seconds. Fixed steps.", ai: "A minute or two. It plans its own steps and hands work to two helper agents." };
+  document.querySelectorAll("[data-mode]").forEach((b) => {
+    b.onclick = () => {
+      state.mode = b.dataset.mode;
+      document.querySelectorAll("[data-mode]").forEach((x) => x.classList.toggle("on", x === b));
+      $("mode-note").textContent = notes[state.mode];
+    };
+  });
+}
+
 async function boot() {
   EXAMPLES.forEach(([label, text], i) => {
     if (i) $("examples").insertAdjacentHTML("beforeend", `<span class="sep">·</span>`);
@@ -70,6 +87,7 @@ async function boot() {
   try { hero = createVinylHero($("hero3d")); } catch (err) { console.warn("Hero unavailable", err); }
   $("hero3d").addEventListener("click", onRecordTap);
   try { state.config = await (await fetch("/api/config")).json(); } catch { /* offline */ }
+  wireScoutMode();
   loadValidation();
 
   wireStage();
@@ -156,7 +174,8 @@ async function runScout() {
 
   try {
     const res = await fetch("/api/scout", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ brief }),
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ brief, mode: state.mode === "ai" ? null : "planner" }),
     });
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -198,7 +217,7 @@ function detail(text) {
 
 function handleEvent(ev) {
   switch (ev.type) {
-    case "agent": $("agent-name").textContent = `Planned by the ${(AGENT_LABEL[ev.name] || ev.name).replace(/^Built-in/, "built-in")}.`; break;
+    case "agent": $("agent-name").textContent = `Planned by ${ev.name === "planner" ? "the built-in planner" : AGENT_LABEL[ev.name] || ev.name}.`; break;
     case "plan": step("done", "Plan", esc(ev.text)); break;
     case "delegate": step("live", `Ask the ${ev.agent}`, esc(ev.text)); break;
     case "file": step("done", "Write the report", esc(ev.path)); break;
@@ -781,7 +800,8 @@ function cleanSpace(space, venue) {
 // ------------------------------------------------------------------ tiny markdown
 
 function md(text) {
-  const lines = esc(text).split("\n");
+  // Some models end one paragraph and start the next with no newline ("curb.Lodging"): split there.
+  const lines = esc(text).replace(/([a-z0-9][.!?])([A-Z][a-z])/g, "$1\n$2").split("\n");
   let html = "", inList = false;
   for (const raw of lines) {
     const line = raw.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
