@@ -1,6 +1,7 @@
 import { RoomSound } from "./audio.js";
 import { sunPosition, dayTimeline, utcOffsetFor, localToUtc, fmtMinute, litFacades } from "./sun.js";
 import { createHero } from "./hero3d.js";
+import { createVinylHero } from "./vinyl.js";
 import { loadTour, sdkUsable } from "./tour.js";
 import { drawRoomMap } from "./roommap.js";
 
@@ -64,7 +65,8 @@ async function boot() {
     setTimeout(() => $("brief").focus(), 500);
   };
 
-  try { hero = createHero($("hero3d")); } catch (err) { console.warn("WebGL unavailable", err); }
+  try { hero = createVinylHero($("hero3d")); } catch (err) { console.warn("Hero unavailable", err); }
+  $("hero3d").addEventListener("click", onRecordTap);
   try { state.config = await (await fetch("/api/config")).json(); } catch { /* offline */ }
   loadValidation();
 
@@ -105,54 +107,33 @@ async function showHeroVenue(id, name) {
   if (!hero) return;
   try {
     const site = await getSite(id);
-    await hero.showVenue(site, site.aerial_image_url);
-    stageSite = site;
-    onStageScroll();
+    const photo = state.venue?.photo || state.search?.results?.find((r) => r.venue_id === id)?.photo;
+    await hero.showVenue(site, site.aerial_image_url, photo);
   } catch (err) { console.warn(err); }
 }
 
-// ------------------------------------------------------------------ the stage (scroll-scrubbed hero)
-
-let stageSite = null;
-
-function stageProgress() {
-  const stage = $("top");
-  const total = stage.offsetHeight - window.innerHeight;
-  return total > 0 ? Math.min(1, Math.max(0, -stage.getBoundingClientRect().top / total)) : 0;
-}
-
-function onStageScroll() {
-  const p = stageProgress();
-  hero?.setScroll(p);
-  document.querySelectorAll(".chapter").forEach((c) => {
-    c.classList.toggle("on", p >= Number(c.dataset.from) && p < Number(c.dataset.to));
-  });
-  $("scroll-cue").style.opacity = p > 0.02 ? 0 : 1;
-  // The sun travels from just after sunrise to sunset across the stage, so the
-  // last chapter lands on golden hour.
-  let minute = Math.round(420 + p * 600);
-  if (stageSite) {
-    const dateStr = $("sun-date").value;
-    const metro = stageSite.lon < -100 ? "Los Angeles" : "Houston";
-    const offset = utcOffsetFor(metro, dateStr);
-    if (!stageSite.day || stageSite.day.date !== dateStr) {
-      stageSite.day = { date: dateStr, ...dayTimeline(dateStr, stageSite.lat, stageSite.lon, offset) };
-    }
-    const rise = (stageSite.day.sunrise ?? 400) + 40, set = (stageSite.day.sunset ?? 1080) - 8;
-    minute = Math.round(rise + p * (set - rise));
-    hero?.setSun(sunPosition(localToUtc(dateStr, minute, offset), stageSite.lat, stageSite.lon));
-  }
-  $("stage-clock").textContent = fmtMinute(minute - (minute % 5));
-}
+// ------------------------------------------------------------------ the hero records
 
 function wireStage() {
   let queued = false;
   window.addEventListener("scroll", () => {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(() => { queued = false; onStageScroll(); });
+    requestAnimationFrame(() => {
+      queued = false;
+      hero?.setScroll(Math.min(1, window.scrollY / Math.max(window.innerHeight, 1)));
+    });
   }, { passive: true });
-  onStageScroll();
+}
+
+async function onRecordTap(e) {
+  if (e.target.closest("form, button, textarea, a")) return;
+  const rect = $("hero3d").getBoundingClientRect();
+  if (!hero?.hitTest(e.clientX - rect.left, e.clientY - rect.top)) return;
+  if (!state.venue) await openVenue(DEFAULT_VENUE);
+  applyRoomSound();
+  const seconds = await sound.playChoir();
+  hero?.pulse(seconds);
 }
 
 // ------------------------------------------------------------------ agent run
@@ -162,6 +143,7 @@ async function runScout() {
   if (!brief || $("go").disabled) return;
   $("go").disabled = true;
   $("go").textContent = "Scouting…";
+  $("ask").classList.add("scouting");
   $("timeline").innerHTML = "";
   $("report").innerHTML = "";
   $("plan-title").textContent = "Scouting.";
@@ -195,6 +177,7 @@ async function runScout() {
   $("plan-title").textContent = state.search?.results?.length ? "Done." : "Nothing fit yet.";
   $("go").disabled = false;
   $("go").textContent = "Scout";
+  $("ask").classList.remove("scouting");
 }
 
 function step(cls, title, detail = "") {
