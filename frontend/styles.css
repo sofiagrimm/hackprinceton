@@ -1173,8 +1173,8 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 #hero-cta:focus-visible { outline: none; }
 /* The record: only the disc itself is clickable, and it breathes while a chord plays. */
 .cl-record-hit { border-radius: 50%; }
-/* 33 1/3 rpm: one turn every 1.8 seconds, around the centre hole. */
-.cl-record-hit .cl-record { animation: record-spin 1.8s linear infinite; will-change: transform; }
+/* A slow, lazy turn around the centre hole: one revolution every 8 seconds. */
+.cl-record-hit .cl-record { animation: record-spin 8s linear infinite; will-change: transform; }
 @keyframes record-spin { to { transform: rotate(360deg); } }
 .cl-record-hit .cl-record { transition: filter .3s ease; }
 .cl-record-hit:hover .cl-record { filter: brightness(1.08) saturate(1.1); }
