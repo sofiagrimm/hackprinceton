@@ -130,7 +130,7 @@ export function meterPoint(room, at = null) {
 }
 
 /**
- * Light on the singers' faces at the meter point (by default 1.2 m out from the far wall).
+ * Light on the performers' faces at the meter point (by default 1.2 m out from the far wall).
  * Each fixture: inverse square, Lambert cosine on the face, and the beam edge for spots.
  * lights: [{ pos, dir, cone, lm, kelvin }]; room: Vector3 (half width, height, half depth).
  */
@@ -152,7 +152,7 @@ export function stageMeter(lights, room, ambient, at = null) {
     total += e;
     parts.push({ e, kelvin: l.kelvin });
   }
-  const house = 250 * ambient; // house lights at full: about 250 lux on the singers
+  const house = 250 * ambient; // house lights at full: about 250 lux on the performers
   total += house;
   const whites = parts.filter((p) => p.kelvin && p.e > total * 0.08);
   const ks = whites.map((p) => p.kelvin);

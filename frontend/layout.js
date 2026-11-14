@@ -705,8 +705,8 @@ function renderMeter() {
   const lux = Math.max(m.lux, 0.5);
   const iso48 = isoFor(lux);
   const rows = [
-    ["On the singers", `${Math.round(lux).toLocaleString()} lux`],
-    ["Reading music", lux >= 300 ? "Bright enough (300 lux or more)" : "Too dim for sheet music; add stand lights"],
+    ["On the performers", `${Math.round(lux).toLocaleString()} lux`],
+    ["Reading music/scripts", lux >= 300 ? "Bright enough (300 lux or more)" : "Too dim for sheet music or scripts; add stand lights"],
     ["Camera at ISO 800, f/2.8", `${fmtShutter(shutterFor(lux))}`],
     ["24 fps at 1/48 s, f/2.8", iso48 > 25600 ? "Too dark to film" : `ISO ${Math.max(50, Math.round(iso48 / 10) * 10).toLocaleString()}`],
     ["Exposure value", `EV ${ev100(lux).toFixed(1)} at ISO 100`],
@@ -719,7 +719,7 @@ function renderMeter() {
     <p class="mini-head">Light meter</p>
     <dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
     ${warn.map((w) => `<p class="lab-warn">${esc(w)}</p>`).join("")}
-    <p class="note">Measured on the singers' faces at 1.5 m high, ${lab.meterAt ? "where you put the meter" : "1.2 m out from the far wall (choose Light meter and click the floor to move it)"}, facing the middle of the room. Each fixture's lumens and beam, inverse square and cosine. House lights at full add about 250 lux. Exposure uses an incident meter's constant, C = ${C_INCIDENT}.</p>`;
+    <p class="note">Measured on the performers' faces at 1.5 m high, ${lab.meterAt ? "where you put the meter" : "1.2 m out from the far wall (choose Light meter and click the floor to move it)"}, facing the middle of the room. Each fixture's lumens and beam, inverse square and cosine. House lights at full add about 250 lux. Exposure uses an incident meter's constant, C = ${C_INCIDENT}.</p>`;
 }
 
 function showLumens() {
