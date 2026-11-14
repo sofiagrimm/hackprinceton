@@ -143,4 +143,6 @@ def index() -> FileResponse:
     return FileResponse(FRONTEND_DIR / "index.html")
 
 
+from .tour import router as tour_router; app.include_router(tour_router)  # noqa: E402
+
 app.mount("/", StaticFiles(directory=FRONTEND_DIR), name="frontend")

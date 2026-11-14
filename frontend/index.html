@@ -6,6 +6,7 @@
   <title>Encore Scout</title>
   <meta name="description" content="Find the room your group was made for, somewhere to stay, and who to call.">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tourplan.css">
 </head>
 <body>
   <nav class="subnav">
@@ -154,6 +155,39 @@
     </section>
   </main>
 
+  <section class="frame tour-plan" id="tour-plan">
+    <div class="wrap">
+      <h2 class="display">Plan the whole tour.</h2>
+      <p class="lede-dark">Tell us every show. We pick a room and a bed for each stop, work out the drive or the flight in between, and add it all up.</p>
+      <form class="tp-form" id="tp-form">
+        <textarea id="tp-brief" rows="2" placeholder="14 singers, LA March 14, LA March 16, Houston March 20. 80 guests each, budget $6,000."></textarea>
+        <button class="cta" id="tp-go" type="submit">Plan the tour</button>
+      </form>
+      <p class="tp-try"><button type="button" id="tp-example">Try the spring tour</button></p>
+      <p class="tp-status" id="tp-status" aria-live="polite"></p>
+
+      <div id="tp-result" hidden>
+        <p class="tp-summary" id="tp-summary"></p>
+        <ol class="tp-stops" id="tp-stops"></ol>
+        <div class="tp-name-row" id="tp-name-row" hidden>
+          <form id="tp-name-form"><label for="tp-name">Who's voting?</label>
+            <input id="tp-name" autocomplete="name" placeholder="Your first name"><button type="submit">Save my vote</button></form>
+        </div>
+        <div class="tp-bottom">
+          <div id="tp-totals"></div>
+          <div class="tp-share-block">
+            <h3>Let the group weigh in.</h3>
+            <p>Anyone with the link sees this plan and can vote for each stop's room or its backup.</p>
+            <a class="tp-share-link" id="tp-share" href="#">Share with the group</a>
+            <div class="tp-url" id="tp-share-url"></div>
+            <button class="cta" id="tp-dues" type="button">Collect dues for the tour</button>
+            <ul class="ledger" id="tp-dues-out"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <footer class="footer">
     <div class="wrap">
       <p>Made at HackPrinceton 2026 with CoStar property data, Matterport scans and Vexcel aerial imagery. Payments use Capital One's Nessie sandbox.</p>
@@ -162,5 +196,6 @@
   </footer>
 
   <script type="module" src="app.js"></script>
+  <script type="module" src="tourplan.js"></script>
 </body>
 </html>
