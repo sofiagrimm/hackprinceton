@@ -13,7 +13,7 @@
 // "scout:results" event and opens a venue by pressing that venue's card in #cards.
 
 import { detectCity } from "./regions.js";
-import { createLightLab, fixturesFor, KINDS } from "./lightlab.js";
+import { createLightLab, fixturesFor, KINDS, EYE } from "./lightlab.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -647,15 +647,32 @@ function labLights() {
   lab.viewer.setLights(all);
   $("lab-count").textContent = `${lab.placed.length} light${lab.placed.length === 1 ? "" : "s"}`;
   $("lab-list").innerHTML = lab.placed.map((x, i) =>
-    `<li><span class="sw" style="--c:${x.color}"></span>${esc(KINDS[x.kind].label)}<button type="button" data-i="${i}" aria-label="Remove ${esc(KINDS[x.kind].label)} ${i + 1}">Remove</button></li>`).join("");
+    `<li><span class="sw" style="--c:${x.color}"></span>${esc(KINDS[x.kind].label)}<button type="button" data-i="${i}" aria-label="Remove ${esc(KINDS[x.kind].label)} ${i + 1}">&times;</button></li>`).join("");
   $("lab-list").querySelectorAll("button").forEach((b) => (b.onclick = () => { lab.placed.splice(Number(b.dataset.i), 1); labLights(); }));
+  $("lab-undo").disabled = $("lab-clear").disabled = !lab.placed.length;
   if (all.length > 32) $("lab-count").textContent += " (only the first 32 bulbs light up)";
+}
+
+/** Remove the light nearest to where you clicked in the room (within about 12 degrees). */
+function eraseNear(hit) {
+  const eye = { x: 0, y: EYE, z: 0 };
+  let best = -1, bestAngle = 0.21;
+  // either the fixture itself or the spot it was aimed at
+  lab.placed.forEach((x, i) => [...x.fixtures.map((f) => f.pos), x.at].filter(Boolean).forEach((pos) => {
+    const f = { pos };
+    const dx = f.pos.x - eye.x, dy = f.pos.y - eye.y, dz = f.pos.z - eye.z, len = Math.hypot(dx, dy, dz) || 1;
+    const angle = Math.acos(Math.max(-1, Math.min(1, (dx * hit.d.x + dy * hit.d.y + dz * hit.d.z) / len)));
+    if (angle < bestAngle) { bestAngle = angle; best = i; }
+  }));
+  if (best < 0) { $("lab-count").textContent = "No light there. Click right on one."; setTimeout(labLights, 1400); return; }
+  lab.placed.splice(best, 1);
+  labLights();
 }
 
 function placeLight(kind, hit, color, power) {
   const k = KINDS[kind];
   const fixtures = fixturesFor(kind, hit, lab.viewer.room(), color || $("lab-color").value, (power ?? Number($("lab-power").value)) * k.power);
-  lab.placed.push({ kind, color: color || $("lab-color").value, fixtures });
+  lab.placed.push({ kind, color: color || $("lab-color").value, fixtures, at: hit.p });
   labLights();
 }
 
@@ -698,11 +715,12 @@ async function startLighting(id) {
   ensureVenue(id, `#/venue/${id}/light`);
   if (!lab.viewer) {
     lab.viewer = createLightLab($("lab-view"));
-    lab.viewer.onPick((hit) => placeLight(lab.kind, hit));
+    lab.viewer.onPick((hit) => (lab.kind === "erase" ? eraseNear(hit) : placeLight(lab.kind, hit)));
     $("lab-ambient").oninput = (e) => lab.viewer.setAmbient(Number(e.target.value));
     $("lab-kinds").querySelectorAll("button").forEach((b) => (b.onclick = () => {
       lab.kind = b.dataset.kind;
-      $("lab-color").value = KINDS[lab.kind].color;
+      $("lab-view").classList.toggle("erasing", lab.kind === "erase");
+      if (KINDS[lab.kind]) $("lab-color").value = KINDS[lab.kind].color;
       $("lab-kinds").querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
     }));
     $("lab-presets").querySelectorAll("button").forEach((b) => (b.onclick = () => applyPreset(b.dataset.preset)));

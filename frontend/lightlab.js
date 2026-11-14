@@ -9,7 +9,7 @@
 import * as THREE from "./vendor/three.module.js";
 
 const MAX = 32;
-const EYE = 1.55; // metres
+export const EYE = 1.55; // metres
 
 const VERT = `
   varying vec3 vDir;

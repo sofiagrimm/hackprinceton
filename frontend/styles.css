@@ -656,12 +656,23 @@ body[data-view="lighting"] .view[data-view="lighting"] { display: block; }
 .sw { width: 18px; height: 18px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); flex: none; border: 1px solid rgba(0, 0, 0, 0.2); }
 .lab-tune { display: grid; grid-template-columns: auto 1fr; gap: var(--s2) var(--s3); align-items: center; margin-top: var(--s4); font-size: var(--fs-sm); }
 .lab-tune input[type=color] { width: 44px; height: 30px; padding: 0; border: 1.5px solid var(--ink); border-radius: 6px; background: none; }
-.lab-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: var(--fs-sm); counter-reset: l; }
-.lab-list li { counter-increment: l; display: flex; align-items: center; gap: var(--s2); padding: 6px 0; border-bottom: 1px dashed var(--line); }
-.lab-list li::before { content: counter(l, decimal-leading-zero); font-family: var(--type); color: var(--ink-3); font-size: 12px; }
-.lab-list li button { margin-left: auto; color: var(--wine); font-size: var(--fs-xs); text-decoration: underline; }
-.lab-list:empty::after { content: "Nothing yet. Click the room to add a light."; color: var(--ink-3); }
-.lab-actions { display: flex; gap: var(--s5); margin-top: var(--s3); }
+.lab-placed { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3) var(--s4); margin-top: var(--s6); }
+.lab-placed .mini-head { margin: 0; }
+.lab-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: var(--s2); font-size: var(--fs-sm); }
+.lab-list li { display: inline-flex; align-items: center; gap: 8px; padding: 5px 6px 5px 10px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 999px; }
+.lab-list li button { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: 16px; line-height: 1; color: var(--paper); background: var(--cherry); }
+.lab-list li button:hover { background: var(--wine-deep); }
+.lab-list li.flash { animation: flash .6s ease-out; }
+@keyframes flash { from { background: var(--blush); } }
+.lab-list:empty::after { content: "No lights yet. Click the room to add one."; color: var(--ink-3); }
+.lab-actions { display: flex; gap: var(--s2); margin: 0 0 0 auto; }
+.lab-act { font: 600 var(--fs-xs)/1 var(--body); padding: 9px 14px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--card); }
+.lab-act:hover { background: var(--ink); color: var(--paper); }
+.lab-act:disabled { opacity: 0.4; cursor: default; background: var(--card); color: var(--ink); }
+.lab-kinds .lab-erase { margin-top: var(--s2); }
+.lab-kinds .lab-erase svg { width: 18px; height: 18px; flex: none; }
+.lab-view.erasing canvas { cursor: not-allowed !important; }
+.lab-view.erasing { outline: 3px dashed var(--cherry); outline-offset: -3px; }
 .lab-viewer .viewer-frame { box-shadow: 14px 14px 0 var(--sage); }
 .lab-view { aspect-ratio: 16 / 10; max-height: 74vh; }
 @media (max-width: 1000px) {
