@@ -1230,3 +1230,9 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
   .search-staff { width: 130%; left: -15%; }
   .cutout.small { font-size: 26px; }
 }
+
+/* the white cut-out letters belong to the opening page only; here the second line is Playfair italic */
+.search-band .sb-em { display: block; font-style: italic; font-weight: 600; color: #e9b8c4; }
+.search-band .featured-title { font-family: var(--serif); font-weight: 700; letter-spacing: -0.01em; }
+/* a lighter maroon for the search band: the same paper under a dusty rose wash */
+.search-band.band.olive { background: linear-gradient(rgba(150, 92, 92, 0.55), rgba(150, 92, 92, 0.55)), #3a1517 url("img/home/paper.jpg") center / cover no-repeat; }

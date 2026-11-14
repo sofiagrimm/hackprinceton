@@ -26,7 +26,7 @@ const TITLES = {
 };
 const ZOOM_MS = 600;
 const CHERRY = "#7d4b4b"; // a lighter take on the opening page's maroon paper
-const OLIVE = "#3a1517"; // the search page: the same maroon paper as the opening page
+const OLIVE = "#6e3f3f"; // the search page: a lighter take on the opening page's maroon paper
 
 const state = { search: null, venueId: null, scouting: false, zooming: false, cameFromHome: false };
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
