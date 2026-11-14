@@ -17,11 +17,11 @@ import { createLightLab, fixturesFor, KINDS, EYE } from "./lightlab.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "saved", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", lighting: "concerts", walk3d: "concerts", saved: "saved", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "saved", "tour", "bookings", "cities"];
+const TAB_OF = { home: null, search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", lighting: "concerts", walk3d: "concerts", saved: "saved", book: "concerts", tour: "tour", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
-  property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
+  property: "Stagehand", tour: "Plan a tour · Stagehand", 
   explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", acoustics: "Acoustics · Stagehand", lighting: "Lighting · Stagehand", saved: "Saved · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
@@ -1328,16 +1328,6 @@ function watchVenueName() {
     if (location.hash !== `#/venue/${id}`) history.pushState(null, "", `#/venue/${id}`);
   });
 }
-
-// ------------------------------------------------------------------ film results open the property page
-
-$("film-list").addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-venue]");
-  if (!b) return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  go(`#/venue/${b.dataset.venue}`);
-}, true);
 
 // ------------------------------------------------------------------ boot
 
