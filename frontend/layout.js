@@ -605,7 +605,7 @@ function renderDetail(v, i) {
       </dl>
     </div>
     <div class="rs-price"><b>$${feeEstimate(v).toLocaleString()}</b><span>an evening, our guess</span>
-      <a class="btn" href="#/venue/${v.venue_id}">See the room</a></div>
+      <a class="btn" href="#/venue/${v.venue_id}">See the space</a></div>
     <div class="rs-why">${whyHTML(v)}</div>`;
 }
 
