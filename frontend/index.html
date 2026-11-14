@@ -159,8 +159,13 @@
       <div class="wrap wide pick-grid">
         <!-- top left: pictures of the space -->
         <div class="prop-gallery">
-          <figure class="polaroid prop-photo">
-            <img id="prop-photo" alt="" width="520" height="420">
+          <figure class="polaroid prop-photo" id="prop-gallery" aria-roledescription="carousel" aria-label="Pictures of the venue">
+            <div class="pg-frame">
+              <img id="prop-photo" alt="" width="520" height="420">
+              <button type="button" class="pg-arrow pg-prev" id="pg-prev" aria-label="Previous picture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button type="button" class="pg-arrow pg-next" id="pg-next" aria-label="Next picture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <span class="pg-count" id="pg-count" aria-live="polite"></span>
+            </div>
             <figcaption id="prop-cap"></figcaption>
           </figure>
         </div>

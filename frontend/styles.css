@@ -1667,3 +1667,14 @@ select option { background: #2c0d10; color: var(--ink); }
 .cassette .reel { border-color: rgba(246, 239, 230, 0.6); background: radial-gradient(circle, #f6efe6 0 5px, #6e4f40 6px 8px, #c9a58c 9px 15px, #8a6552 16px); }
 .cassette button, .searchbar button { background: #e8a3b0; color: #3a1517; font-weight: 700; }
 .cassette button:hover, .searchbar button:hover { background: #f0b9c3; color: #3a1517; }
+
+/* venue page: arrows on the main picture */
+.pg-frame { position: relative; }
+.pg-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(246, 239, 230, 0.88); color: #2a1012; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); opacity: 0.85; transition: opacity .2s, transform .2s;
+}
+.pg-arrow svg { width: 22px; height: 22px; }
+.pg-prev { left: 10px; } .pg-next { right: 10px; }
+.pg-arrow:hover { opacity: 1; transform: translateY(-50%) scale(1.08); }
+.pg-count { position: absolute; right: 10px; bottom: 10px; font: 12px/1 var(--type); color: #fff6ea; background: rgba(20, 5, 7, 0.6); padding: 4px 8px; border-radius: 999px; }

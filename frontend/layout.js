@@ -594,7 +594,6 @@ function openVenue(id) {
 function setPhoto(id) {
   const v = state.search?.results?.find((r) => r.venue_id === id);
   const img = $("prop-photo");
-  showPicture(img, id);
   img.alt = v ? `${v.name}, ${v.best_space.space_name}` : "The venue";
   $("prop-cap").textContent = v ? `${v.best_space.space_name.toLowerCase()} / ${v.metro}` : "the room";
   $("explore-3d").href = `#/venue/${id}/3d`;
@@ -613,9 +612,47 @@ function venueFor(id) {
 }
 
 /** Small pictures beside the big one; pressing one swaps it in. The 3D square gets an inside view. */
+// ------------------------------------------------------------------ the main picture: step through every photo
+
+const gallery = { id: null, urls: [], at: 0 };
+
+function showGallery(i) {
+  const n = gallery.urls.length;
+  if (!n) return;
+  gallery.at = ((i % n) + n) % n;
+  const img = $("prop-photo");
+  img.onerror = () => { gallery.urls.splice(gallery.at, 1); showGallery(gallery.at); }; // skip pictures that don't load
+  img.onload = () => { img.style.visibility = ""; };
+  img.src = gallery.urls[gallery.at];
+  $("pg-count").textContent = `${gallery.at + 1} / ${gallery.urls.length}`;
+  $("pg-prev").hidden = $("pg-next").hidden = $("pg-count").hidden = gallery.urls.length < 2;
+}
+
+let galleryWired = false;
+function wireGallery() {
+  if (galleryWired) return;
+  galleryWired = true;
+  $("pg-prev").onclick = () => showGallery(gallery.at - 1);
+  $("pg-next").onclick = () => showGallery(gallery.at + 1);
+  window.addEventListener("keydown", (e) => {
+    if (document.body.dataset.view !== "property" || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (e.key === "ArrowLeft") showGallery(gallery.at - 1);
+    if (e.key === "ArrowRight") showGallery(gallery.at + 1);
+  });
+  let x0 = null;
+  const fr = $("prop-gallery");
+  fr.addEventListener("pointerdown", (e) => { x0 = e.clientX; });
+  fr.addEventListener("pointerup", (e) => {
+    if (x0 != null && Math.abs(e.clientX - x0) > 40) showGallery(gallery.at + (e.clientX < x0 ? 1 : -1));
+    x0 = null;
+  });
+}
+
 async function renderThumbs(id) {
   const urls = await pictureList(id);
   if (state.venueId !== id && state.venueId != null) return;
+  wireGallery();
+  if (gallery.id !== id) { gallery.id = id; gallery.urls = [...urls]; showGallery(0); }
   $("explore-pic").style.backgroundImage = urls[0] ? `url("${urls[0]}")` : "";
   // A film strip across the page: every picture of the venue in its frames, drifting slowly.
   // Each strip image has four frames; strips repeat until they span the screen, then the whole
