@@ -816,6 +816,30 @@ function showLumens() {
 }
 
 /** Remove the light nearest to where you clicked in the room (within about 12 degrees). */
+/** Which placed light is under a click (its fixture or the spot it lights), or -1. */
+function lightNear(hit) {
+  const eye = { x: 0, y: EYE, z: 0 };
+  let best = -1, bestAngle = 0.21;
+  lab.placed.forEach((x, i) => [...x.fixtures.map((f) => f.pos), x.at].filter(Boolean).forEach((pos) => {
+    const dx = pos.x - eye.x, dy = pos.y - eye.y, dz = pos.z - eye.z, len = Math.hypot(dx, dy, dz) || 1;
+    const angle = Math.acos(Math.max(-1, Math.min(1, (dx * hit.d.x + dy * hit.d.y + dz * hit.d.z) / len)));
+    if (angle < bestAngle) { bestAngle = angle; best = i; }
+  }));
+  return best;
+}
+
+/** Move a placed light so it lights a new spot, keeping its kind, colour and brightness. */
+function moveLight(i, hit) {
+  const x = lab.placed[i];
+  if (!x) return;
+  const k = KINDS[x.kind], old = x.fixtures[0];
+  const mult = old && k.power ? (old.power / k.power) : 1;
+  const fixtures = fixturesFor(x.kind, hit, lab.viewer.room(), x.color, mult * k.power);
+  fixtures.forEach((f, j) => { f.lm = x.fixtures[j]?.lm ?? x.fixtures[0]?.lm; f.kelvin = x.fixtures[0]?.kelvin; });
+  lab.placed[i] = { ...x, fixtures, at: hit.p };
+  lab.viewer.setLights(lab.placed.flatMap((y) => y.fixtures));
+}
+
 function eraseNear(hit) {
   const eye = { x: 0, y: EYE, z: 0 };
   let best = -1, bestAngle = 0.21;
@@ -889,6 +913,7 @@ async function startLighting(id) {
     lab.viewer = createLightLab($("lab-view"));
     lab.viewer.onPick((hit) => {
       if (lab.kind === "erase") return eraseNear(hit);
+      if (lab.kind === "move") { if (lightNear(hit) < 0) { $("lab-count").textContent = "Press on a light and drag it."; setTimeout(labLights, 1400); } return; }
       if (lab.kind === "meter") { lab.meterAt = hit.p.clone(); return renderMeter(); }
       return placeLight(lab.kind, hit);
     });
@@ -896,6 +921,12 @@ async function startLighting(id) {
     $("lab-kinds").querySelectorAll("button").forEach((b) => (b.onclick = () => {
       lab.kind = b.dataset.kind;
       $("lab-view").classList.toggle("erasing", lab.kind === "erase");
+      let held = -1;
+      lab.viewer.onGrab(lab.kind === "move" ? {
+        start: (hit) => (held = lightNear(hit)) >= 0,
+        move: (hit) => moveLight(held, hit),
+        end: () => { held = -1; labLights(); $("save-light")?.setAttribute("aria-pressed", "false"); },
+      } : null);
       if (KINDS[lab.kind]) $("lab-color").value = KINDS[lab.kind].kelvin ? kelvinHex(KINDS[lab.kind].kelvin) : KINDS[lab.kind].color;
       $("lab-kinds").querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
       showLumens();

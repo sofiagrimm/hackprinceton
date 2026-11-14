@@ -184,9 +184,23 @@ export function createLightLab(container) {
   el.style.cursor = "crosshair";
   el.style.touchAction = "none";
   const ray = new THREE.Raycaster();
-  let onPick = null;
-  el.addEventListener("pointerdown", (e) => { down = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY }; el.setPointerCapture(e.pointerId); });
+  let onPick = null, grab = null; // grab: { start(hit) -> bool, move(hit), end() } for dragging a placed light
+  const hitAt = (e) => {
+    const r = el.getBoundingClientRect();
+    camera.rotation.set(pitch, yaw, 0, "YXZ");
+    camera.updateMatrixWorld();
+    ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+    return surfacePoint(ray.ray.direction);
+  };
+  let dragging = false;
+  el.addEventListener("pointerdown", (e) => {
+    down = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY };
+    el.setPointerCapture(e.pointerId);
+    dragging = !!grab?.start(hitAt(e));
+    if (dragging) el.style.cursor = "grabbing";
+  });
   el.addEventListener("pointermove", (e) => {
+    if (dragging) { grab.move(hitAt(e)); return; }
     if (!down) return;
     yaw -= (e.clientX - down.x) * 0.004;
     pitch = Math.max(-1.3, Math.min(1.3, pitch - (e.clientY - down.y) * 0.004));
@@ -196,6 +210,7 @@ export function createLightLab(container) {
   el.addEventListener("pointerup", (e) => {
     const moved = down && Math.hypot(e.clientX - down.sx, e.clientY - down.sy) > 6;
     down = null;
+    if (dragging) { dragging = false; el.style.cursor = ""; grab.end(); return; }
     if (moved || !onPick) return;
     // a click (not a drag) picks the wall, floor or ceiling point under the pointer
     const r = el.getBoundingClientRect();
@@ -255,6 +270,8 @@ export function createLightLab(container) {
     room: () => uniforms.room.value.clone(),
     surfacePoint,
     onPick(fn) { onPick = fn; },
+    /** While set, pressing on a placed light drags it instead of turning the view. */
+    onGrab(handlers) { grab = handlers; el.style.cursor = handlers ? "grab" : "crosshair"; },
     setAmbient(v) { uniforms.ambient.value = v; dirty = true; },
     /** lights: [{ pos: Vector3, color: '#rrggbb', power, dir: Vector3|null, cone, size }] */
     setLights(lights) {

@@ -1704,3 +1704,6 @@ select option { background: #2c0d10; color: var(--ink); }
   display: inline; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1em; transform: none; color: #e8a3b0 !important;
 }
 @media (max-width: 760px) { #ex-title, #lab-title, #ac-title, #walk-title, #bk-title { font-size: clamp(20px, 6vw, 26px); max-width: none; } }
+.lab-kinds .lab-move { margin-top: var(--s2); }
+.lab-kinds .lab-move svg { width: 18px; height: 18px; flex: none; }
+.lab-kinds .lab-move + .lab-erase { margin-top: 0; }
