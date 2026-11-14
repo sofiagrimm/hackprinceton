@@ -75,3 +75,23 @@
   .pr-hud { flex-direction: column; gap: 2px; }
 }
 @media (prefers-reduced-motion: reduce) { .pr-controls .play.on { animation: none; } }
+
+/* compact: the whole feature fits on a laptop screen */
+.playroom { max-width: 900px; }
+.pr-stage { max-width: min(100%, 720px, calc((100vh - 320px) * 1.4)); }
+.playroom-head { margin-top: var(--s5); }
+.playroom-head .sub-head { font-size: var(--fs-lg); }
+.pr-controls { gap: var(--s4); margin-top: var(--s3); }
+.pr-controls .play { width: clamp(60px, 6vw, 76px); }
+.pr-controls .play .tri { border-left-width: 12px; border-top-width: 8px; border-bottom-width: 8px; }
+.pr-seat-line { font-size: var(--fs-sm); }
+.pr-compare { margin-top: var(--s3); padding-top: var(--s3); }
+.pr-verdicts { gap: var(--s3); margin-top: var(--s4); }
+.pr-card { padding: var(--s3) var(--s4); }
+.pr-big { font-size: var(--fs-lg); }
+.pr-card p:last-child { font-size: var(--fs-sm); }
+.pr-measure { gap: var(--s5); margin-top: var(--s5); }
+.pr-decay { height: 150px; }
+.pr-stage { max-width: min(100%, 600px, calc((100vh - 420px) * 1.45)); }
+.pr-hud { font-size: 11px; gap: var(--s3); right: var(--s4); flex-wrap: wrap; }
+.pr-hint { top: auto; bottom: var(--s2); font-size: var(--fs-md); }
