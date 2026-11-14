@@ -1,59 +1,57 @@
 # Encore Scout
 
-**Rooms that sound right. Somewhere to stay. Who to call.**
+Finding a place to sing on tour is harder than it sounds. A cappella groups and choirs need rooms with the right
+amount of echo, somewhere nearby to sleep, and a price the group can split. Most of that gets worked out over
+dozens of emails and a few bad gigs in carpeted conference rooms.
 
-Touring a cappella groups, choirs and film crews spend hours hunting for spaces that *sound* right and somewhere
-nearby to sleep. Encore Scout is an AI agent that reads a tour brief, searches thousands of real buildings in
-Los Angeles and Houston, measures how each room will sound from its 3D scan, checks the site from the air,
-finds lodging and drafts the email to the person who can say yes.
+Encore Scout does the legwork. You describe the stop ("14 singers in LA on March 14, a show for 80, two
+nights") and an agent searches 3,288 buildings in Los Angeles and Houston that have Matterport 3D scans. For each
+candidate room it estimates the reverberation time from the room's measured size and likely finishes, with and
+without an audience, and compares it to what works for unamplified voices. It looks at the building from above
+with Vexcel aerial imagery, finds lodging nearby, checks the group's bank balance and writes the email to the
+person who can say yes.
 
-Built at HackPrinceton Fall 2026 on CoStar Group's data: CoStar property records, Matterport digital twins and
-Vexcel aerial imagery for the same buildings.
+You can also hear the room. The site plays a four-part chord, a clap or your own voice through a reverb built from
+that room's numbers, and shows the building in 3D with the real sun moving over it on the day of the show.
 
-## What it does
+We built it at HackPrinceton (Fall 2026) on data from CoStar Group: CoStar property records, Matterport scans and
+Vexcel aerial imagery for the same buildings. One of us sings in an a cappella group that books spaces like this
+every tour, which is where the idea came from.
 
-1. **Plans** from a free-text brief: group size, audience, nights, metro, and the sound they need
-   (unamplified a cappella, choir, rehearsal, recording, film dialogue).
-2. **Searches** 3,288 Matterport-scanned buildings (CoStar) for performable rooms: lobbies, club lounges,
-   ballrooms, rooftops, warehouse bays.
-3. **Measures** each room's reverberation time (RT60) with the Eyring equation from the scan's floor area,
-   width, depth and ceiling height, with finishes inferred from the space type - empty and with the audience in it.
-4. **Lets you hear it**: a synthesized four-part chord, a clap, or your own voice through your microphone,
-   convolved with an impulse response built from the room's RT60 (Web Audio API).
-5. **Shows the light**: the sun's position for the venue and show date, golden hour, and the building's shadow
-   drawn on the Vexcel aerial (building height and footprint from Vexcel / CoStar).
-6. **Checks the site**: CoStar parking count, vehicles Vexcel counted on the parcel, roof type.
-7. **Finds lodging**: hotels (CoStar average daily rates, so a hotel can be stage *and* bed) for short stops,
-   apartment communities with short-term leases (Apartments.com listings) for longer stays.
-8. **Drafts outreach** to the listing broker or hotel sales team.
-9. **Keeps the tour solvent** (Capital One Nessie): the agent checks the group's tour fund before it
-   recommends a stop and reports the break-even ticket price and each member's share. The treasurer approves
-   with one click, which posts the venue deposit and lodging hold as bills and collects each member's dues by
-   transfer into the fund. The agent plans; a person moves the money.
+## How it works
 
-## The agent
+The agent's tools live in `backend/app/scout.py`. There are six: search for rooms, measure a venue's rooms, check
+the site from the air, find lodging, check the tour budget, and draft the email. Three different planners can drive
+them, picked by what's configured in `.env`:
 
-Three interchangeable brains drive the same tools (`backend/app/scout.py`):
-
-| Brain | When it runs | Notes |
+| Planner | Used when | Notes |
 |---|---|---|
-| **Deep Agents** (`deep_scout.py`) | `SCOUT_LLM` is set | LangChain Deep Agents: plans with todos, delegates to an `acoustics-analyst` and a `stay-planner` subagent, writes `/report.md`. Any model: Claude, or a free OpenRouter model. |
-| **Claude** (`agent.py`) | `ANTHROPIC_API_KEY` is set | Claude tool-use loop. |
-| **Built-in planner** (`agent.py`) | otherwise | Our own rule-based planner; no outside AI. |
+| LangChain Deep Agents (`deep_scout.py`) | `SCOUT_LLM` is set | Plans with a todo list, hands room comparisons to an acoustics subagent and lodging to a logistics subagent, writes its report to a file. Works with Claude or a free OpenRouter model. |
+| Claude (`agent.py`) | `ANTHROPIC_API_KEY` is set | A plain tool-use loop. |
+| Built-in (`agent.py`) | neither is set | A fixed plan with no language model. |
 
-The acoustics, scoring, lodging maths and simulations are our own code in every mode.
+The acoustics (`acoustics.py`) use the Eyring formula, RT60 = 0.161 V / (-S ln(1 - a)), with absorption values for
+common finishes and about 0.45 m² of absorption per person in the audience. The numbers are estimates, not
+measurements: the scans give us room sizes, and the finishes are inferred from what the space is.
 
-## Run it
+The budget runs on Capital One's Nessie sandbox. The agent can check the balance and work out a break-even ticket
+price, but money only moves when the treasurer clicks the button, which posts the deposit as a bill and collects
+each member's share by transfer.
+
+You can also text the scout over iMessage through Photon (`photon.py`). It replies with its pick, an aerial photo
+of the building and a link that opens the site ready to play the chord in that room.
+
+## Running it
+
+Install the backend:
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-1. Put your keys in a repo-root `.env` (copy `.env.example`). Keys come from `/costar-keys` in the CoStar
-   track Discord.
-2. Unzip the CoStar kit into `data/kit/` (password from `/costar-keys`).
-3. Build the indexes:
+Copy `.env.example` to `.env` and fill in the keys. The CoStar track keys come from `/costar-keys` in the track
+Discord. Unzip the CoStar kit into `data/kit/`, then build the indexes:
 
 ```bash
 python scripts/build_index.py
@@ -63,17 +61,22 @@ python scripts/build_index.py
 python scripts/fetch_matterport.py
 ```
 
-4. Start the app and open http://localhost:8000:
+Start the server and open http://localhost:8000:
 
 ```bash
 cd backend && uvicorn app.main:app --port 8000
 ```
 
-`data/` and `.env` are git-ignored: the CoStar data is licensed for hackathon use only.
+Before a demo, reset the Nessie sandbox so the fund starts at $2,500:
 
-## Honest limits
+```bash
+python scripts/reset_tour_fund.py
+```
 
-- RT60 values are physics estimates from scan geometry and assumed finishes, not measurements.
-- Lodging costs use CoStar average daily rates and asking rents, not live quotes.
-- Contact emails in the CoStar kit are anonymised placeholders.
-- The data covers Los Angeles and Houston only.
+`data/` and `.env` are git-ignored because the CoStar data is licensed for the hackathon only. A hosted deploy
+uses `deploy/index.bin`, an encrypted copy of the derived index that the server unlocks with `DATA_KEY`.
+
+## What it can't do yet
+
+Reverb figures are estimates. Lodging prices are CoStar averages, not quotes. Contact emails in the CoStar kit are
+anonymised. It only covers Los Angeles and Houston.

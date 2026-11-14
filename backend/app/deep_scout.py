@@ -42,7 +42,10 @@ ask it which room fits best and why.
 4. Delegate to the stay-planner subagent with the chosen venue_id, group size and nights.
 5. Call draft_outreach for the chosen venue and room.
 6. Write the final recommendation to /report.md with write_file, then reply with the same text: the pick and \
-why (cite RT60 and capacity), lodging with estimated cost, one or two backups, caveats. Under 200 words.
+why (cite RT60 and capacity), lodging with estimated cost, one or two backups, caveats. Under 150 words.
+
+Write the recommendation the way a friend who books venues would text it: two short plain paragraphs, first \
+person, no headings, no bullet points, no bold labels like "Sound:", no emoji, no em dashes, no sales language.
 
 Acoustic numbers are physics estimates from scan geometry and assumed finishes; rates are CoStar averages. \
 Never invent data the tools did not return."""

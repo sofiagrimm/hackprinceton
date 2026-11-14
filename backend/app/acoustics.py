@@ -96,12 +96,12 @@ TAG_HINTS: dict[str, str] = {
 
 # Target RT60 bands (seconds, occupied) for each intended use.
 USES: dict[str, tuple[float, float, str]] = {
-    "a_cappella_performance": (1.3, 2.0, "unamplified vocal ensemble performance"),
-    "choral_performance": (1.6, 2.4, "choir / sacred music"),
-    "rehearsal": (0.7, 1.2, "rehearsal (clarity to hear each part)"),
-    "recording": (0.4, 0.8, "vocal recording"),
-    "film_dialogue": (0.3, 0.6, "film / video with dialogue"),
-    "amplified_show": (0.8, 1.3, "amplified show with a PA"),
+    "a_cappella_performance": (1.3, 2.0, "a cappella without mics"),
+    "choral_performance": (1.6, 2.4, "a choir"),
+    "rehearsal": (0.7, 1.2, "rehearsing, where you need to hear every part"),
+    "recording": (0.4, 0.8, "recording vocals"),
+    "film_dialogue": (0.3, 0.6, "filming dialogue"),
+    "amplified_show": (0.8, 1.3, "a show with a sound system"),
 }
 
 PERSON_SABINS_M2 = 0.45  # absorption of one seated or standing person, mid band
@@ -262,13 +262,11 @@ def _score(rt: float, lo: float, hi: float) -> int:
 
 def _verdict(rt: float, lo: float, hi: float, use_label: str) -> str:
     if lo <= rt <= hi:
-        return f"Ideal for {use_label}: {rt:.1f}s sits inside the {lo:.1f}-{hi:.1f}s target."
+        return f"About {rt:.1f} seconds of reverb with a crowd in, which is right for {use_label}."
     if rt < lo:
-        gap = lo / rt
-        if gap > 2:
-            return f"Very dry ({rt:.1f}s) for {use_label}; voices will sound flat and need a PA."
-        return f"A little dry ({rt:.1f}s vs {lo:.1f}s+) for {use_label}; usable, blend will feel tight."
-    gap = rt / hi
-    if gap > 1.6:
-        return f"Very live ({rt:.1f}s) for {use_label}; words will smear. Add drapes or pick another room."
-    return f"A little live ({rt:.1f}s vs <{hi:.1f}s) for {use_label}; slow tempos will bloom, fast lyrics blur."
+        if lo / rt > 2:
+            return f"Only {rt:.1f} seconds of reverb. Voices will sound flat here without a PA."
+        return f"{rt:.1f} seconds of reverb, a bit dry for {use_label}. It works, but the blend will feel exposed."
+    if rt / hi > 1.6:
+        return f"{rt:.1f} seconds of reverb. Words will blur together unless you hang drapes."
+    return f"{rt:.1f} seconds of reverb, a bit live. Slow songs will sound great and fast lyrics will smear."

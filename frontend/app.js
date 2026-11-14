@@ -372,7 +372,7 @@ function renderRtChart(a) {
   $("d-rtchart").innerHTML = `
     <svg viewBox="0 0 ${W} 120" role="img" aria-label="Reverberation time against the target band">
       <rect x="${x(a.target_s[0])}" y="6" width="${x(a.target_s[1]) - x(a.target_s[0])}" height="84" rx="10" fill="rgba(48,209,88,0.14)"/>
-      <text x="${x(a.target_s[0])}" y="112" font-size="13" fill="#30d158">Target ${a.target_s[0]}–${a.target_s[1]}s</text>
+      <text x="${x(a.target_s[0])}" y="112" font-size="13" fill="#30d158">Target ${a.target_s[0]} to ${a.target_s[1]}s</text>
       ${row(18, a.rt60_empty_s, "Empty", "#48484a")}
       ${row(56, a.rt60_occupied_s, "Full house", "#2997ff")}
     </svg>`;
@@ -614,10 +614,10 @@ async function loadBudget(id) {
   if (b.error) { $("d-budget").innerHTML = `<p class="sub">${esc(b.error)}</p>`; return; }
   const c = b.costs, f = b.fund;
   let verdict = `<span class="note">Connect the Nessie sandbox to check the fund.</span>`;
-  if (b.affordable === true) verdict = `<span class="ok">Fits the tour fund, with ${money(f.available_after_bills - c.total)} to spare.</span>`;
-  if (b.affordable === false) verdict = `<span class="over">${money(b.shortfall)} more than the tour fund holds.</span>`;
+  if (b.affordable === true) verdict = `<span class="ok">The tour fund covers it, with ${money(f.available_after_bills - c.total)} left over.</span>`;
+  if (b.affordable === false) verdict = `<span class="over">That's ${money(b.shortfall)} more than the tour fund has.</span>`;
   $("d-budget").innerHTML = `
-    <h2 class="display">Keep the tour solvent.</h2>
+    <h2 class="display">Can the tour afford it?</h2>
     <p class="total">${money(c.total)}</p>
     <p class="verdict">${verdict}</p>
     <dl class="specs">${dlRows([
@@ -627,8 +627,8 @@ async function loadBudget(id) {
       ["Break-even ticket", money2(b.break_even_ticket)],
       ["Each member's share", money2(b.per_member_share)],
     ])}</dl>
-    ${f ? `<button id="approve" class="cta">Hold the deposit and collect dues</button>` : ""}
-    <p class="note">Planned by the scout, approved by the treasurer, settled in Capital One's Nessie sandbox. Venue fee estimated for ${esc(c.venue_fee_basis)}.</p>
+    ${f ? `<button id="approve" class="cta">Pay the deposit and collect dues</button>` : ""}
+    <p class="note">Nothing moves until the treasurer presses the button. Payments run in Capital One's Nessie sandbox. The venue fee is a rough guess for ${esc(c.venue_fee_basis)}.</p>
     <ul class="ledger" id="ledger"></ul>`;
   const btn = $("approve");
   if (btn) btn.onclick = () => approveBudget(id, btn);

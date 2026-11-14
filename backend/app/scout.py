@@ -252,7 +252,7 @@ def find_housing(venue_id: int, group_size: int = 14, nights: int = 2,
     }
 
 
-def draft_outreach(venue_id: int, group_name: str = "our a cappella group", event_date: str = "",
+def draft_outreach(venue_id: int, group_name: str = "", event_date: str = "",
                    audience: int = 60, group_size: int = 14, nights: int = 2,
                    space_name: str | None = None) -> dict:
     """A ready-to-send inquiry to the listing broker or hotel for this venue."""
@@ -266,25 +266,29 @@ def draft_outreach(venue_id: int, group_name: str = "our a cappella group", even
     elif venue["listings"] and venue["listings"][0]["contacts"]:
         contact = venue["listings"][0]["contacts"][0]
     space = space_name or "your event space"
+    if space.lower().startswith(venue["name"].lower()):
+        space = space[len(venue["name"]):].lstrip(" -:") or space
+    space = f"the {space.lower()}" if space_name else space
+    who = group_name or f"a {group_size}-person a cappella group"
     when = f" on {event_date}" if event_date else ""
     lodging = (f" We would also like to book about {-(-group_size // 2)} rooms for {nights} night(s)."
                if venue.get("hotel") else "")
     greeting = f"Hi {contact['name'].split()[0]}," if contact and contact.get("name") and contact["name"] != "Sales & Events Team" else "Hello,"
     body = (
         f"{greeting}\n\n"
-        f"I'm reaching out on behalf of {group_name}, a {group_size}-member touring vocal ensemble. "
-        f"We're planning a stop in {data.metro_of(venue)}{when} and {space} at {venue['name']} "
-        f"({venue['address']}) looks like a great fit for an unamplified performance for about {audience} guests."
+        f"I run logistics for {who}. We're coming through "
+        f"{data.metro_of(venue)}{when} and would love to sing in {space} at {venue['name']} "
+        f"({venue['address']}), for an audience of about {audience}."
         f"{lodging}\n\n"
-        "Could you share availability, the rental rate for an evening (load-in, a one-hour soundcheck and a "
-        "90-minute show), and any group or nonprofit pricing? We bring our own small PA as a backup and need no "
-        "staging beyond chairs.\n\n"
-        "Thank you!\n"
+        "Is it free that evening, and what would it cost? We'd need it for about four hours: load-in, an hour "
+        "to rehearse, then a 90-minute show. We don't need a stage, just chairs, and we bring a small speaker "
+        "in case we need it. If you have a rate for student or nonprofit groups, we'd be grateful.\n\n"
+        "Thanks,\n[Your name]\n"
     )
     return {
         "venue": venue["name"],
         "to": contact,
-        "subject": f"Performance inquiry: {group_name} at {venue['name']}{when}",
+        "subject": f"Booking a concert at {venue['name']}{when}",
         "body": body,
         "note": "CoStar's kit anonymises contact emails, so the address here is a placeholder.",
     }

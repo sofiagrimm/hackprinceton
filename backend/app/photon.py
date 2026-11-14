@@ -85,8 +85,8 @@ def set_typing(space_id: str, typing: bool = True) -> None:
 
 # --------------------------------------------------------------------------- conversation
 
-HELP = ("Hi! I'm Encore Scout. Tell me about your tour stop and I'll find a room that sounds right, "
-        "somewhere to stay and who to call. Try: \"14 singers in LA on March 14, 80 guests, 2 nights\".")
+HELP = ("Hi. Tell me about your tour stop and I'll find you a room that sounds good and somewhere to stay. "
+        "Something like: 14 singers in LA on March 14, 80 guests, 2 nights.")
 
 FOLLOW_UPS = [
     (r"\bhouston\b", lambda b: re.sub(r"\b(la|los angeles)\b", "Houston", b, flags=re.I) + " in Houston"),
@@ -121,30 +121,29 @@ def compose_reply(brief: str) -> tuple[str, dict | None]:
             elif ev["name"] == "draft_outreach" and pick and res.get("venue") != pick["name"]:
                 pick = next((v for v in [data.venues().get(pick["venue_id"])] if v), pick)
     if not pick:
-        return ("I couldn't find a scanned room for that. Try a smaller audience, or say LA or Houston.", None)
+        return ("I couldn't find a room that fits. Could you try a smaller crowd? I only know LA and Houston for now.", None)
 
     a = pick["best_space"]["acoustics"]
     space = pick["best_space"]["space_name"]
     if space.lower().startswith(pick["name"].lower()):
         space = space[len(pick["name"]):].lstrip(" -–:") or space
     lines = [
-        f"🎤 {pick['name']} - {space}",
-        f"{pick['address']}",
-        f"Sound: {a['rt60_occupied_s']}s reverb with {a['audience']} guests ({a['verdict'].split(':')[0].lower()}). "
-        f"Seats ~{a['capacity_seated']}.",
+        f"Try the {space.lower()} at {pick['name']} ({pick['address']}).",
+        f"{a['verdict']} It seats about {a['capacity_seated']}.",
     ]
     stay = (housing or {}).get("options") or []
     if stay:
         s = stay[0]
-        lines.append(f"🛏 {s['name']}, {s['distance_miles']} mi" + (f", ~${s['estimated_total']:,}" if s.get("estimated_total") else ""))
+        lines.append(f"You could stay at {s['name']}, {s['distance_miles']} mi away"
+                     + (f", around ${s['estimated_total']:,} total." if s.get("estimated_total") else "."))
     if budget and budget.get("costs"):
-        verdict = "fits your tour fund" if budget.get("affordable") else (
-            f"${budget['shortfall']:,.0f} over your fund" if budget.get("shortfall") else "")
-        lines.append(f"💵 ~${budget['costs']['total']:,.0f} total {verdict}; break-even ticket ${budget['break_even_ticket']:.2f}")
+        verdict = "Your tour fund covers it." if budget.get("affordable") else (
+            f"That's ${budget['shortfall']:,.0f} more than your fund has." if budget.get("shortfall") else "")
+        lines.append(f"All in it's about ${budget['costs']['total']:,.0f}. {verdict}".strip())
     public = os.environ.get("PUBLIC_URL", "").rstrip("/")
     if public:
-        lines.append(f"🎧 Hear your group in this room: {public}/?venue={pick['venue_id']}&listen=1")
-    lines.append("Reply with a new city (LA / Houston), audience size or number of nights to adjust.")
+        lines.append(f"Hear what you'd sound like in there: {public}/?venue={pick['venue_id']}&listen=1")
+    lines.append("Want a different city, crowd size or number of nights? Just tell me.")
     return "\n".join(lines), pick
 
 
@@ -165,7 +164,7 @@ def handle_message(event: dict) -> None:
             send_text(space_id, our_line, HELP)
             return
         set_typing(space_id, True)
-        send_text(space_id, our_line, "On it - searching 3,288 scanned buildings and measuring the rooms… 🎶")
+        send_text(space_id, our_line, "Looking now. Give me a minute.")
         brief = merge_brief(space_id, text)
         reply, pick = compose_reply(brief)
         send_text(space_id, our_line, reply)

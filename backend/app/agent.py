@@ -121,35 +121,36 @@ class PlannerScout:
         stay = (housing.get("options") or [{}])[0]
         space = best["space_name"]
         if space.lower().startswith(pick["name"].lower()):
-            space = space[len(pick["name"]):].lstrip(" -–:") or space
+            space = space[len(pick["name"]):].lstrip(" -:") or space
         lines = [
-            f"**Recommendation: {pick['name']}**, {space.lower()} ({pick['address']}).",
-            f"- Sound: {a['verdict']} (empty {a['rt60_empty_s']}s, with {a['audience']} guests {a['rt60_occupied_s']}s).",
-            f"- Fits about {a['capacity_seated']} seated / {a['capacity_standing']} standing in {best['area_sqft']:,} sq ft.",
+            f"I'd book the {space.lower()} at **{pick['name']}**. {a['verdict']} "
+            f"It's {best['area_sqft']:,} sq ft, enough for about {a['capacity_seated']} people seated.",
         ]
+        more = []
         if stay:
-            lines.append(f"- Stay: {stay.get('name')} ({stay.get('distance_miles')} mi"
-                         f"{', same building' if stay.get('same_building') else ''}), est. ${stay.get('estimated_total') or '?'} total.")
+            where = "in the same building" if stay.get("same_building") else f"{stay.get('distance_miles')} miles away"
+            cost = f" for about ${stay['estimated_total']:,}" if stay.get("estimated_total") else ""
+            more.append(f"The group can stay at {stay.get('name')}, {where}{cost}.")
         if budget.get("costs"):
-            lines.append(_budget_line(budget))
-        for alt in top[1:]:
-            lines.append(f"- Backup: {alt['name']} - {alt['best_space']['space_name']} "
-                         f"({alt['best_space']['acoustics']['rt60_occupied_s']}s).")
+            more.append(_budget_line(budget))
+        backups = [f"{alt['name']} ({alt['best_space']['acoustics']['rt60_occupied_s']}s)" for alt in top[1:]]
+        if backups:
+            more.append("If it's booked, try " + " or ".join(backups) + ".")
+        lines.append(" ".join(more))
         yield {"type": "message", "text": "\n".join(lines)}
         yield {"type": "done", "brief": brief}
 
 
 def _budget_line(budget: dict) -> str:
     total = budget["costs"]["total"]
-    fund = budget.get("fund") or {}
     if budget.get("affordable"):
-        verdict = f"fits the tour fund (${fund.get('available_after_bills', 0):,.0f} available)"
+        verdict = "and the tour fund can cover it"
     elif budget.get("shortfall"):
-        verdict = f"is ${budget['shortfall']:,.0f} over the tour fund"
+        verdict = f"which is ${budget['shortfall']:,.0f} more than the tour fund has"
     else:
-        verdict = "(tour fund not connected)"
-    return (f"- Budget: ~${total:,.0f} for this stop {verdict}; break-even ticket "
-            f"${budget['break_even_ticket']}, ${budget['per_member_share']} per member.")
+        verdict = "(the bank isn't connected, so I couldn't check the fund)"
+    return (f"The whole stop comes to about ${total:,.0f}, {verdict}. Tickets would need to be "
+            f"${budget['break_even_ticket']:.2f} to break even.")
 
 
 def _call(name: str, args: dict):
@@ -181,8 +182,11 @@ occupied RT60 lands in the target band; a room that is a little dry is better th
 6. Call tour_budget for the top pick to check the group's fund; if it is over budget, consider a cheaper \
 backup or lodging option and say so.
 7. Call draft_outreach for the top pick, naming the specific room.
-8. Finish with a short recommendation in Markdown: the pick and why (cite RT60 numbers and capacity), \
-lodging and estimated cost, one or two backups, and any caveats. Keep it under 200 words.
+8. Finish with a short recommendation: the pick and why (cite RT60 numbers and capacity), lodging and \
+estimated cost, one or two backups, and any caveats. Keep it under 150 words. Write it the way a friend who \
+books venues would text it: two short plain paragraphs, first person, no headings, no bullet points, no bold \
+labels like "Sound:", no emoji, no em dashes, no sales language. Before calling a tool you may say one short \
+sentence about what you're checking.
 
 The acoustic numbers are physics estimates from scan geometry and assumed finishes; say so briefly. \
 Rates are CoStar averages, not quotes. Never invent data the tools did not return."""
