@@ -1438,3 +1438,25 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 }
 .book-pick .cal-side { padding-top: 96px; }
 @media (max-width: 900px) { .book-pick .cal-side { padding-top: var(--s4); } }
+
+/* film roll: a thinner strip; the chosen venue pops out of it, bigger than the rest */
+.rs-slider { padding: 5.5% 0; }
+.rs-track { overflow-x: clip; overflow-y: visible; padding: 30px 18px; gap: 10px; }
+.rs-track::before { top: 12px; font-size: 9px; }
+.rs-track::after { bottom: 10px; font-size: 9px; }
+.rs-slide, .rs-slide.on { transition: width .45s ease-out, margin .45s ease-out, transform .45s ease-out; }
+.rs-slide { width: 19%; }
+.rs-slide.on { width: 32%; margin-block: -4.4%; position: relative; z-index: 2; transform: rotate(-1.5deg); }
+.rs-slide.past { width: 0; margin-right: -10px; }
+.rs-slide.on .rs-shot { outline: 0; border: 6px solid #f6f1ea; border-bottom-width: 26px; box-shadow: 0 0 0 2px #d9a441, 0 18px 34px rgba(0, 0, 0, 0.45); border-radius: 2px; }
+.rs-slide.on .rs-shot-name { bottom: -24px; background: none; color: var(--ink); padding: 4px 6px; font-size: 12px; }
+.rs-slide.on .rs-shot .rs-num { bottom: 10px; }
+@media (max-width: 760px) {
+  .rs-slider { padding: 10% 0; }
+  .rs-slide { width: 38%; }
+  .rs-slide.on { width: 62%; margin-block: -8%; }
+}
+.rs-slide.on .rs-shot-name { display: none; }
+.rs-slider { padding-bottom: 0; }
+.rs-controls { margin-top: calc(4.4% + var(--s4)); }
+@media (max-width: 760px) { .rs-controls { margin-top: calc(8% + var(--s3)); } }
