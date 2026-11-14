@@ -377,10 +377,19 @@ async function renderShelf() {
   list.innerHTML = venues.filter((v) => v?.best_space?.acoustics)
     .map((v, i) => `<li>${roomCard(v, i, `${esc(v.metro)}. `)}</li>`).join("");
   hydrate(list);
-  const step = () => Math.max(260, list.clientWidth * 0.8);
-  const move = (dir) => list.scrollBy({ left: dir * step(), behavior: reduced() ? "auto" : "smooth" });
-  $("feat-next").onclick = () => move(1);
-  $("feat-prev").onclick = () => move(-1);
+  // two whole cards at a time
+  const items = [...list.children];
+  let at = 0;
+  const show2 = () => {
+    at = Math.max(0, Math.min(at, items.length - 2));
+    list.scrollTo({ left: items[at] ? items[at].offsetLeft - items[0].offsetLeft : 0, behavior: reduced() ? "auto" : "smooth" });
+    $("feat-prev").disabled = at === 0;
+    $("feat-next").disabled = at >= items.length - 2;
+    items.forEach((li, i) => li.toggleAttribute("inert", i < at || i > at + 1));
+  };
+  $("feat-next").onclick = () => { at += 2; show2(); };
+  $("feat-prev").onclick = () => { at -= 2; show2(); };
+  show2();
 }
 
 // ------------------------------------------------------------------ results page

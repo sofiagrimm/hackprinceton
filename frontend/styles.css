@@ -364,9 +364,12 @@ input[type=range] { accent-color: var(--wine); }
 .search-main .cassette { max-width: 640px; }
 .search-shelf { min-width: 0; padding-top: clamp(24px, 6vw, 96px); }
 .search-shelf .featured-head { margin-top: 0; padding-top: 0; border-top: 0; }
+/* exactly two whole cards in view; the arrows move two at a time */
 .search-shelf .featured {
-  grid-auto-columns: min(250px, 72%); gap: var(--s5); padding: var(--s6) var(--s2) var(--s5) var(--s2); margin: 0 calc(-1 * var(--s2));
+  grid-auto-columns: calc((100% - var(--s5)) / 2); gap: var(--s5); padding: var(--s6) 12px var(--s5); margin: 0 -12px;
+  scroll-padding-inline: 12px; overflow-x: hidden; scroll-snap-type: x mandatory;
 }
+.search-shelf .featured li { scroll-snap-align: start; }
 @media (max-width: 1000px) {
   .search-layout { grid-template-columns: 1fr; }
   .search-shelf { padding-top: 0; }
