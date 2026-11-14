@@ -331,7 +331,7 @@ function roomCard(v, n, extra = "") {
   const s = v.best_space, a = s.acoustics || {};
   return `
     <a class="polaroid rs-card" href="#/venue/${v.venue_id}" style="--tilt:${[-1.4, 1.1, -0.6, 1.6, -1.1, 0.7][n % 6]}deg;--tag:${["#742d36", "#2d5a8a", "#b8862b", "#4a5140", "#b4532a"][n % 5]}">
-      <span class="rs-num">${String(n + 1).padStart(2, "0")}</span>
+      
       ${photoTag(v)}
       <span class="rs-card-body">
         <span class="rs-kind">${esc(a.space_label || s.space_name)}</span>
@@ -394,7 +394,7 @@ function renderResults(r) {
           <li class="rs-slide" data-i="${i}">
             <a class="rs-shot" href="#/venue/${v.venue_id}" aria-label="${i + 1} of ${n}: ${esc(v.name)}. Open the room.">
               ${photoTag(v)}
-              <span class="rs-num">${String(i + 1).padStart(2, "0")}</span>
+              
               <span class="rs-shot-name" aria-hidden="true">${esc(v.name)}</span>
             </a>
           </li>`).join("")}
@@ -423,7 +423,7 @@ function wireSlider(results) {
       s.classList.toggle("past", k < at);
       s.querySelector("a").tabIndex = k === at ? 0 : -1;
     });
-    $("rs-count").textContent = `${String(at + 1).padStart(2, "0")} / ${String(results.length).padStart(2, "0")}`;
+    $("rs-count").textContent = `${at + 1} of ${results.length}`;
     $("rs-prev").disabled = at === 0;
     $("rs-next").disabled = at === results.length - 1;
     renderDetail(results[at], at);
