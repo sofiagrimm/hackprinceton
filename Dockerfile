@@ -7,9 +7,8 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend backend
 COPY frontend frontend
 COPY scripts scripts
-# Derived indexes built by scripts/build_index.py + fetch_matterport.py. They are
-# git-ignored (CoStar data is hackathon-only) and uploaded with `railway up --no-gitignore`.
-COPY data/index data/index
+# Encrypted data index (scripts/pack_data.py); decrypted at startup with DATA_KEY.
+COPY deploy deploy
 
 WORKDIR /app/backend
 ENV PYTHONUNBUFFERED=1

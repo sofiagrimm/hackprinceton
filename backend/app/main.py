@@ -16,6 +16,9 @@ from . import data, scout, vexcel
 from .agent import make_scout
 from .config import ANTHROPIC_API_KEY, FRONTEND_DIR, MATTERPORT_SDK_KEY
 
+from .bootstrap import ensure_index
+
+INDEX_SOURCE = ensure_index()
 app = FastAPI(title="Encore Scout")
 
 
