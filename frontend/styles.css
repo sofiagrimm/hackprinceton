@@ -1747,3 +1747,7 @@ body:is([data-view="acoustics"], [data-view="lighting"], [data-view="walk3d"], [
   .venue-switch { left: var(--gutter); right: var(--gutter); top: auto; bottom: 12px; justify-content: space-between; overflow-x: auto; }
   .vs-name { display: none; }
 }
+
+/* sound card numbers: taller and narrower, in Playfair */
+.ac-big { font-family: var(--serif); font-weight: 700; font-size: clamp(30px, 2.6vw, 38px); letter-spacing: 0; line-height: 1; font-variant-numeric: lining-nums; }
+.ac-big small { font-family: var(--body); font-weight: 600; font-size: 0.42em; margin-left: 3px; }
