@@ -179,6 +179,14 @@
             <button id="go" type="submit">Scout</button>
           </div>
         </form>
+        <div class="scout-mode" id="scout-mode" hidden>
+          <span>Scout with</span>
+          <div class="seg" role="group" aria-label="Which scout plans the search">
+            <button type="button" data-mode="planner" class="on">Fast planner</button>
+            <button type="button" data-mode="ai" id="mode-ai">AI agent</button>
+          </div>
+          <span class="note" id="mode-note">A few seconds. Fixed steps.</span>
+        </div>
         <p class="try" id="examples">Try </p>
         <p class="last-results" id="last-results" hidden><a href="#/results">Back to your last results</a></p>
         </div>
