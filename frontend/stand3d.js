@@ -8,6 +8,31 @@ import * as THREE from "./vendor/three.module.js";
 import { RoomSound } from "./audio.js";
 
 const C = 343; // speed of sound, m/s
+const FACE_ORDER = [2, 4, 0, 5, 1, 3]; // Matterport skybox faces in three.js cube order
+const PANO_EYE = 1.5; // the scan camera's height, metres
+
+// The room's own 360 photo, projected onto the box from where the scan camera stood:
+// each wall and floor point takes the colour the camera saw in that direction.
+const PANO_VERT = `
+  varying vec3 vWorld;
+  void main() {
+    vec4 w = modelMatrix * vec4(position, 1.0);
+    vWorld = w.xyz;
+    gl_Position = projectionMatrix * viewMatrix * w;
+  }`;
+const PANO_FRAG = `
+  uniform samplerCube map;
+  uniform vec3 eye;
+  uniform float shade;
+  uniform float calm; // how much to quiet the photo (the floor smears furniture flat)
+  varying vec3 vWorld;
+  void main() {
+    vec3 c = textureCube(map, normalize(vWorld - eye)).rgb;
+    float l = dot(c, vec3(0.299, 0.587, 0.114));
+    c = mix(c, vec3(l) * vec3(1.02, 0.97, 0.92), calm * 0.55);
+    gl_FragColor = vec4(c * shade, 1.0);
+    #include <colorspace_fragment>
+  }`;
 const CHERRY = 0x8e1424, CREAM = 0xf3ece1, GOLD = 0xd9a441;
 
 function person(color, height = 1.7) {
@@ -38,7 +63,8 @@ export function createStandView(container, { onMove } = {}) {
   scene.add(sun);
   const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 400);
 
-  let roomGroup = null, dims = { length: 12, width: 8, height: 3.5 };
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  let roomGroup = null, dims = { length: 12, width: 8, height: 3.5 }, pano = null;
   const singers = [];
   const listener = person(CREAM, 1.65);
   scene.add(listener);
@@ -55,13 +81,20 @@ export function createStandView(container, { onMove } = {}) {
     roomGroup = new THREE.Group();
     const { length: L, width: W, height: H } = dims;
     // floor, with a 1 m grid
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W), new THREE.MeshStandardMaterial({ color: 0x6e3f3f, roughness: 0.9 }));
+    const panoMat = (shade, calm = 0) => new THREE.ShaderMaterial({
+      uniforms: { map: { value: pano }, eye: { value: new THREE.Vector3(0, PANO_EYE, 0) }, shade: { value: shade }, calm: { value: calm } },
+      vertexShader: PANO_VERT, fragmentShader: PANO_FRAG, side: THREE.BackSide,
+    });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W),
+      pano ? panoMat(0.78, 1) : new THREE.MeshStandardMaterial({ color: 0x6e3f3f, roughness: 0.9 }));
+    if (pano) floor.material.side = THREE.DoubleSide;
     floor.rotation.x = -Math.PI / 2;
     floor.name = "floor";
     roomGroup.add(floor);
     const grid = new THREE.GridHelper(Math.max(L, W), Math.round(Math.max(L, W)), 0x9a6a64, 0x7d4b4b);
     grid.scale.set(L / Math.max(L, W), 1, W / Math.max(L, W));
     grid.position.y = 0.005;
+    if (pano) { grid.material.transparent = true; grid.material.opacity = 0.18; }
     roomGroup.add(grid);
     // the stage: the front few metres
     const stage = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(3, L * 0.25), W * 0.8), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 0.22 }));
@@ -69,7 +102,11 @@ export function createStandView(container, { onMove } = {}) {
     stage.position.set(-L / 2 + Math.min(3, L * 0.25) / 2, 0.01, 0);
     roomGroup.add(stage);
     // walls: see-through from outside, faint from inside
-    const box = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), new THREE.MeshStandardMaterial({ color: 0xe9ddd0, transparent: true, opacity: 0.1, side: THREE.BackSide, depthWrite: false }));
+    // walls: from outside you see the far walls' inner faces (a dollhouse); the near ones step aside
+    const box = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), pano
+      ? [panoMat(0.92), panoMat(0.92), panoMat(1.05), panoMat(0.85), panoMat(0.92), panoMat(0.92)]
+      : new THREE.MeshStandardMaterial({ color: 0xe9ddd0, transparent: true, opacity: 0.1, side: THREE.BackSide, depthWrite: false }));
+    if (pano) box.material[3].visible = false; // the floor plane already covers the bottom
     box.position.y = H / 2;
     roomGroup.add(box);
     const edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(L, H, W)), new THREE.LineBasicMaterial({ color: CREAM }));
@@ -167,6 +204,16 @@ export function createStandView(container, { onMove } = {}) {
       setSingers(voices);
     },
     setVoices: setSingers,
+    /** Dress the room in its own 360 photo (or pass nulls to go back to the plain box). */
+    async setPanorama(modelId, panoId) {
+      if (!modelId) { pano = null; buildRoom(); dirty = true; return; }
+      const tex = await new THREE.CubeTextureLoader().loadAsync(FACE_ORDER.map((i) => `/api/pano/${modelId}/${panoId}/${i}.jpg`));
+      tex.colorSpace = THREE.SRGBColorSpace;
+      pano?.dispose?.();
+      pano = tex;
+      buildRoom();
+      dirty = true;
+    },
     reset: arrange,
     /** Positions in metres with the room's corner at the origin: x along the length, z across, y up. */
     positions() {

@@ -1185,6 +1185,10 @@ async function updateStand() {
     $("stand-room").textContent = sp.space_name;
     $("stand-size").textContent = `${(dims.length * 3.281).toFixed(0)} x ${(dims.width * 3.281).toFixed(0)} ft, ${(dims.height * 3.281).toFixed(0)} ft high`;
     if (stand.playing) stopStand();
+    // dress the box in this room's own 360 photo
+    const list = (await rooms(state.venueId)).filter((r) => r.model_id === sp.model_id);
+    const best = rankRooms(list, sp.model_id)[0];
+    stand.view.setPanorama(best?.model_id || null, best?.pano_id).catch(() => stand.view.setPanorama(null));
   }
   standReadout();
   if (stand.sound) standImpulse();
