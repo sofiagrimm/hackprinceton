@@ -1483,3 +1483,9 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 
 /* venue pages: no section links across the top, just the way back */
 .prop-nav .subnav-links { display: none !important; }
+
+/* acoustics details: only the clap measurement stays */
+.view[data-view="acoustics"] .pr-compare,
+.view[data-view="acoustics"] .pr-model,
+.view[data-view="acoustics"] #d-rtchart,
+.view[data-view="acoustics"] #sound details.fold { display: none !important; }
