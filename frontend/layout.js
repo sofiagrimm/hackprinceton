@@ -379,6 +379,7 @@ async function renderShelf() {
   const venues = await Promise.all(FEATURED.map((id) =>
     // audience before use, so pipeline.js doesn't mistake these for the venue on screen
     fetch(`/api/venues/${id}?audience=80&use=a_cappella_performance`).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  sideShow(venues.filter((v) => v?.best_space?.acoustics));
   list.innerHTML = venues.filter((v) => v?.best_space?.acoustics)
     .map((v, i) => `<li>${roomCard(v, i, `${esc(v.metro)}. `)}</li>`).join("");
   hydrate(list);
@@ -395,6 +396,36 @@ async function renderShelf() {
   $("feat-next").onclick = () => { at += 2; show2(); };
   $("feat-prev").onclick = () => { at -= 2; show2(); };
   show2();
+}
+
+/** The polaroid beside "Working on the road?": a slow cross-fade through real venues, each a link to its page. */
+function sideShow(venues) {
+  const frame = $("ss-frame"), cap = $("ss-cap");
+  if (!frame || !venues.length) return;
+  frame.innerHTML = venues.map((v, i) => `
+    <a class="ss-slide${i === 0 ? " on" : ""}" href="#/venue/${v.venue_id}" aria-label="${esc(v.name)}, ${esc(v.best_space.space_name)}. Open this venue."${i ? ' tabindex="-1" aria-hidden="true"' : ""}>
+      <img alt="" data-venue="${v.venue_id}">
+    </a>`).join("");
+  hydrate(frame);
+  const slides = [...frame.children];
+  const label = (v) => `${v.best_space.space_name.toLowerCase()} / ${v.name}`;
+  let at = 0, paused = false;
+  cap.textContent = label(venues[0]);
+  const showSlide = (i) => {
+    slides[at].classList.remove("on"); slides[at].tabIndex = -1; slides[at].setAttribute("aria-hidden", "true");
+    at = (i + slides.length) % slides.length;
+    slides[at].classList.add("on"); slides[at].tabIndex = 0; slides[at].removeAttribute("aria-hidden");
+    cap.textContent = label(venues[at]);
+  };
+  const box = $("side-show");
+  box.addEventListener("mouseenter", () => { paused = true; });
+  box.addEventListener("mouseleave", () => { paused = false; });
+  box.addEventListener("focusin", () => { paused = true; });
+  box.addEventListener("focusout", () => { paused = false; });
+  setInterval(() => {
+    if (paused || reduced() || document.body.dataset.view !== "search") return;
+    showSlide(at + 1);
+  }, 5200);
 }
 
 // ------------------------------------------------------------------ results page
@@ -1360,7 +1391,7 @@ wireSaving();
 wireCollageSounds();
 watchVenueName();
 // The opening page and Side B: real buildings from the inside or from the side, never straight down.
-[["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330],
+[["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], 
   ["snap-left-a", 9438497], ["snap-left-b", 10183484], ["snap-left-c", 5316122]]
   .forEach(([id, venue]) => $(id) && showPicture($(id), venue));
 window.addEventListener("popstate", route);

@@ -1271,3 +1271,14 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 @media (prefers-reduced-motion: reduce) { .cl-gramophone-hit.playing .cl-gramophone, .cl-camera-hit.snap::after { animation: none; } }
 .cassette-head { justify-content: center; }
 .cassette textarea::placeholder { color: var(--ink-3); font-style: italic; }
+
+/* the slideshow polaroid beside "Working on the road?" */
+.side-show { width: min(380px, 100%); }
+.ss-frame { position: relative; aspect-ratio: 6 / 5; background: #2b2722; overflow: hidden; }
+.ss-frame > img { display: none; }
+.ss-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.6s ease; pointer-events: none; }
+.ss-slide.on { opacity: 1; pointer-events: auto; }
+.ss-slide img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; transform: scale(1.04); transition: transform 6s ease-out; }
+.ss-slide.on img { transform: scale(1); }
+.ss-slide:hover img { filter: brightness(1.06); }
+.side-show figcaption { min-height: 1.6em; transition: opacity .4s; }
