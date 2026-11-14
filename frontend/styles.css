@@ -1689,5 +1689,5 @@ select option { background: #2c0d10; color: var(--ink); }
   position: fixed; inset: -30%; z-index: 60; pointer-events: none; transform-origin: var(--cx) var(--cy);
   background: radial-gradient(circle at var(--cx) var(--cy), #fff8f0 0%, #ffe3dc 18%, #f0b9c3 38%, #a86a74 68%, #6e3f3f 100%);
 }
-.search-band .sb-line { font-size: min(1em, 3.35vw); }
+.search-band .sb-line { font-size: min(1em, 2.8vw, 40px); }
 @media (max-width: 1000px) { .search-band .sb-line { font-size: 1em; white-space: normal; } }
