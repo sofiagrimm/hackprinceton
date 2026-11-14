@@ -47,6 +47,19 @@ async function boot() {
   }
   wireListen();
   wireSun();
+
+  // Deep link from the iMessage scout: /?venue=<id>&listen=1 opens the venue ready to listen.
+  const params = new URLSearchParams(location.search);
+  const venueId = Number(params.get("venue"));
+  if (venueId) {
+    await openVenue(venueId);
+    if (params.get("listen")) {
+      const btn = $("play-choir");
+      btn.scrollIntoView({ behavior: "smooth", block: "center" });
+      btn.classList.add("pulse");
+      btn.textContent = "▶ Tap to hear our chord in this room";
+    }
+  }
 }
 
 // ------------------------------------------------------------------ agent run

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -102,6 +102,18 @@ def venue_budget_commit(venue_id: int, req: CommitRequest) -> dict:
                            space_area_sqft=req.space_area_sqft)
     except NessieError as exc:
         raise HTTPException(503, str(exc))
+
+
+@app.post("/api/photon/webhook")
+async def photon_webhook(request: Request, token: str = "") -> dict:
+    """Photon 2.0 delivers iMessage `message.received` events here (see app/photon.py)."""
+    import os
+    expected = os.environ.get("PHOTON_WEBHOOK_TOKEN", "")
+    if not expected or token != expected:
+        raise HTTPException(401, "bad token")
+    from .photon import on_webhook
+    on_webhook(await request.json())
+    return {"ok": True}
 
 
 @app.get("/api/venues/{venue_id}/aerial.jpg")
