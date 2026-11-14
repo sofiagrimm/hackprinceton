@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from typing import Iterator
 
 from fastapi import APIRouter, HTTPException
@@ -74,6 +75,14 @@ KINDS: dict[str, dict] = {
 _cache: dict = {}
 
 
+def _a(word: str) -> str:
+    return ("an " if word[:1].lower() in "aeiou" else "a ") + word
+
+
+# Wikidata files some stadiums and parks as music venues; none of them are rooms.
+NOT_A_ROOM = re.compile(r"\b(stadium|arena|park|field|amphitheat(?:er|re)|ballpark|speedway|fairgrounds?|bowl|plaza|square|garden)s?\b", re.I)
+
+
 def _load() -> dict:
     global REGIONS_FILE
     REGIONS_FILE = _LOCAL_REGIONS if _LOCAL_REGIONS.exists() else _SHIPPED_REGIONS
@@ -82,6 +91,7 @@ def _load() -> dict:
     mtime = REGIONS_FILE.stat().st_mtime
     if _cache.get("mtime") != mtime:
         raw = json.loads(REGIONS_FILE.read_text())
+        raw["venues"] = [v for v in raw["venues"] if not NOT_A_ROOM.search(v.get("name", ""))]
         raw["by_id"] = {v["id"]: v for v in raw["venues"]}
         _cache.update(mtime=mtime, data=raw)
     return _cache["data"]
@@ -152,9 +162,9 @@ def _building(v: dict, use_vexcel: bool) -> dict:
     if height_ft is None and v.get("levels"):
         height_ft, ht_src = v["levels"] * 13.0, f"OpenStreetMap, {v['levels']} levels"
     if not footprint or footprint < 400:
-        footprint, fp_src = k["typical_footprint_sqft"], f"typical size for a {k['label']}"
+        footprint, fp_src = k["typical_footprint_sqft"], f"typical size for {_a(k['label'])}"
     if not height_ft:
-        height_ft, ht_src = k["typical_height_ft"], f"typical height for a {k['label']}"
+        height_ft, ht_src = k["typical_height_ft"], f"typical height for {_a(k['label'])}"
     return {
         "footprint": ring, "footprint_sqft": round(footprint), "height_ft": round(height_ft, 1),
         "footprint_source": fp_src, "height_source": ht_src,
@@ -313,6 +323,7 @@ def region_site_check(venue_id: str) -> dict:
         "footprint": [tuple(p) for p in ring] if ring else [],
         "building_height_ft": b["height_ft"],
         "footprint_sqft": b["footprint_sqft"],
+        "footprint_source": b["footprint_source"],
         "notes": notes,
     }
 
@@ -476,7 +487,8 @@ def run_region_scout(text: str) -> Iterator[dict]:
     lines = [f"I'd start with {pick['name']}. {a['verdict']} The {pick['best_space']['space_name'].lower()} "
              f"should seat about {a['capacity_seated']}."]
     if stay:
-        lines.append(f"{stay[0]['name']} is {stay[0]['distance_miles']} miles away.")
+        d = stay[0]["distance_miles"]
+        lines.append(f"{stay[0]['name']} is next door." if d < 0.1 else f"{stay[0]['name']} is {d} miles away.")
     backups = [r["name"] for r in found["results"][1:3]]
     if backups:
         lines.append("If it's taken, try " + " or ".join(backups) + ".")
