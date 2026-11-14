@@ -101,14 +101,20 @@ export function createStandView(container, { onMove } = {}) {
       uniforms: { map: { value: pano }, eye: { value: new THREE.Vector3(0, PANO_EYE, 0) }, shade: { value: shade }, calm: { value: calm } },
       vertexShader: PANO_VERT, fragmentShader: PANO_FRAG, side: THREE.BackSide,
     });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W), new THREE.MeshStandardMaterial({ color: 0x9a7058, roughness: 0.85 }));
+    // in 3D the floor wears the photo too, so it looks like the real room; the top view keeps a plain plan
+    const plain = new THREE.MeshStandardMaterial({ color: 0x9a7058, roughness: 0.85 });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W), pano && view !== "top" ? panoMat(0.9, 0.25) : plain);
+    floor.userData.plain = plain;
+    if (pano) { floor.userData.photo = panoMat(0.9, 0.25); floor.userData.photo.side = THREE.DoubleSide; }
+    if (floor.material !== plain) floor.material = floor.userData.photo;
     floor.rotation.x = -Math.PI / 2;
     floor.name = "floor";
     roomGroup.add(floor);
     const grid = new THREE.GridHelper(Math.max(L, W), Math.round(Math.max(L, W)), 0x9a6a64, 0x7d4b4b);
     grid.scale.set(L / Math.max(L, W), 1, W / Math.max(L, W));
     grid.position.y = 0.005;
-    grid.material.transparent = true; grid.material.opacity = 0.55;
+    grid.material.transparent = true; grid.material.opacity = pano && view !== "top" ? 0.12 : 0.55;
+    grid.name = "grid";
     roomGroup.add(grid);
     // the stage: the front few metres
     const stage = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(3, L * 0.25), W * 0.8), new THREE.MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 0.22 }));
@@ -240,6 +246,9 @@ export function createStandView(container, { onMove } = {}) {
       view = v;
       const walls = roomGroup?.getObjectByName("walls");
       if (walls) walls.visible = v !== "top";
+      const floor = roomGroup?.getObjectByName("floor"), grid = roomGroup?.getObjectByName("grid");
+      if (floor) floor.material = v !== "top" && floor.userData.photo ? floor.userData.photo : floor.userData.plain;
+      if (grid) grid.material.opacity = v !== "top" && floor?.userData.photo ? 0.12 : 0.55;
       fitCamera();
     },
     /** Positions in metres with the room's corner at the origin: x along the length, z across, y up. */

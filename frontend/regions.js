@@ -54,7 +54,7 @@ async function boot() {
     state.aliases = state.overview.aliases || {};
   } catch { return; }
   renderPicker();
-  addExample();
+  // addExample(); // the Bay Area example button is turned off
   interceptBrief();
 }
 
