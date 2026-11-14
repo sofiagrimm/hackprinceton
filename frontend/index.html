@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="tourplan.css">
   <link rel="stylesheet" href="pipeline.css">
   <link rel="stylesheet" href="regions.css">
+  <link rel="stylesheet" href="daylight.css">
   <link rel="stylesheet" href="playroom.css">
 </head>
 <body data-view="home">
@@ -288,11 +289,14 @@
               <button type="button" role="radio" data-kind="spot" aria-checked="false"><span class="sw" style="--c:#fff1d6"></span>Spotlight</button>
               <button type="button" role="radio" data-kind="string" aria-checked="false"><span class="sw" style="--c:#ffcf7a"></span>String lights</button>
               <button type="button" role="radio" data-kind="uplight" aria-checked="false"><span class="sw" style="--c:#ff3d8b"></span>Colour uplight</button>
+              <button type="button" role="radio" data-kind="meter" aria-checked="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13l3-3M9 3h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Light meter</button>
               <button type="button" role="radio" data-kind="erase" aria-checked="false" class="lab-erase"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Remove a light</button>
             </div>
             <div class="lab-tune">
               <label for="lab-color">Colour</label><input type="color" id="lab-color" value="#ffb36b">
               <label for="lab-power">Brightness</label><input type="range" id="lab-power" min="0.2" max="2" step="0.05" value="1">
+              <label class="lab-k" for="lab-k">White <input type="range" id="lab-k" min="1800" max="6500" step="100" value="3000"><span id="lab-k-val">3000 K</span></label>
+              <p class="lab-lm" id="lab-lm" aria-live="polite"></p>
             </div>
 
           </div>
@@ -307,7 +311,8 @@
               <ol class="lab-list" id="lab-list"></ol>
               <p class="lab-actions"><button type="button" class="save-btn" id="save-light"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Save this lighting</span></button><button type="button" class="lab-act" id="lab-undo">Undo last</button><button type="button" class="lab-act" id="lab-clear">Clear all</button></p>
             </div>
-            <p class="note">A sketch of the mood, not a lighting plan: the photo is treated as a box the size of the scanned room, so light falls off with distance and only lights what faces it.</p>
+            <div class="lab-meter" id="lab-meter" aria-live="polite"></div>
+            <p class="note">The picture is a sketch of the mood: the photo is treated as a box the size of the scanned room, so light falls off with distance and only lights what faces it. The light meter's numbers come from each fixture's lumens and beam.</p>
           </div>
         </div>
       </div>
@@ -337,7 +342,8 @@
         </div>
       </div>
       <div class="wrap wide">
-        <p class="note">This shows the mood of the light, warmer at golden hour and lamp-lit after dark. It isn't a lighting simulation.</p>
+        <p class="note">The sun patches and light levels are worked out from the windows in the photo, the sun on your date and the buildings nearby. The colour of the room is a mood preview: warmer at golden hour, lamp-lit after dark.</p>
+        <div class="daylight" id="daylight" hidden></div>
         <details class="fold" id="outside">
           <summary>From outside: the building from the air, with the same sun</summary>
           <div class="light-canvas" id="light3d"></div>
