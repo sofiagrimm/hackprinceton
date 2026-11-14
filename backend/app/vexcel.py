@@ -43,6 +43,7 @@ def property_attributes(venue_id: int, lat: float, lon: float) -> dict | None:
     result = {
         "available": True,
         "parcel_wkt": _geometry_to_wkt(f.get("geometry")),
+        "footprint_wkt": main.get("footprint.wkt"),
         "structure_count": props.get("structure.count"),
         "footprint_sqft": main.get("footprint.area"),
         "roof_material": main.get("roof-characteristics.material.class"),
@@ -70,7 +71,7 @@ def ortho_image(venue_id: int, lat: float, lon: float, parcel_wkt: str | None) -
     if not VEXCEL_API_KEY:
         return None
     wkt = parcel_wkt or _square(lat, lon, 60)
-    body = {"wkt": wkt, "srid": 4326, "layer": LAYERS, "buffer-meter": 25,
+    body = {"wkt": wkt, "srid": 4326, "layer": LAYERS, "buffer-meter": IMAGE_BUFFER_M,
             "crop": "bounding_box", "image-format": "jpeg",
             "drawing": [{"wkt": wkt, "outline-width": 4, "outline-color": "rgb(255,49,88)"}]}
     try:
@@ -81,6 +82,34 @@ def ortho_image(venue_id: int, lat: float, lon: float, parcel_wkt: str | None) -
         return None
     path.write_bytes(r.content)
     return r.content
+
+
+IMAGE_BUFFER_M = 25
+
+
+def image_bounds(lat: float, lon: float, parcel_wkt: str | None) -> dict:
+    """Approximate lon/lat bounds of the ortho image (parcel bbox + buffer)."""
+    import math
+    pts = wkt_points(parcel_wkt or _square(lat, lon, 60))
+    lons, lats = [p[0] for p in pts], [p[1] for p in pts]
+    dlat = IMAGE_BUFFER_M / 111_320
+    dlon = IMAGE_BUFFER_M / (111_320 * math.cos(math.radians(lat)))
+    return {"west": min(lons) - dlon, "east": max(lons) + dlon,
+            "south": min(lats) - dlat, "north": max(lats) + dlat}
+
+
+def wkt_points(wkt: str | None) -> list[tuple[float, float]]:
+    if not wkt:
+        return []
+    import re
+    first_ring = re.search(r"\(\(+([^()]+)\)", wkt)
+    if not first_ring:
+        return []
+    pts = []
+    for pair in first_ring.group(1).split(","):
+        x, y, *_ = pair.split()
+        pts.append((float(x), float(y)))
+    return pts
 
 
 def _square(lat: float, lon: float, half_m: float) -> str:

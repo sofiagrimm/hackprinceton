@@ -153,14 +153,19 @@ def site_check(venue_id: int) -> dict:
         notes.append(f"Main building footprint about {attrs['footprint_sqft']:,.0f} sq ft.")
     if attrs.get("roof_shape") == "flat":
         notes.append("Flat roof: rooftop staging or a photo session may be possible (confirm access).")
+    height_ft = attrs.get("max_roof_height_ft") or ((venue.get("stories") or 1) * 12)
     return {
         "venue_id": venue["id"],
         "name": venue["name"],
         "lat": venue["lat"],
         "lon": venue["lon"],
         "parking_spaces": spaces,
-        "aerial": {k: v for k, v in attrs.items() if k != "parcel_wkt"},
+        "aerial": {k: v for k, v in attrs.items() if k not in ("parcel_wkt", "footprint_wkt")},
         "aerial_image_url": f"/api/venues/{venue['id']}/aerial.jpg",
+        # For the browser's sun and shadow simulation:
+        "image_bounds": vexcel.image_bounds(venue["lat"], venue["lon"], attrs.get("parcel_wkt")),
+        "footprint": vexcel.wkt_points(attrs.get("footprint_wkt")),
+        "building_height_ft": height_ft,
         "notes": notes,
     }
 
