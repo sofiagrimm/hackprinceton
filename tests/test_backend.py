@@ -143,3 +143,10 @@ def test_region_estimate_for_a_church_without_an_outline():
     assert out["building"]["footprint_source"]  # falls back to a typical size, and says so
     assert out["acoustics"]["rt60_occupied_s"] > 1.0  # churches are live rooms
     assert any("Estimated" in n or "estimate" in n.lower() for n in out["acoustics"]["notes"])
+
+
+def test_the_whole_app_imports():
+    """Catches a module that needs a package missing from backend/requirements.txt (the site won't boot)."""
+    import importlib
+    main = importlib.import_module("app.main")
+    assert main.app.routes
