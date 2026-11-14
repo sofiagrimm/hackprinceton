@@ -68,7 +68,7 @@ export class RoomSound {
       chord.forEach((note, v) => {
         // legato: each chord swells into the next instead of stopping short
         const len = i === chords.length - 1 ? dur * 2.4 : dur * 1.04;
-        this.voices.push(sing(this.ctx, this.input, midiToHz(note), t0 + i * dur, len, vowels[i], v));
+        this.voices.push(piano(this.ctx, this.input, midiToHz(note), t0 + i * dur, len, v));
       });
     });
     return (chords.length + 1.4) * dur;
@@ -239,6 +239,58 @@ export function sing(ctx, dest, hz, start, len, vowel, voiceIndex) {
   return () => {
     nodes.forEach((n) => { try { n.stop(); } catch (_) { /* already stopped */ } });
   };
+}
+
+/**
+ * One piano note: three strings per note, very slightly detuned, partials stretched a little sharp
+ * (real strings are stiff), a soft felt-hammer knock, and a two-stage decay that lets go when the key does.
+ * voiceIndex 0 (bass) to 3 (soprano) sets how hard it's played.
+ */
+function piano(ctx, dest, hz, start, len, voiceIndex) {
+  const vel = [0.2, 0.15, 0.15, 0.17][voiceIndex] ?? 0.15;
+  const out = ctx.createGain();
+  // brighter when struck, mellower as it rings
+  const tone = ctx.createBiquadFilter();
+  tone.type = "lowpass";
+  tone.frequency.setValueAtTime(Math.min(9000, hz * 14), start);
+  tone.frequency.exponentialRampToValueAtTime(Math.min(4000, hz * 5), start + 1.2);
+  out.connect(tone).connect(dest);
+  const ring = 1.6 + 6 * Math.exp(-hz / 500); // low notes ring longer
+  out.gain.setValueAtTime(0, start);
+  out.gain.linearRampToValueAtTime(vel, start + 0.004);
+  out.gain.setTargetAtTime(vel * 0.45, start + 0.004, 0.09);
+  out.gain.setTargetAtTime(0.0001, start + 0.12, ring / 5);
+  out.gain.setTargetAtTime(0, start + len, 0.12); // the damper falls when the key is released
+  const nodes = [];
+  const B = 0.00012; // string stiffness
+  for (const cents of [-1.6, 0, 1.9]) {
+    for (let k = 1; k <= 8; k++) {
+      const f = hz * k * Math.sqrt(1 + B * k * k);
+      if (f > 12000) break;
+      const o = ctx.createOscillator();
+      o.type = "sine";
+      o.frequency.value = f;
+      o.detune.value = cents;
+      const g = ctx.createGain();
+      const amp = (1 / Math.pow(k, 1.25)) * (k === 1 ? 1 : 0.7) / 3;
+      g.gain.setValueAtTime(amp, start);
+      g.gain.setTargetAtTime(amp * 0.25, start + 0.01, 0.25 + 1.2 / k); // upper partials fade first
+      o.connect(g).connect(out);
+      o.start(start);
+      o.stop(start + len + 0.8);
+      nodes.push(o);
+    }
+  }
+  // the hammer: a tiny filtered knock
+  const n = Math.floor(ctx.sampleRate * 0.03), buf = ctx.createBuffer(1, n, ctx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (n / 6));
+  const knock = ctx.createBufferSource(); knock.buffer = buf;
+  const kf = ctx.createBiquadFilter(); kf.type = "bandpass"; kf.frequency.value = Math.min(3000, hz * 4); kf.Q.value = 1.2;
+  const kg = ctx.createGain(); kg.gain.value = vel * 0.35;
+  knock.connect(kf).connect(kg).connect(dest);
+  knock.start(start);
+  nodes.push(knock);
+  return () => nodes.forEach((o) => { try { o.stop(); } catch (_) { /* already stopped */ } });
 }
 
 /** Synthetic stereo impulse response for a room with the given RT60. */

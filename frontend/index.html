@@ -26,7 +26,7 @@
       <a href="#/bookings" data-mode="bookings">Bookings</a>
       <a href="#/saved" data-mode="saved">Saved <span class="tab-count" id="saved-count" hidden></span></a>
     </nav>
-    <a class="nav-cta" href="#/search" id="nav-cta">Find a room</a>
+    <a class="nav-cta" href="#/search" id="nav-cta" hidden>Find a room</a>
   </header>
 
   <main id="main">
@@ -389,7 +389,7 @@
           <button type="button" data-ac-crowd="full" aria-pressed="true">Full house</button>
         </div>
         <ul class="ac-samples">
-          <li><button type="button" class="ac-sample" id="ac-chord"><svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 36V10l22-5v26"/><path d="M16 17l22-5"/><ellipse cx="11" cy="37" rx="6" ry="4.5" fill="currentColor"/><ellipse cx="33" cy="32" rx="6" ry="4.5" fill="currentColor"/></g></svg><b>A four-part chord</b><span>Soprano, alto, tenor and bass, held, then released into the room.</span></button></li>
+          <li><button type="button" class="ac-sample" id="ac-chord"><svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 36V10l22-5v26"/><path d="M16 17l22-5"/><ellipse cx="11" cy="37" rx="6" ry="4.5" fill="currentColor"/><ellipse cx="33" cy="32" rx="6" ry="4.5" fill="currentColor"/></g></svg><b>A four-part chord</b><span>Four parts on a grand piano, played into the room and left to ring.</span></button></li>
           <li><button type="button" class="ac-sample" id="ac-clap"><svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 30c-4-5-5-10-2-12s6 2 8 5l-6-11c-2-3 0-6 3-6s4 2 6 5l3 5-1-6c0-3 2-5 4-4s3 3 3 6l1 12c1 6-2 12-8 14s-10 0-11-8"/><path d="M34 6l2-3M40 11l3-2M41 19h4"/></g></svg><b>One clap</b><span>The quickest way to hear how long the room rings.</span></button></li>
           <li><button type="button" class="ac-sample" id="ac-mic"><svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="17" y="5" width="14" height="24" rx="7"/><path d="M11 23c0 7 6 13 13 13s13-6 13-13M24 36v7M17 43h14"/></g></svg><b id="ac-mic-label">Sing into the room</b><span>Uses your microphone; you hear yourself back with the room around you.</span></button></li>
         </ul>
@@ -430,8 +430,8 @@
             <p class="lede" id="d-verdict"></p>
           </div>
           <div class="sound-console">
-            <button id="play-choir" class="play" type="button" aria-label="Play a four-part chord in this room"><span class="tri"></span></button>
-            <p class="note">Plays a four-part chord with this room's reverb.</p>
+            <button id="play-choir" class="play" type="button" aria-label="Play a four-part piano chord in this room"><span class="tri"></span></button>
+            <p class="note">Plays a four-part piano chord with this room's reverb.</p>
             <div class="seg" role="group" aria-label="Audience">
               <button type="button" data-crowd="empty">Empty</button>
               <button type="button" data-crowd="full" class="on">Full house</button>

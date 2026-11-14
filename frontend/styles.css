@@ -1386,3 +1386,10 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .ac-dot { width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-width: 1.5px; }
 .ac-ends { font-size: 9px; margin-top: 3px; }
 .ac-text { font-size: var(--fs-xs); line-height: 1.45; margin-top: var(--s2); }
+
+/* acoustics page: less empty space under the sound buttons */
+.ac-try { padding-bottom: var(--s6); }
+.ac-try #scope { margin-top: var(--s4); height: 56px; }
+.ac-try #ac-now { margin-top: var(--s2); }
+.view[data-view="acoustics"] .frame.black.sound { padding-top: var(--s7); }
+.view[data-view="acoustics"] .sound-top { gap: var(--s4); }
