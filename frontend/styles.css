@@ -1707,3 +1707,5 @@ select option { background: #2c0d10; color: var(--ink); }
 .lab-kinds .lab-move { margin-top: var(--s2); }
 .lab-kinds .lab-move svg { width: 18px; height: 18px; flex: none; }
 .lab-kinds .lab-move + .lab-erase { margin-top: 0; }
+.rs-track { cursor: grab; user-select: none; -webkit-user-select: none; }
+.rs-track img { -webkit-user-drag: none; user-select: none; }

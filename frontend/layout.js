@@ -563,7 +563,27 @@ function renderResults(r) {
 function wireSlider(results) {
   const slides = [...document.querySelectorAll("#rs-track .rs-slide")];
   let at = 0;
-  const select = (i) => {
+  // FLIP: note where every frame is, reorder, then slide each one from its old place to its new one,
+  // so the roll visibly winds along instead of jumping
+  const glide = (change) => {
+    if (reduced()) { change(); return; }
+    const before = new Map(slides.map((sl) => [sl, sl.getBoundingClientRect()]));
+    change();
+    slides.forEach((sl) => {
+      const a = before.get(sl), b = sl.getBoundingClientRect();
+      if (!a.width || !b.width) return;
+      const dx = a.left - b.left;
+      if (Math.abs(dx) < 1) return;
+      // a frame that wraps from one end to the other comes in from off the edge instead of flying across
+      const far = Math.abs(dx) > track.clientWidth * 0.6;
+      sl.animate(far
+        ? [{ transform: `translateX(${dx > 0 ? -60 : 60}px)`, opacity: 0 }, { transform: "none", opacity: 1 }]
+        : [{ transform: `translateX(${dx}px) ${sl.classList.contains("on") ? "rotate(-1.5deg)" : ""}`.trim() }, { transform: sl.classList.contains("on") ? "rotate(-1.5deg)" : "none" }],
+        { duration: 520, easing: "cubic-bezier(.3,.7,.2,1)" });
+    });
+  };
+  const track = $("rs-track");
+  const select = (i) => glide(() => {
     // a loop: past the last venue it comes round to the first again
     const n = results.length;
     at = ((i % n) + n) % n;
@@ -576,20 +596,20 @@ function wireSlider(results) {
     $("rs-count").textContent = `${at + 1} of ${n}`;
     $("rs-prev").disabled = $("rs-next").disabled = n < 2;
     renderDetail(results[at], at);
-  };
+  });
   $("rs-prev").onclick = () => select(at - 1);
   $("rs-next").onclick = () => select(at + 1);
   // A smaller room on the right comes forward when pressed; the big one opens the property.
   slides.forEach((s, k) => s.querySelector("a").addEventListener("click", (e) => {
     if (k !== at) { e.preventDefault(); select(k); }
   }));
-  const track = $("rs-track");
   track.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") { e.preventDefault(); select(at + 1); slides[at].querySelector("a").focus(); }
     if (e.key === "ArrowLeft") { e.preventDefault(); select(at - 1); slides[at].querySelector("a").focus(); }
   });
   let x0 = null, swiped = false;
   track.addEventListener("pointerdown", (e) => { x0 = e.clientX; swiped = false; });
+  track.addEventListener("dragstart", (e) => e.preventDefault()); // links and photos shouldn't be dragged out
   track.addEventListener("pointerup", (e) => {
     if (x0 == null) return;
     const dx = e.clientX - x0;
@@ -597,6 +617,15 @@ function wireSlider(results) {
     if (Math.abs(dx) > 40) { swiped = true; select(at + (dx < 0 ? 1 : -1)); }
   });
   track.addEventListener("click", (e) => { if (swiped) { e.preventDefault(); swiped = false; } }, true);
+  let wheelAcc = 0, wheelLock = 0;
+  track.addEventListener("wheel", (e) => {
+    const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+    if (!d) return;
+    e.preventDefault();
+    if (Date.now() < wheelLock) return;
+    wheelAcc += d;
+    if (Math.abs(wheelAcc) > 60) { select(at + (wheelAcc > 0 ? 1 : -1)); wheelAcc = 0; wheelLock = Date.now() + 380; }
+  }, { passive: false });
   select(0);
 }
 
