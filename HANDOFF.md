@@ -65,7 +65,8 @@ made.
 
 ## Demo in 20 seconds
 
-1. Open `/?venue=<id>`, scroll to "Keep every ask moving." and press **Add**. Do the same for a second venue.
+1. Open `/?venue=9530669` (3033 Wilshire), scroll to "Keep every ask moving." and press **Add**. Do the
+   same on `/?venue=11104240` (The Preserve).
 2. On the second one, set the status to **Sent**, then press **Follow up**. The drafted email appears under
    the row.
 3. Scroll to "Two rooms. One chord." Press play on A, then press B while it's still singing to hear the
