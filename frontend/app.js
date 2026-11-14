@@ -1,237 +1,282 @@
 import { RoomSound } from "./audio.js";
-import { sunPosition, dayTimeline, utcOffsetFor, localToUtc, fmtMinute, drawShadow, litFacades } from "./sun.js";
+import { sunPosition, dayTimeline, utcOffsetFor, localToUtc, fmtMinute, litFacades } from "./sun.js";
+import { createHero } from "./hero3d.js";
+import { loadTour, sdkUsable } from "./tour.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const sound = new RoomSound();
 const money = (n) => "$" + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
 const money2 = (n) => "$" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const sound = new RoomSound();
+
+const DEFAULT_VENUE = 9530669; // 3033 Wilshire, Los Angeles: the hero before the first search
 
 const state = {
-  config: null,
-  brief: null,
-  search: null,
-  analyses: {},
-  housing: {},
-  outreach: {},
-  site: {},
-  venue: null,
-  spaceIndex: 0,
-  crowd: "full",
+  config: null, brief: null, search: null,
+  analyses: {}, housing: {}, outreach: {}, site: {},
+  venue: null, spaceIndex: 0, crowd: "full", roomOverride: null,
 };
 
 const EXAMPLES = [
-  ["LA a cappella stop", "Our 14-singer a cappella group is touring LA on March 14. We want to perform for about 80 guests and stay 2 nights, ideally in the same building."],
-  ["Houston rehearsal", "We need a rehearsal space in Houston for 12 singers for a 3 day retreat, about 20 people in the room, plus somewhere to sleep."],
+  ["A cappella in LA", "14 singers touring LA on March 14. A show for 80 guests, 2 nights, same building if we can."],
+  ["Rehearsal retreat", "We need a rehearsal space in Houston for 12 singers for a 3 day retreat, about 20 people in the room, plus somewhere to sleep."],
   ["Choir concert", "A 30-voice choir wants a resonant space in Los Angeles for a concert for 150 guests on April 2, staying 1 night."],
   ["Film shoot", "Indie film crew of 25 needs a quiet location in Los Angeles with good dialogue sound for a 3 week shoot, 40 people on set."],
 ];
 
+const AGENT_LABEL = { claude: "Claude", deepagents: "Deep Agents", planner: "Built-in planner" };
+const TOOL_LABEL = {
+  search_venues: "Search scanned rooms",
+  analyze_venue: "Measure the acoustics",
+  site_check: "Check the site from the air",
+  find_housing: "Find somewhere to stay",
+  tour_budget: "Check the tour fund",
+  draft_outreach: "Draft the ask",
+};
+
+let hero = null;
+let lightScene = null;
+
 // ------------------------------------------------------------------ boot
 
 async function boot() {
-  const chips = $("examples");
-  EXAMPLES.forEach(([label, text]) => {
+  EXAMPLES.forEach(([label, text], i) => {
+    if (i) $("examples").insertAdjacentHTML("beforeend", `<span class="sep">·</span>`);
     const b = document.createElement("button");
+    b.type = "button";
     b.textContent = label;
-    b.onclick = () => { $("brief").value = text; };
-    chips.appendChild(b);
+    b.onclick = () => { $("brief").value = text; $("brief").focus(); };
+    $("examples").appendChild(b);
   });
-  $("go").onclick = runScout;
-  $("d-close").onclick = () => { $("detail").hidden = true; sound.stopChoir(); };
-  try {
-    state.config = await (await fetch("/api/config")).json();
-    $("status").textContent = `${state.config.venues.toLocaleString()} scanned buildings · ${state.config.housing.toLocaleString()} apartment communities · agent: ${AGENT_LABEL[state.config.agent] || state.config.agent}`;
-  } catch {
-    $("status").textContent = "API not reachable";
-  }
+  $("ask").onsubmit = (e) => { e.preventDefault(); runScout(); };
+  $("brief").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runScout(); }
+  });
+  $("nav-cta").onclick = (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(() => $("brief").focus(), 500);
+  };
+
+  try { hero = createHero($("hero3d")); } catch (err) { console.warn("WebGL unavailable", err); }
+  try { state.config = await (await fetch("/api/config")).json(); } catch { /* offline */ }
+
+  wireStage();
   wireListen();
   wireSun();
+  wireTour();
 
-  // Deep link from the iMessage scout: /?venue=<id>&listen=1 opens the venue ready to listen.
   const params = new URLSearchParams(location.search);
   const venueId = Number(params.get("venue"));
   if (venueId) {
     await openVenue(venueId);
     if (params.get("listen")) {
-      const btn = $("play-choir");
-      btn.scrollIntoView({ behavior: "smooth", block: "center" });
-      btn.classList.add("pulse");
-      btn.textContent = "▶ Tap to hear our chord in this room";
+      $("sound").scrollIntoView({ behavior: "smooth" });
+      $("play-choir").classList.add("pulse");
     }
+  } else {
+    showHeroVenue(DEFAULT_VENUE);
   }
+}
+
+async function getSite(id) {
+  if (!state.site[id]) state.site[id] = await (await fetch(`/api/venues/${id}/site`)).json();
+  return state.site[id];
+}
+
+async function showHeroVenue(id, name) {
+  if (!hero) return;
+  try {
+    const site = await getSite(id);
+    await hero.showVenue(site, site.aerial_image_url);
+    stageSite = site;
+    onStageScroll();
+  } catch (err) { console.warn(err); }
+}
+
+// ------------------------------------------------------------------ the stage (scroll-scrubbed hero)
+
+let stageSite = null;
+
+function stageProgress() {
+  const stage = $("top");
+  const total = stage.offsetHeight - window.innerHeight;
+  return total > 0 ? Math.min(1, Math.max(0, -stage.getBoundingClientRect().top / total)) : 0;
+}
+
+function onStageScroll() {
+  const p = stageProgress();
+  hero?.setScroll(p);
+  document.querySelectorAll(".chapter").forEach((c) => {
+    c.classList.toggle("on", p >= Number(c.dataset.from) && p < Number(c.dataset.to));
+  });
+  $("scroll-cue").style.opacity = p > 0.02 ? 0 : 1;
+  // The sun travels from just after sunrise to sunset across the stage, so the
+  // last chapter lands on golden hour.
+  let minute = Math.round(420 + p * 600);
+  if (stageSite) {
+    const dateStr = $("sun-date").value;
+    const metro = stageSite.lon < -100 ? "Los Angeles" : "Houston";
+    const offset = utcOffsetFor(metro, dateStr);
+    if (!stageSite.day || stageSite.day.date !== dateStr) {
+      stageSite.day = { date: dateStr, ...dayTimeline(dateStr, stageSite.lat, stageSite.lon, offset) };
+    }
+    const rise = (stageSite.day.sunrise ?? 400) + 40, set = (stageSite.day.sunset ?? 1080) - 8;
+    minute = Math.round(rise + p * (set - rise));
+    hero?.setSun(sunPosition(localToUtc(dateStr, minute, offset), stageSite.lat, stageSite.lon));
+  }
+  $("stage-clock").textContent = fmtMinute(minute - (minute % 5));
+}
+
+function wireStage() {
+  let queued = false;
+  window.addEventListener("scroll", () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; onStageScroll(); });
+  }, { passive: true });
+  onStageScroll();
 }
 
 // ------------------------------------------------------------------ agent run
 
 async function runScout() {
   const brief = $("brief").value.trim();
-  if (!brief) return;
+  if (!brief || $("go").disabled) return;
   $("go").disabled = true;
+  $("go").textContent = "Scouting…";
   $("timeline").innerHTML = "";
   $("report").innerHTML = "";
-  $("cards").innerHTML = `<p class="muted">Scouting…</p>`;
-  $("detail").hidden = true;
-  Object.assign(state, { search: null, analyses: {}, housing: {}, outreach: {}, site: {} });
+  $("plan-title").textContent = "Scouting.";
+  ["pick", "sound", "light", "walk", "stay", "fund", "reach", "more"].forEach((s) => ($(s).hidden = true));
+  $("plan").hidden = false;
+  $("plan").scrollIntoView({ behavior: "smooth" });
+  Object.assign(state, { search: null, analyses: {}, housing: {}, outreach: {} });
 
-  const res = await fetch("/api/scout", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ brief }),
-  });
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buf = "";
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    let nl;
-    while ((nl = buf.indexOf("\n")) >= 0) {
-      const line = buf.slice(0, nl).trim();
-      buf = buf.slice(nl + 1);
-      if (line) handleEvent(JSON.parse(line));
+  try {
+    const res = await fetch("/api/scout", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ brief }),
+    });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (line) handleEvent(JSON.parse(line));
+      }
     }
+  } catch (err) {
+    step("err", "Something went wrong", String(err));
   }
+  document.querySelectorAll(".steps li.live").forEach((li) => li.classList.replace("live", "done"));
+  $("plan-title").textContent = state.search?.results?.length ? "Done." : "Nothing fit yet.";
   $("go").disabled = false;
+  $("go").textContent = "Scout";
 }
 
-const AGENT_LABEL = { claude: "Claude", deepagents: "Deep Agents", planner: "built-in planner" };
-
-const TOOL_LABEL = {
-  search_venues: "Searching scanned spaces",
-  analyze_venue: "Measuring rooms",
-  site_check: "Checking the site from the air",
-  find_housing: "Finding somewhere to stay",
-  draft_outreach: "Drafting outreach",
-};
-
-function step(cls, html) {
+function step(cls, title, detail = "") {
+  document.querySelectorAll(".steps li.live").forEach((li) => li.classList.replace("live", "done"));
   const li = document.createElement("li");
   li.className = cls;
-  li.innerHTML = html;
+  li.innerHTML = `<span class="dot"></span><div><div class="t">${esc(title)}</div><div class="d">${detail}</div></div>`;
   $("timeline").appendChild(li);
-  li.scrollIntoView({ block: "nearest" });
   return li;
+}
+
+function detail(text) {
+  const li = $("timeline").lastElementChild;
+  if (li) li.querySelector(".d").innerHTML = esc(text);
 }
 
 function handleEvent(ev) {
   switch (ev.type) {
-    case "agent":
-      $("agent-name").textContent = AGENT_LABEL[ev.name] || ev.name;
-      break;
-    case "delegate":
-      step("plan", `<span class="k">Delegating to ${esc(ev.agent)}</span> <span class="muted">${esc(ev.text)}</span>`);
-      break;
-    case "file":
-      step("plan", `<span class="k">Writing</span> <span class="muted">${esc(ev.path)}</span>`);
-      break;
-    case "plan":
-      step("plan", `<span class="k">Plan</span> ${esc(ev.text)}`);
-      break;
-    case "tool":
-      step("tool", `<span class="k">${esc(TOOL_LABEL[ev.name] || ev.name)}</span> <span class="muted">${esc(summarizeInput(ev.input))}</span>`);
-      break;
-    case "tool_result":
-      onToolResult(ev.name, ev.result);
-      break;
-    case "message":
-      $("report").innerHTML += md(ev.text);
-      break;
-    case "done":
-      state.brief = ev.brief;
-      break;
-    case "error":
-      step("err", `<span class="k">Error</span> ${esc(ev.text)}`);
-      break;
+    case "agent": $("agent-name").textContent = `Planned by ${AGENT_LABEL[ev.name] || ev.name}.`; break;
+    case "plan": step("done", "Plan", esc(ev.text)); break;
+    case "delegate": step("live", `Ask the ${ev.agent}`, esc(ev.text)); break;
+    case "file": step("done", "Write the report", esc(ev.path)); break;
+    case "tool": step("live", TOOL_LABEL[ev.name] || ev.name, esc(summarizeInput(ev.input))); break;
+    case "tool_result": onToolResult(ev.name, ev.result); break;
+    case "message": $("report").innerHTML += md(ev.text); break;
+    case "done": state.brief = ev.brief; break;
+    case "error": step("err", "Error", esc(ev.text)); break;
   }
 }
 
 function summarizeInput(input) {
   const parts = [];
-  if (input.metro) parts.push(input.metro);
-  if (input.audience) parts.push(`${input.audience} guests`);
-  if (input.use) parts.push(input.use.replaceAll("_", " "));
-  if (input.stay_and_perform) parts.push("stay + perform");
-  if (input.group_size) parts.push(`${input.group_size} people`);
-  if (input.nights) parts.push(`${input.nights} nights`);
   if (input.venue_id && state.search) {
     const v = state.search.results.find((r) => r.venue_id === input.venue_id);
-    if (v) parts.unshift(v.name);
+    if (v) parts.push(v.name);
   }
+  if (input.metro) parts.push(input.metro);
+  if (input.audience) parts.push(`${input.audience} guests`);
+  if (input.group_size) parts.push(`${input.group_size} people`);
+  if (input.nights) parts.push(`${input.nights} nights`);
   return parts.join(" · ");
 }
 
+function venueIdByName(name) {
+  return state.search?.results.find((r) => r.name === name)?.venue_id;
+}
+
 function onToolResult(name, result) {
-  const last = $("timeline").lastElementChild;
-  if (result.error) {
-    step("err", esc(result.error));
-    return;
-  }
+  if (result.error) { detail(result.error); return; }
   if (name === "search_venues") {
     state.search = result;
-    if (last) last.innerHTML += `<br><span class="muted">${result.results.length} matches from ${result.venues_scanned.toLocaleString()} scanned buildings · target ${result.target_rt60_s.join("-")}s</span>`;
+    detail(`${result.results.length} strong matches across ${result.venues_scanned.toLocaleString()} scanned buildings in ${result.metro}.`);
     renderCards();
   } else if (name === "analyze_venue") {
     state.analyses[result.venue_id] = result;
     const s = result.spaces?.[0];
-    if (last && s) last.innerHTML += `<br><span class="muted">${esc(s.space_name)}: ${s.acoustics.rt60_occupied_s}s with audience</span>`;
+    if (s) detail(`${result.name} · ${s.space_name}: ${s.acoustics.rt60_occupied_s}s with a full house.`);
   } else if (name === "site_check") {
     state.site[result.venue_id] = result;
-    if (last) last.innerHTML += `<br><span class="muted">${esc(result.notes.slice(0, 2).join(" "))}</span>`;
+    detail(result.notes.slice(0, 2).join(" "));
   } else if (name === "find_housing") {
-    const vid = state.search?.results.find((r) => r.name === result.venue)?.venue_id;
+    const vid = venueIdByName(result.venue);
     if (vid) state.housing[vid] = result;
     const o = result.options?.[0];
-    if (last && o) last.innerHTML += `<br><span class="muted">${esc(o.name)} · ${o.distance_miles} mi · ~$${(o.estimated_total ?? 0).toLocaleString()}</span>`;
+    if (o) detail(`${o.name}, ${o.distance_miles} mi away, about ${money(o.estimated_total)}.`);
+  } else if (name === "tour_budget") {
+    if (result.costs) detail(`About ${money(result.costs.total)} for this stop · break-even ticket ${money2(result.break_even_ticket)}.`);
   } else if (name === "draft_outreach") {
-    const vid = state.search?.results.find((r) => r.name === result.venue)?.venue_id;
+    const vid = venueIdByName(result.venue);
     if (vid) state.outreach[vid] = result;
-    if (last) last.innerHTML += `<br><span class="muted">To ${esc(result.to?.name || "venue")}${result.to?.firm ? ", " + esc(result.to.firm) : ""}</span>`;
+    detail(`To ${result.to?.name || "the venue"}${result.to?.firm ? ", " + result.to.firm : ""}.`);
     if (vid) openVenue(vid);
   }
 }
 
-// ------------------------------------------------------------------ cards
+// ------------------------------------------------------------------ other rooms
 
 function renderCards() {
   const r = state.search;
-  $("results-title").textContent = `Ranked spaces · ${r.metro} · ${r.use_label}`;
-  if (!r.results.length) {
-    $("cards").innerHTML = `<p class="muted">Nothing fits yet. Try a smaller audience or another use.</p>`;
-    return;
-  }
-  $("cards").innerHTML = r.results.map((v, i) => {
+  if (!r?.results.length) return;
+  $("cards").innerHTML = r.results.map((v) => {
     const a = v.best_space.acoustics;
     return `
-      <article class="vcard" data-id="${v.venue_id}">
-        <span class="rank">#${i + 1}</span>
+      <button class="card" data-id="${v.venue_id}">
         <img src="${esc(v.photo || "")}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
-        <div class="body">
-          <h3>${esc(v.name)}</h3>
-          <div class="space">${esc(v.best_space.space_name)} · ${v.best_space.area_sqft.toLocaleString()} sq ft</div>
-          <div class="row">
-            <span><span class="score" style="color:${scoreColor(a.score)}">${a.rt60_occupied_s}s</span> <span class="muted">RT60 full</span></span>
-            <span class="badge">${esc(v.property_type)}</span>
-          </div>
-          <div class="row">
-            <span class="muted">${a.capacity_seated} seated · match ${v.match_score}</span>
-            ${v.is_hotel || v.property_type === "Multifamily" ? `<span class="badge stay">stay on site</span>` : ""}
-          </div>
-        </div>
-      </article>`;
+        <div class="name">${esc(v.name)}</div>
+        <div class="meta">${esc(v.best_space.space_name)}. ${a.rt60_occupied_s}s, ${a.capacity_seated} seats.</div>
+      </button>`;
   }).join("");
-  document.querySelectorAll(".vcard").forEach((el) => (el.onclick = () => openVenue(Number(el.dataset.id))));
+  document.querySelectorAll(".card").forEach((el) => (el.onclick = () => openVenue(Number(el.dataset.id), true)));
 }
 
 function scoreColor(score) {
-  return score >= 85 ? "var(--good)" : score >= 50 ? "var(--warn)" : "var(--bad)";
+  return score >= 85 ? "var(--good-ink)" : score >= 50 ? "var(--warn)" : "var(--bad)";
 }
 
-// ------------------------------------------------------------------ detail
+// ------------------------------------------------------------------ the pick
 
-async function openVenue(id) {
-  const brief = state.brief || {};
+async function openVenue(id, scroll = false) {
   const use = state.search?.use || "a_cappella_performance";
   const audience = state.search?.audience || 60;
   let v = state.analyses[id];
@@ -241,78 +286,102 @@ async function openVenue(id) {
   }
   state.venue = v;
   state.spaceIndex = 0;
-  $("detail").hidden = false;
-  $("d-name").textContent = v.name;
-  $("d-address").textContent = v.address;
-  const eventDate = parseEventDate(brief.event_date);
-  if (eventDate) $("sun-date").value = eventDate;
-  $("d-meta").textContent = `${v.metro} · ${v.property_type}${v.parking_spaces ? ` · ${v.parking_spaces} parking spaces` : ""}`;
+  state.roomOverride = null;
+  ["pick", "sound", "light", "walk", "stay", "fund", "reach"].forEach((s) => ($(s).hidden = false));
+  $("more").hidden = !state.search?.results?.length;
+  $("nav-links").hidden = false;
 
-  $("d-spaces").innerHTML = (v.spaces || []).map((s, i) =>
-    `<button data-i="${i}" class="${i === 0 ? "on" : ""}">${esc(s.space_name)}</button>`).join("");
+  $("d-name").textContent = v.name;
+  $("d-address").textContent = `${v.address}.`;
+  const eventDate = parseEventDate(state.brief?.event_date);
+  if (eventDate) $("sun-date").value = eventDate;
+
+  $("d-spaces").innerHTML = (v.spaces || []).length > 1 ? (v.spaces || []).map((s, i) =>
+    `<button data-i="${i}" class="${i === 0 ? "on" : ""}">${esc(cleanSpace(s.space_name, v.name))}</button>`).join("") : "";
   document.querySelectorAll("#d-spaces button").forEach((b) => (b.onclick = () => selectSpace(Number(b.dataset.i))));
   selectSpace(0);
 
-  loadSite(id);
-  loadHousing(id, brief.group_size || 14, brief.nights || 2).then(() => loadBudget(id));
+  showHeroVenue(id, v.name);
+  loadLight(id);
+  const brief = state.brief || {};
+  loadHousing(id, brief.group_size || 14, brief.nights || 2).then(() => { renderStats(); loadBudget(id); });
   renderEmail(id);
-  $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
+  resetTour();
+  if (scroll) $("pick").scrollIntoView({ behavior: "smooth" });
+}
+
+function currentSpace() { return state.venue?.spaces?.[state.spaceIndex]; }
+
+function currentAcoustics() { return state.roomOverride || currentSpace()?.acoustics; }
+
+function renderStats() {
+  const s = currentSpace();
+  if (!s) return;
+  const a = s.acoustics;
+  const stay = state.housing[state.venue.venue_id]?.options?.[0];
+  const stats = [
+    { n: `${a.rt60_occupied_s}<small>sec</small>`, l: "of reverb with a full house", good: a.score >= 85 },
+    { n: a.capacity_seated, l: `seats in the ${esc(cleanSpace(s.space_name, state.venue.name).toLowerCase())}` },
+    { n: stay ? `${stay.distance_miles}<small>mi</small>` : "None", l: stay ? `to ${esc(stay.name)}` : "lodging found nearby" },
+    { n: stay?.estimated_total ? money(stay.estimated_total) : "Ask", l: stay ? `for the group, ${state.brief?.nights || 2} nights` : "" },
+  ];
+  $("d-stats").innerHTML = stats.map((x) => `<div class="fig ${x.good ? "good" : ""}"><div class="n">${x.n}</div><div class="l">${x.l}</div></div>`).join("");
 }
 
 function selectSpace(i) {
   const v = state.venue;
   const s = v.spaces?.[i];
   state.spaceIndex = i;
+  state.roomOverride = null;
   document.querySelectorAll("#d-spaces button").forEach((b) => b.classList.toggle("on", Number(b.dataset.i) === i));
-  // The hackathon scans are public/unlisted, so the standard Showcase embed needs no SDK key and works on
-  // any domain. (The SDK key is limited to localhost and is only needed for scripting the viewer.)
-  const model = s?.model_id || v.matterport_models?.[0];
-  $("d-tour").src = model ? `https://my.matterport.com/show/?m=${model}&play=1&qs=1&brand=0` : "about:blank";
-  $("d-tour-link").href = model ? `https://my.matterport.com/show/?m=${model}` : "#";
-  $("d-tour-link").hidden = !model;
-  if (!s) {
-    $("d-acoustics").innerHTML = `<p class="muted">No measurable room in this scan.</p>`;
+  renderStats();
+  renderAcoustics();
+  resetTour();
+}
+
+function renderAcoustics() {
+  const s = currentSpace();
+  const a = currentAcoustics();
+  if (!a) {
+    $("d-verdict").textContent = "No measurable room in this scan.";
     return;
   }
-  const a = s.acoustics;
-  $("d-acoustics").innerHTML = `
-    <p class="verdict"><b style="color:${scoreColor(a.score)}">${a.rt60_occupied_s}s</b> with ${a.audience} guests · ${a.rt60_empty_s}s empty</p>
-    <p>${esc(a.verdict)}</p>
-    <div class="facts">
-      <div class="f"><span>Space</span><span>${esc(a.space_label)} · ${s.area_sqft.toLocaleString()} sq ft${s.height_ft ? ` · ${s.height_ft} ft ceiling` : ""}</span></div>
-      <div class="f"><span>Capacity</span><span>${a.capacity_seated} seated · ${a.capacity_standing} standing</span></div>
-      <div class="f"><span>Assumed finishes</span><span>${esc(a.assumptions.floor)} floor · ${esc(a.assumptions.walls)} walls · ${esc(a.assumptions.ceiling)} ceiling</span></div>
-      ${a.notes.map((n) => `<div class="f"><span>Note</span><span>${esc(n)}</span></div>`).join("")}
-    </div>`;
+  $("d-verdict").textContent = a.verdict;
+  $("d-acoustics").innerHTML = dl([
+    ["Room", state.roomOverride ? `${esc(state.roomOverride.label)}, from the 3D tour` : `${esc(cleanSpace(s.space_name, state.venue.name))}, ${esc(a.space_label)}`],
+    ["Size", state.roomOverride ? `${Math.round(state.roomOverride.areaSqft).toLocaleString()} sq ft` : `${s.area_sqft.toLocaleString()} sq ft${s.height_ft ? `, ${s.height_ft} ft ceiling` : ""}`],
+    ["Reverb", `${a.rt60_empty_s}s empty, ${a.rt60_occupied_s}s with ${a.audience} guests`],
+    ["Capacity", `${a.capacity_seated} seated, ${a.capacity_standing} standing`],
+    ["Assumed finishes", `${a.assumptions.floor} floor, ${a.assumptions.walls} walls, ${a.assumptions.ceiling} ceiling`.replaceAll("_", " ")],
+  ]);
   renderRtChart(a);
   applyRoomSound();
 }
 
 function renderRtChart(a) {
   const max = Math.max(3, a.rt60_empty_s * 1.1, a.target_s[1] * 1.3);
-  const x = (s) => 10 + (s / max) * 280;
+  const W = 1000, x = (s) => 20 + (s / max) * (W - 160);
   const row = (y, val, label, color) => `
-    <rect x="10" y="${y}" width="${x(val) - 10}" height="16" rx="4" fill="${color}"/>
-    <text x="${x(val) + 6}" y="${y + 12}" font-size="11" fill="currentColor">${label} ${val}s</text>`;
+    <rect x="20" y="${y}" width="${x(val) - 20}" height="22" rx="11" fill="${color}"/>
+    <text x="${x(val) + 12}" y="${y + 16}" font-size="15" fill="#f5f5f7">${label} · ${val}s</text>`;
   $("d-rtchart").innerHTML = `
-    <svg viewBox="0 0 360 92" role="img" aria-label="Reverberation time compared with the target">
-      <rect x="${x(a.target_s[0])}" y="4" width="${x(a.target_s[1]) - x(a.target_s[0])}" height="64" fill="var(--band)" rx="4"/>
-      <text x="${x(a.target_s[0])}" y="84" font-size="10" fill="var(--good)">target ${a.target_s[0]}-${a.target_s[1]}s</text>
-      ${row(12, a.rt60_empty_s, "empty", "var(--muted)")}
-      ${row(40, a.rt60_occupied_s, "full", scoreColor(a.score))}
+    <svg viewBox="0 0 ${W} 120" role="img" aria-label="Reverberation time against the target band">
+      <rect x="${x(a.target_s[0])}" y="6" width="${x(a.target_s[1]) - x(a.target_s[0])}" height="84" rx="10" fill="rgba(48,209,88,0.14)"/>
+      <text x="${x(a.target_s[0])}" y="112" font-size="13" fill="#30d158">Target ${a.target_s[0]}–${a.target_s[1]}s</text>
+      ${row(18, a.rt60_empty_s, "Empty", "#48484a")}
+      ${row(56, a.rt60_occupied_s, "Full house", "#2997ff")}
     </svg>`;
 }
 
 // ------------------------------------------------------------------ listen
 
-function currentAcoustics() {
-  return state.venue?.spaces?.[state.spaceIndex]?.acoustics;
-}
-
 function applyRoomSound() {
   const a = currentAcoustics();
   if (!a) return;
-  sound.setRoom(state.crowd === "full" ? a.rt60_occupied_s : a.rt60_empty_s, a.volume_m3);
+  const rt = state.crowd === "full" ? a.rt60_occupied_s : a.rt60_empty_s;
+  sound.setRoom(rt, a.volume_m3);
+  hero?.setReverb(rt);
+  lightScene?.setReverb(rt);
 }
 
 function wireListen() {
@@ -324,17 +393,20 @@ function wireListen() {
     };
   });
   $("play-choir").onclick = async () => {
+    $("play-choir").classList.remove("pulse");
     applyRoomSound();
-    await sound.playChoir();
+    const seconds = await sound.playChoir();
     applyRoomSound();
+    hero?.pulse(seconds);
+    lightScene?.pulse(seconds);
     drawScope();
   };
-  $("clap").onclick = async () => { applyRoomSound(); await sound.clap(); applyRoomSound(); drawScope(); };
+  $("clap").onclick = async () => { applyRoomSound(); await sound.clap(); applyRoomSound(); hero?.pulse(2); drawScope(); };
   $("mic").onclick = async () => {
     if (sound.mic) {
       sound.stopMic();
       $("mic").classList.remove("live");
-      $("mic").textContent = "🎤 Sing into the room";
+      $("mic").textContent = "Sing into the room";
       return;
     }
     try {
@@ -342,11 +414,9 @@ function wireListen() {
       await sound.startMic();
       applyRoomSound();
       $("mic").classList.add("live");
-      $("mic").textContent = "■ Stop mic";
+      $("mic").textContent = "Stop singing";
       drawScope();
-    } catch (e) {
-      alert("Microphone not available: " + e.message);
-    }
+    } catch (e) { alert("Microphone not available: " + e.message); }
   };
 }
 
@@ -356,19 +426,18 @@ function drawScope() {
   canvas.dataset.running = "1";
   const ctx = canvas.getContext("2d");
   const data = new Uint8Array(sound.analyser.fftSize);
-  const color = getComputedStyle(document.documentElement).getPropertyValue("--accent");
   const tick = () => {
     canvas.width = canvas.clientWidth * devicePixelRatio;
-    canvas.height = 60 * devicePixelRatio;
+    canvas.height = 80 * devicePixelRatio;
     sound.analyser.getByteTimeDomainData(data);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#2997ff";
+    ctx.lineWidth = 2 * devicePixelRatio;
     ctx.beginPath();
     for (let i = 0; i < data.length; i++) {
-      const x = (i / data.length) * canvas.width;
-      const y = (data[i] / 255) * canvas.height;
-      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      const px = (i / data.length) * canvas.width;
+      const py = (data[i] / 255) * canvas.height;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
     }
     ctx.stroke();
     requestAnimationFrame(tick);
@@ -376,35 +445,37 @@ function drawScope() {
   tick();
 }
 
-// ------------------------------------------------------------------ site + sun
-
-async function loadSite(id) {
-  $("d-site").innerHTML = `<p class="muted">Loading aerial…</p>`;
-  let site = state.site[id];
-  if (!site) {
-    site = await (await fetch(`/api/venues/${id}/site`)).json();
-    state.site[id] = site;
-  }
-  const img = $("d-aerial");
-  img.onload = () => renderSun();
-  img.onerror = () => { img.alt = "No aerial imagery here"; };
-  img.src = site.aerial_image_url;
-  const a = site.aerial || {};
-  $("d-site").innerHTML = [
-    ["Parking (CoStar)", site.parking_spaces ? `${site.parking_spaces} spaces` : "not recorded"],
-    ["Vehicles seen from the air", a.vehicles_on_parcel ?? "-"],
-    ["Footprint", a.footprint_sqft ? `${Math.round(a.footprint_sqft).toLocaleString()} sq ft` : "-"],
-    ["Roof", [a.roof_shape, a.roof_material].filter(Boolean).join(", ") || "-"],
-    ["Building height used for shadows", `${Math.round(site.building_height_ft)} ft`],
-    ["Imagery", a.collection ? `${a.collection} (${(a.capture_date || "").slice(0, 10)})` : "-"],
-  ].map(([k, v]) => `<div class="f"><span>${k}</span><span>${esc(v)}</span></div>`).join("");
-}
+// ------------------------------------------------------------------ light
 
 function wireSun() {
-  const d = new Date();
-  $("sun-date").value = d.toISOString().slice(0, 10);
+  $("sun-date").value = new Date().toISOString().slice(0, 10);
   $("sun-date").oninput = renderSun;
   $("sun-time").oninput = renderSun;
+}
+
+function currentSun(site, metro) {
+  const dateStr = $("sun-date").value;
+  const minute = Number($("sun-time").value);
+  return sunPosition(localToUtc(dateStr, minute, utcOffsetFor(metro, dateStr)), site.lat, site.lon);
+}
+
+async function loadLight(id) {
+  const site = await getSite(id);
+  if (!lightScene) {
+    try { lightScene = createHero($("light3d")); } catch (err) { console.warn(err); }
+  }
+  await lightScene?.showVenue(site, site.aerial_image_url);
+  applyRoomSound();
+  renderSun();
+  const a = site.aerial || {};
+  $("d-site").innerHTML = dl([
+    ["Parking (CoStar)", site.parking_spaces ? `${site.parking_spaces} spaces` : "Not recorded"],
+    ["Vehicles seen from the air", a.vehicles_on_parcel ?? "None"],
+    ["Footprint", a.footprint_sqft ? `${Math.round(a.footprint_sqft).toLocaleString()} sq ft` : "None"],
+    ["Roof", [a.roof_shape, a.roof_material].filter(Boolean).join(", ") || "None"],
+    ["Building height", `${Math.round(site.building_height_ft)} ft`],
+    ["Aerial capture", a.collection ? `${(a.capture_date || "").slice(0, 10)}` : "Unknown"],
+  ].map(([k, v]) => [k, esc(v)]));
 }
 
 function renderSun() {
@@ -414,23 +485,24 @@ function renderSun() {
   const dateStr = $("sun-date").value;
   const minute = Number($("sun-time").value);
   const offset = utcOffsetFor(v.metro, dateStr);
-  const sun = sunPosition(localToUtc(dateStr, minute, offset), site.lat, site.lon);
-  const canvas = $("d-shadow");
-  const img = $("d-aerial");
-  canvas.width = img.naturalWidth || 800;
-  canvas.height = img.naturalHeight || 600;
-  const shadow = drawShadow(canvas, site.image_bounds, site.footprint, site.building_height_ft, sun);
+  const sun = currentSun(site, v.metro);
+  lightScene?.setSun(sun);
   const day = dayTimeline(dateStr, site.lat, site.lon, offset);
-  const faces = litFacades(site.footprint, sun);
+  const lit = litFacades(site.footprint, sun).filter((f) => f.lit).map((f) => f.label);
+  const shadowFt = sun.altitude > 0 ? Math.round(site.building_height_ft / Math.tan((sun.altitude * Math.PI) / 180)) : null;
   $("sun-clock").textContent = fmtMinute(minute);
-  const lit = faces.filter((f) => f.lit).map((f) => f.label);
-  $("sun-facts").innerHTML = [
-    ["Sun", sun.altitude > 0 ? `${sun.altitude.toFixed(0)}° high, from the ${compass(sun.azimuth)}` : "below the horizon"],
-    ["Sunrise · sunset", `${fmtMinute(day.sunrise)} · ${fmtMinute(day.sunset)}`],
-    ["Golden hour", `${fmtMinute(day.goldenEveningStart)} - ${fmtMinute(day.sunset)}`],
-    ["Shadow length", shadow.length ? `${Math.round(shadow.length * 3.281)} ft` : "-"],
-    ["Walls in direct sun", lit.length ? lit.join(", ") : "none"],
-  ].map(([k, val]) => `<div class="f"><span>${k}</span><span>${esc(val)}</span></div>`).join("");
+  $("sun-facts").innerHTML = dl([
+    ["Sun", sun.altitude > 0 ? `${sun.altitude.toFixed(0)}° from the ${compass(sun.azimuth)}` : "Below the horizon"],
+    ["Sunrise", fmtMinute(day.sunrise)],
+    ["Golden hour", `${fmtMinute(day.goldenEveningStart)}`],
+    ["Sunset", fmtMinute(day.sunset)],
+    ["Shadow", shadowFt ? `${Math.min(shadowFt, 9999).toLocaleString()} ft` : "None"],
+    ["Walls in sun", lit.length ? lit.join(", ") : "None"],
+  ].map(([k, val]) => [k, esc(val)]));
+}
+
+function compass(az) {
+  return ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"][Math.round(az / 45) % 8];
 }
 
 function parseEventDate(text) {
@@ -442,11 +514,65 @@ function parseEventDate(text) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function compass(az) {
-  return ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"][Math.round(az / 45) % 8];
+// ------------------------------------------------------------------ walk through (Matterport)
+
+function wireTour() {
+  $("tour-poster").onclick = startTour;
 }
 
-// ------------------------------------------------------------------ housing + email
+function currentModel() {
+  return currentSpace()?.model_id || state.venue?.matterport_models?.[0];
+}
+
+function resetTour() {
+  const model = currentModel();
+  $("d-tour").hidden = true;
+  $("d-tour").src = "about:blank";
+  $("tour-poster").hidden = !model;
+  const site = state.venue && state.site[state.venue.venue_id];
+  $("tour-poster").style.backgroundImage = site ? `linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.55)), url(${site.aerial_image_url})` : "";
+  $("d-tour-link").href = model ? `https://my.matterport.com/show/?m=${model}` : "#";
+  $("d-tour-link").hidden = !model;
+  const smart = sdkUsable(state.config?.matterport_sdk_key);
+  $("walk-sub").textContent = smart
+    ? "Walk the building. Every room you enter changes the sound above."
+    : "The full 3D scan, room by room.";
+  $("walk-status").innerHTML = "";
+}
+
+async function startTour() {
+  const model = currentModel();
+  if (!model) return;
+  const s = currentSpace();
+  $("tour-poster").hidden = true;
+  $("d-tour").hidden = false;
+  $("walk-status").textContent = "Loading the tour…";
+  const sdk = await loadTour($("d-tour"), model, state.config?.matterport_sdk_key, {
+    targetAreaSqft: s?.area_sqft,
+    label: s && { title: "Perform here", description: `${s.acoustics.rt60_occupied_s}s reverb with a full house · ${s.acoustics.capacity_seated} seats` },
+    onRoomChange: onTourRoom,
+  });
+  $("walk-status").innerHTML = sdk
+    ? "Walk into any room. <b>The sound follows you.</b>"
+    : "";
+}
+
+async function onTourRoom(room) {
+  const use = state.search?.use || "a_cappella_performance";
+  const audience = state.search?.audience || 60;
+  const type = currentSpace()?.acoustics.space_type || "generic";
+  const q = new URLSearchParams({
+    area_sqft: room.areaSqft.toFixed(0), height_ft: room.heightFt.toFixed(1),
+    width_ft: room.widthFt.toFixed(1), depth_ft: room.depthFt.toFixed(1),
+    space_type: type, use, audience,
+  });
+  const a = await (await fetch(`/api/acoustics?${q}`)).json();
+  state.roomOverride = { ...a, label: room.label || "This room", areaSqft: room.areaSqft };
+  renderAcoustics();
+  $("walk-status").innerHTML = `You're in <b>${esc(room.label || "a new room")}</b>, ${Math.round(room.areaSqft).toLocaleString()} sq ft. <b>${a.rt60_occupied_s}s</b> of reverb with a full house.`;
+}
+
+// ------------------------------------------------------------------ stay
 
 async function loadHousing(id, groupSize, nights) {
   let h = state.housing[id];
@@ -454,47 +580,50 @@ async function loadHousing(id, groupSize, nights) {
     h = await (await fetch(`/api/venues/${id}/housing?group_size=${groupSize}&nights=${nights}`)).json();
     state.housing[id] = h;
   }
-  $("d-housing").innerHTML = `<div class="stay">${(h.options || []).map((o) => `
-    <div class="opt">
-      <b>${esc(o.name)}</b> ${o.same_building ? `<span class="badge stay">same building</span>` : ""}
-      <div class="muted">${o.kind === "hotel" ? "Hotel" : "Apartments"} · ${o.distance_miles} mi · ${esc(o.address)}</div>
-      <div>${o.estimated_total ? `~$${o.estimated_total.toLocaleString()} total · ` : ""}${esc(o.why)}</div>
-    </div>`).join("") || `<p class="muted">No lodging found nearby.</p>`}</div>
-    <p class="hint">${esc(h.note || "")}</p>`;
+  $("d-housing").innerHTML = (h.options || []).map((o) => `
+    <li>
+      <span class="name">${esc(o.name)}</span>
+      <span class="price">${o.estimated_total ? money(o.estimated_total) : "Ask"}</span>
+      <span class="meta">${o.same_building ? `<span class="same">Same building.</span> ` : ""}${o.kind === "hotel" ? "Hotel" : "Apartments"}, ${o.distance_miles} mi away. ${esc(o.why)}.</span>
+    </li>`).join("") || `<li><span class="meta">No lodging found nearby.</span></li>`;
+  $("d-housing-note").textContent = h.note || "";
 }
+
+// ------------------------------------------------------------------ fund
 
 function budgetParams() {
   const brief = state.brief || {};
-  const space = state.venue?.spaces?.[state.spaceIndex];
   return {
     group_size: brief.group_size || 14,
     nights: brief.nights || 2,
     audience: state.search?.audience || 60,
-    space_area_sqft: space?.area_sqft || null,
+    space_area_sqft: currentSpace()?.area_sqft || null,
   };
 }
 
 async function loadBudget(id) {
-  const p = budgetParams();
-  const q = new URLSearchParams(Object.entries(p).filter(([, v]) => v != null));
-  $("d-budget").innerHTML = `<p class="muted">Checking the tour fund…</p>`;
+  const q = new URLSearchParams(Object.entries(budgetParams()).filter(([, v]) => v != null));
+  $("d-budget").innerHTML = `<p class="sub">Checking the tour fund…</p>`;
   const b = await (await fetch(`/api/venues/${id}/budget?${q}`)).json();
-  if (b.error) { $("d-budget").innerHTML = `<p class="muted">${esc(b.error)}</p>`; return; }
+  if (b.error) { $("d-budget").innerHTML = `<p class="sub">${esc(b.error)}</p>`; return; }
   const c = b.costs, f = b.fund;
-  let status = `<span class="muted">Bank not connected</span>`;
-  if (b.affordable === true) status = `<span class="ok">Fits the fund</span>`;
-  if (b.affordable === false) status = `<span class="over">${money(b.shortfall)} short</span>`;
-  const fundText = f ? ` · fund ${money2(f.available_after_bills)} available` : "";
+  let verdict = `<span class="note">Connect the Nessie sandbox to check the fund.</span>`;
+  if (b.affordable === true) verdict = `<span class="ok">Fits the tour fund, with ${money(f.available_after_bills - c.total)} to spare.</span>`;
+  if (b.affordable === false) verdict = `<span class="over">${money(b.shortfall)} more than the tour fund holds.</span>`;
   $("d-budget").innerHTML = `
-    <div class="budget">
-      <div class="big">${status} · stop costs ~${money(c.total)}${fundText}</div>
-      <div class="f"><span>Venue fee (estimate)</span><span>${money(c.venue_fee_estimate)} · ${esc(c.venue_fee_basis)}</span></div>
-      <div class="f"><span>Lodging</span><span>${money(c.lodging_estimate)}</span></div>
-      <div class="f"><span>Break-even ticket</span><span>${money2(b.break_even_ticket)} (suggest ${money(b.suggested_ticket)})</span></div>
-      <div class="f"><span>Each member's share</span><span>${money2(b.per_member_share)}</span></div>
-      ${f ? `<button id="approve" class="primary">Approve: hold ${money(c.venue_deposit_50pct)} deposit + lodging, collect dues</button>` : ""}
-      <div id="ledger"></div>
-    </div>`;
+    <h2 class="display">Keep the tour solvent.</h2>
+    <p class="total">${money(c.total)}</p>
+    <p class="verdict">${verdict}</p>
+    <dl class="specs">${dlRows([
+      ["Tour fund available", f ? money2(f.available_after_bills) : "Not connected"],
+      ["Venue, estimated", money(c.venue_fee_estimate)],
+      ["Lodging", money(c.lodging_estimate)],
+      ["Break-even ticket", money2(b.break_even_ticket)],
+      ["Each member's share", money2(b.per_member_share)],
+    ])}</dl>
+    ${f ? `<button id="approve" class="cta">Hold the deposit and collect dues</button>` : ""}
+    <p class="note">Planned by the scout, approved by the treasurer, settled in Capital One's Nessie sandbox. ${esc(c.venue_fee_basis)}.</p>
+    <ul class="ledger" id="ledger"></ul>`;
   const btn = $("approve");
   if (btn) btn.onclick = () => approveBudget(id, btn);
 }
@@ -503,29 +632,50 @@ async function approveBudget(id, btn) {
   btn.disabled = true;
   btn.textContent = "Posting to Nessie…";
   const res = await fetch(`/api/venues/${id}/budget/commit`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(budgetParams()),
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(budgetParams()),
   });
   const out = await res.json();
   if (!res.ok) { btn.textContent = "Failed: " + (out.detail || res.status); return; }
-  btn.textContent = `Approved · fund ${money2(out.fund.balance)}, ${money2(out.fund.pending_bills)} in pending bills`;
-  const items = out.actions.map((a) => a.type === "bill"
-    ? `<li>Bill to ${esc(a.payee)}: ${money2(a.amount)} (pending)</li>`
-    : `<li>${esc(a.from)} paid their ${money2(a.amount)} share</li>`).join("");
-  $("ledger").innerHTML = `<ul class="ledger">${items}</ul><p class="hint">${esc(out.note)}</p>`;
+  btn.textContent = `Approved. Fund balance ${money2(out.fund.balance)}`;
+  const items = out.actions.map((a) => {
+    if (a.type === "bill") return `<li>Bill to ${esc(a.payee)}, ${money2(a.amount)}, pending.</li>`;
+    if (a.type === "short") return `<li class="over">${esc(a.from)} can't cover their ${money2(a.owed)} share yet.</li>`;
+    return `<li>${esc(a.from)} paid ${money2(a.amount)}${a.owed > 0 ? `, still owes ${money2(a.owed)}` : ""}.</li>`;
+  }).join("");
+  $("ledger").innerHTML = items;
 }
 
-async function renderEmail(id) {
+// ------------------------------------------------------------------ reach
+
+function renderEmail(id) {
   const e = state.outreach[id];
   if (!e) {
-    $("d-email").innerHTML = `<p class="muted">The agent drafts outreach for its top pick.</p>`;
+    $("d-email").innerHTML = `<p class="lede-dark">Run a brief and the scout drafts the email for its top pick.</p>`;
     return;
   }
   $("d-email").innerHTML = `
-    <div class="email"><div class="subj">${esc(e.subject)}</div><div class="muted">To: ${esc(e.to?.name || "")} ${e.to?.firm ? "· " + esc(e.to.firm) : ""} ${e.to?.email ? "· " + esc(e.to.email) : ""}</div>
-${esc(e.body)}</div>
-    <p class="hint">${esc(e.note)}</p>`;
+    <div class="email"><div class="subj">${esc(e.subject)}</div><div class="to">To ${esc(e.to?.name || "")}${e.to?.firm ? ", " + esc(e.to.firm) : ""}</div>${esc(e.body)}</div>
+    <button class="cta" id="copy-email">Copy email</button>
+    <p class="fine">${esc(e.note)}</p>`;
+  $("copy-email").onclick = async () => {
+    await navigator.clipboard.writeText(`Subject: ${e.subject}\n\n${e.body}`);
+    $("copy-email").textContent = "Copied";
+  };
+}
+
+// ------------------------------------------------------------------ helpers
+
+function dlRows(rows) {
+  return rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+}
+
+function dl(rows) { return dlRows(rows); }
+
+function cleanSpace(space, venue) {
+  if (space && venue && space.toLowerCase().startsWith(venue.toLowerCase())) {
+    return space.slice(venue.length).replace(/^[\s\-–:]+/, "") || space;
+  }
+  return space || "";
 }
 
 // ------------------------------------------------------------------ tiny markdown

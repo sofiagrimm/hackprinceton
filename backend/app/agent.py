@@ -119,8 +119,11 @@ class PlannerScout:
 
         a = best["acoustics"]
         stay = (housing.get("options") or [{}])[0]
+        space = best["space_name"]
+        if space.lower().startswith(pick["name"].lower()):
+            space = space[len(pick["name"]):].lstrip(" -–:") or space
         lines = [
-            f"**Recommendation: {pick['name']}** ({pick['address']}) - {best['space_name']}.",
+            f"**Recommendation: {pick['name']}**, {space.lower()} ({pick['address']}).",
             f"- Sound: {a['verdict']} (empty {a['rt60_empty_s']}s, with {a['audience']} guests {a['rt60_occupied_s']}s).",
             f"- Fits about {a['capacity_seated']} seated / {a['capacity_standing']} standing in {best['area_sqft']:,} sq ft.",
         ]

@@ -26,6 +26,7 @@ from .config import CACHE_DIR
 API = "https://v2-prod-api.nessieisreal.com"
 STATE = CACHE_DIR / "nessie_state.json"
 START_FUND_CENTS = int(float(os.environ.get("TOUR_FUND_START", "2500")) * 100)
+MEMBER_START_CENTS = int(float(os.environ.get("TOUR_MEMBER_START", "2500")) * 100)
 DEMO_MEMBERS = int(os.environ.get("TOUR_MEMBERS_IN_BANK", "4"))  # members mirrored in Nessie
 
 
@@ -71,7 +72,7 @@ def ensure_group(group_name: str = "Encore Tour Fund") -> dict:
     for i in range(DEMO_MEMBERS):
         cust = _req("POST", "/customers", {"first_name": f"Singer{i + 1}", "last_name": "Member", "address": ADDRESS})
         acct = _req("POST", f"/customers/{cust['id']}/accounts",
-                    {"type": "Checking", "nickname": f"Singer {i + 1}", "balance_cents": 60000})
+                    {"type": "Checking", "nickname": f"Singer {i + 1}", "balance_cents": MEMBER_START_CENTS})
         members.append({"customer_id": cust["id"], "account_id": acct["id"], "name": f"Singer {i + 1}"})
     state = {"fund_account_id": fund["id"], "treasurer_id": treasurer["id"], "members": members}
     _save_state(state)
@@ -181,15 +182,31 @@ def commit_stop(venue_id: int, group_size: int = 14, nights: int = 2, audience: 
     if collect_dues:
         share_cents = int(round(plan["per_member_share"] * 100))
         for m in state["members"]:
-            t = _req("POST", f"/accounts/{m['account_id']}/transfers", {
-                "payee_id": fund_id, "amount_cents": share_cents,
-                "description": f"Tour share: {venue['name']}"})
+            try:
+                available = _req("GET", f"/accounts/{m['account_id']}").get("balance_cents", 0)
+            except NessieError:
+                available = 0
+            pay_cents = min(share_cents, max(0, available))
+            if pay_cents <= 0:
+                actions.append({"type": "short", "from": m["name"], "amount": plan["per_member_share"],
+                                "owed": plan["per_member_share"]})
+                continue
+            try:
+                t = _req("POST", f"/accounts/{m['account_id']}/transfers", {
+                    "payee_id": fund_id, "amount_cents": pay_cents,
+                    "description": f"Tour share: {venue['name']}"})
+            except NessieError as exc:
+                actions.append({"type": "short", "from": m["name"], "amount": 0,
+                                "owed": plan["per_member_share"], "error": str(exc)[:200]})
+                continue
             if t.get("id") and t.get("status") == "pending":
                 try:  # sandbox: fast-forward settlement so the fund updates during the demo
                     t = _req("POST", f"/transactions/{t['id']}/settle") or t
                 except NessieError:
                     pass
-            actions.append({"type": "transfer", "from": m["name"], "amount": plan["per_member_share"],
+            paid = round(pay_cents / 100, 2)
+            owed = round(plan["per_member_share"] - paid, 2)
+            actions.append({"type": "transfer", "from": m["name"], "amount": paid, "owed": owed,
                             "id": t.get("id"), "status": t.get("status")})
     return {"plan": plan, "actions": actions, "fund": fund_snapshot(),
             "note": f"Dues collected from the {len(state['members'])} members mirrored in the sandbox bank."}

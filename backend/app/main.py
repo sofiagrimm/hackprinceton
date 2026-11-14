@@ -37,6 +37,16 @@ def config() -> dict:
     }
 
 
+@app.get("/api/acoustics")
+def room_acoustics(area_sqft: float, height_ft: float | None = None, width_ft: float | None = None,
+                   depth_ft: float | None = None, space_type: str = "generic",
+                   use: str = "a_cappella_performance", audience: int = 60) -> dict:
+    """RT60 for an arbitrary room, e.g. the one the visitor just walked into in the 3D tour."""
+    from .acoustics import RoomGeometry, estimate
+    return estimate(RoomGeometry(area_sqft, height_ft, width_ft, depth_ft), space_type,
+                    use=use, audience=audience).to_dict()
+
+
 @app.post("/api/scout")
 def run_scout(req: ScoutRequest) -> StreamingResponse:
     agent = make_scout(req.mode)
