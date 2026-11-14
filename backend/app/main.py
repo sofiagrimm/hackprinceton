@@ -47,6 +47,22 @@ def room_acoustics(area_sqft: float, height_ft: float | None = None, width_ft: f
                     use=use, audience=audience).to_dict()
 
 
+@app.get("/api/venues/{venue_id}/rooms")
+def venue_rooms(venue_id: int) -> dict:
+    """Indoor rooms with a 360 photo, for the lighting preview."""
+    from .panos import rooms_for_venue
+    return {"rooms": rooms_for_venue(venue_id)}
+
+
+@app.get("/api/pano/{model_id}/{pano_id}/{index}.jpg")
+def pano_face(model_id: str, pano_id: str, index: int) -> Response:
+    from .panos import face
+    image = face(model_id, pano_id, index) if 0 <= index <= 5 else None
+    if not image:
+        raise HTTPException(404, "Panorama not available")
+    return Response(image, media_type="image/jpeg", headers={"Cache-Control": "max-age=3600"})
+
+
 @app.get("/api/validation")
 def validation() -> dict:
     """The engine run on concert halls with published reverberation times."""

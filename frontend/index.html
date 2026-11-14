@@ -100,17 +100,24 @@
 
     <section class="frame light-frame" id="light" hidden>
       <div class="wrap">
-        <h2 class="display">See the light<br>at showtime.</h2>
-        <p class="lede-dark">Where the sun will be over this building on the day of your show.</p>
+        <h2 class="display">See the room<br>at showtime.</h2>
+        <p class="lede-dark">Pick a room, then drag through the day. The light follows the real sun over this building on your date.</p>
+        <div class="room-picker" id="room-picker"></div>
       </div>
-      <div class="light-canvas" id="light3d"></div>
+      <div class="room-view" id="roomview"><p class="room-view-empty" id="roomview-empty">Loading the rooms…</p></div>
       <div class="wrap">
         <div class="sun-controls">
           <input type="date" id="sun-date" aria-label="Date">
-          <input type="range" id="sun-time" min="300" max="1260" step="5" value="840" aria-label="Time of day">
+          <input type="range" id="sun-time" min="300" max="1260" step="5" value="1110" aria-label="Time of day">
           <b id="sun-clock"></b>
         </div>
+        <p class="note">Drag the photo to look around. This shows the mood of the light, warmer at golden hour and lamp-lit after dark. It isn't a lighting simulation.</p>
         <dl class="specs cols" id="sun-facts"></dl>
+        <h3 class="sub-head">From outside</h3>
+        <p class="note">The building from its Vexcel aerial and footprint, with the same sun.</p>
+      </div>
+      <div class="light-canvas" id="light3d"></div>
+      <div class="wrap">
         <dl class="specs cols" id="d-site"></dl>
       </div>
     </section>

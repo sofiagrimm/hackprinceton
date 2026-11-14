@@ -4,6 +4,7 @@ import { createHero } from "./hero3d.js";
 import { createVinylHero } from "./vinyl.js";
 import { loadTour, sdkUsable } from "./tour.js";
 import { drawRoomMap } from "./roommap.js";
+import { createRoomViewer } from "./roomview.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -500,7 +501,36 @@ function currentSun(site, metro) {
   return sunPosition(localToUtc(dateStr, minute, utcOffsetFor(metro, dateStr)), site.lat, site.lon);
 }
 
+let roomViewer = null;
+
+async function loadRooms(id) {
+  $("room-picker").innerHTML = "";
+  $("roomview-empty").hidden = false;
+  $("roomview-empty").textContent = "Loading the rooms…";
+  let rooms = [];
+  try { rooms = (await (await fetch(`/api/venues/${id}/rooms`)).json()).rooms || []; } catch { /* none */ }
+  if (state.venue?.venue_id !== id) return;
+  if (!rooms.length) { $("roomview-empty").textContent = "No 360 photos for this building."; return; }
+  rooms = rooms.slice(0, 14);
+  const prefer = currentSpace()?.model_id;
+  const first = Math.max(0, rooms.findIndex((r) => r.model_id === prefer));
+  $("room-picker").innerHTML = rooms.map((r, i) =>
+    `<button data-i="${i}">${esc(r.scan)}${r.room ? `, ${esc(r.room.toLowerCase())}` : ""}<small>${r.area_sqft ? r.area_sqft.toLocaleString() + " sq ft" : ""}</small></button>`).join("");
+  const pick = async (i) => {
+    document.querySelectorAll("#room-picker button").forEach((b) => b.classList.toggle("on", Number(b.dataset.i) === i));
+    if (!roomViewer) roomViewer = createRoomViewer($("roomview"));
+    try {
+      await roomViewer.load(rooms[i].model_id, rooms[i].pano_id);
+      $("roomview-empty").hidden = true;
+      renderSun();
+    } catch { $("roomview-empty").textContent = "That photo didn't load. Try another room."; }
+  };
+  document.querySelectorAll("#room-picker button").forEach((b) => (b.onclick = () => pick(Number(b.dataset.i))));
+  pick(first);
+}
+
 async function loadLight(id) {
+  loadRooms(id);
   const site = await getSite(id);
   if (!lightScene) {
     try { lightScene = createHero($("light3d")); } catch (err) { console.warn(err); }
@@ -528,6 +558,8 @@ function renderSun() {
   const offset = utcOffsetFor(v.metro, dateStr);
   const sun = currentSun(site, v.metro);
   lightScene?.setSun(sun);
+  const glassy = currentAcoustics()?.assumptions?.walls === "glass" ? 1 : 0.45;
+  roomViewer?.setLight(sun, glassy);
   const day = dayTimeline(dateStr, site.lat, site.lon, offset);
   const lit = litFacades(site.footprint, sun).filter((f) => f.lit).map((f) => f.label);
   const shadowFt = sun.altitude > 0 ? Math.round(site.building_height_ft / Math.tan((sun.altitude * Math.PI) / 180)) : null;
