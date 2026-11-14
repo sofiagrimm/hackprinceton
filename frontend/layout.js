@@ -25,7 +25,7 @@ const TITLES = {
   explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", acoustics: "Acoustics · Stagehand", lighting: "Lighting · Stagehand", saved: "Saved · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
-const CHERRY = "#8e1424"; // the button
+const CHERRY = "#7d4b4b"; // a lighter take on the opening page's maroon paper
 const OLIVE = "#4a5140"; // the search page
 
 const state = { search: null, venueId: null, scouting: false, zooming: false, cameFromHome: false };
