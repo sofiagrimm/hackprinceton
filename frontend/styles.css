@@ -1,5 +1,5 @@
 /*
-  Backstage Spaces.
+  Stagehand.
   Paper, tape, polaroids and records. One type scale, one spacing scale, one
   set of buttons and inputs, shared by every view. Feature files (tourplan.css,
   pipeline.css, regions.css, film.css) only hold what is truly theirs.
@@ -286,9 +286,9 @@ input[type=range] { accent-color: var(--wine); }
 .cta-arrow { width: 0.8em; height: 0.8em; vertical-align: -0.08em; margin-left: 0.2em; animation: nudge 1.4s ease-in-out infinite; }
 @keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
 /* a drawn arrow pointing at the button, so it reads as the way in */
-.cta-hint { position: absolute; right: -128px; top: -46px; width: 120px; color: var(--magenta); pointer-events: none; }
-.cta-hint svg { display: block; width: 100%; transform: scaleX(-1) rotate(8deg); }
-.cta-hint span { position: absolute; right: -16px; top: -10px; font-family: var(--script); font-size: 24px; transform: rotate(6deg); white-space: nowrap; }
+.cta-hint { position: absolute; left: -150px; bottom: -34px; width: 120px; color: var(--magenta); pointer-events: none; }
+.cta-hint svg { display: block; width: 100%; transform: scale(-1, -1) rotate(-6deg); }
+.cta-hint span { position: absolute; left: -6px; bottom: -22px; font-family: var(--script); font-size: 24px; transform: rotate(-6deg); white-space: nowrap; }
 .hero-cta:hover .blob-fill, .hero-cta:hover .blob-line, .hero-cta:hover .blob-shine { transform: translate(0, -4px); }
 .hero-cta:hover .blob-fill { fill: #a51a2c; }
 .hero-cta:hover .blob-shadow { transform: translate(0, 12px); }
@@ -638,8 +638,7 @@ input[type=range] { accent-color: var(--wine); }
   .hero-stage { padding: 150px var(--s4) 150px; }
   .hero-title { font-size: clamp(44px, 14vw, 64px); }
   .hero-cta { width: min(300px, 78vw); }
-  .cta-hint { right: -6px; top: -64px; width: 78px; }
-  .cta-hint span { font-size: 19px; right: 64px; top: 6px; }
+  .cta-hint { display: none; }
   .hero-sub { font-size: var(--fs-sm); max-width: 300px; }
   .swatches { top: 14px; left: 10px; }
   .swatches span { width: 34px; padding: 3px 3px 0; margin-left: -8px; }

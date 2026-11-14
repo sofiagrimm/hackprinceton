@@ -132,7 +132,7 @@ export function createVinylHero(root) {
     const lines = d.lines || ["1. Sound check", "2. Full house", "3. Encore"];
     lines.forEach((t, k) => { ctx.textAlign = "left"; ctx.fillText(t, -lr * 0.72, -lr * 0.12 + k * lr * 0.12); });
     ctx.textAlign = "center";
-    ctx.fillText("BACKSTAGE SPACES", 0, lr * 0.62);
+    ctx.fillText("STAGEHAND", 0, lr * 0.62);
     ctx.lineWidth = Math.max(0.6, lr * 0.008);
     ctx.beginPath(); ctx.arc(0, 0, lr * 0.93, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();

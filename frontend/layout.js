@@ -19,9 +19,9 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const VIEWS = ["home", "search", "results", "property", "tour", "film", "bookings", "cities"];
 const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
-  home: "Backstage Spaces", search: "Find your space · Backstage Spaces", results: "Results · Backstage Spaces",
-  property: "Backstage Spaces", tour: "Plan a tour · Backstage Spaces", film: "Film mode · Backstage Spaces",
-  bookings: "Bookings · Backstage Spaces", cities: "New cities · Backstage Spaces",
+  home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
+  property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
+  bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
 const CHERRY = "#8e1424"; // the button
@@ -434,7 +434,7 @@ function watchVenueName() {
     const name = $("d-name").textContent;
     if (!name) return;
     $("vf-title").textContent = name;
-    if (document.body.dataset.view === "property") document.title = `${name} · Backstage Spaces`;
+    if (document.body.dataset.view === "property") document.title = `${name} · Stagehand`;
     const v = state.search?.results?.find((r) => r.name === name);
     if (v && v.venue_id !== state.venueId) { state.venueId = v.venue_id; setPhoto(v.venue_id); }
   };
