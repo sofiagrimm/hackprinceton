@@ -156,3 +156,73 @@ and the Florida Panhandle (Pensacola, Tallahassee).
 4. Demo: "Our Berkeley group wants to sing in San Francisco for 120 people" -> a ranked list of SF
    churches and halls with estimated reverb, the 3D building from Vexcel, and nearby hotels.
 ```
+
+---
+
+## Agent 6: Layout and design pass (branch `feat/design`)
+
+```text
+SETUP
+- Save the .env I pasted to the repo root (git-ignored; never commit it).
+- pip install -r backend/requirements.txt
+- cd backend && uvicorn app.main:app --port 8000   (decrypts the data on first start; /api/config should show 3288 venues)
+- Read README.md and every file in frontend/ before changing anything.
+
+YOUR JOB: own the layout and visual design of the whole site. Frontend only.
+Branch: feat/design. Commit often, push your branch, never push to main. The lead merges.
+
+WHAT EXISTS
+One page, frontend/index.html, with these parts (in order):
+- a cream "paper" hero: two cherry-red vinyl records drawn on canvas (vinyl.js), a serif two-line headline,
+  and the brief typed onto a cassette label (the #ask form). Tapping a record plays the room.
+- results after a search: plan (#plan), the pick (#pick), sound (#sound: play, band chart, where-to-stand map,
+  accuracy table), light (#light: 360 room viewer + sun slider + 3D building), inside (#walk: Matterport tour),
+  stay (#stay), budget (#fund), reach out (#reach), other rooms (#more)
+- feature sections added by other agents, each with its own css/js: tour planner (#tour-plan, tourplan.*),
+  booking pipeline + A/B compare (#pipeline, pipeline.*), estimated regions (#regions, regions.*),
+  film mode (#film, film.*)
+
+THE PROBLEM TO SOLVE
+The sections were built separately and the page is now long and uneven. Make it feel like one product:
+1. Information architecture. Give the page a clear structure with modes: Concerts (the main scout), Tour,
+   Film, Bookings, and New cities (regions). A visitor should understand in five seconds what it does and
+   reach each mode in one click (sticky nav, tabs or chapters, your call). The main a cappella flow stays the
+   hero and the default.
+2. Consistency. One type scale, one spacing scale, one set of buttons, inputs, lists and figures across every
+   section, including the four feature sections, which each have their own CSS today. Move shared rules into
+   styles.css; keep feature css files only for what is truly specific.
+3. Results layout. The results run as one long column. Group them so the pick, the sound and the room viewer
+   read as the centre of the story; secondary detail (site facts, accuracy table, validation) can collapse or
+   sit in a side column on wide screens.
+4. Mobile. Everything must work at 390 px wide: hero, cassette input, records, results, viewers.
+5. Accessibility. Visible focus states, labels on every input, colour contrast AA, prefers-reduced-motion.
+
+DESIGN DIRECTION (keep it)
+- Warm cream paper (#efe6dc), deep cherry (#8e1424 / #4a0c14), Playfair Display for headings, system sans
+  for body. Vinyl records and a cassette as the hero objects. Musical, warm, hand-made, not corporate.
+- Avoid AI-generated tells: no purple/blue gradients, no Inter, no glassmorphism cards, no rows of icon
+  cards, no emoji, no bento grids, no stat boxes with drop shadows, no coloured eyebrow labels on every
+  heading, no generic fade-in on everything, no em dashes in copy. Copy should read like a person wrote it.
+- Ideas you are free to use: record "tracklist" styling for the plan steps, a liner-notes style for the
+  agent's report, a ticket-stub style for the budget, a setlist look for the tour stops, cassette J-card
+  for the email draft. Pick what helps; don't overdo the theme.
+
+HARD RULES (the JavaScript depends on these)
+- Do not rename or remove any element id, data-* attribute, or these classes used from JS:
+  .card .d .steps li.live .pl-draft .pl-play, and buttons inside #d-spaces, #room-picker, #pl-crowd,
+  #rg-list, #rg-picker. You may move elements, wrap them, and change their markup around them.
+- Don't change backend files, API calls or the logic in app.js and the feature js files. If you must touch
+  JS (for navigation or tabs), add a new file frontend/layout.js and keep edits elsewhere to one-line hooks.
+- Keep the hidden/unhidden behaviour: results sections start hidden and app.js reveals them.
+
+HOW TO CHECK YOUR WORK
+- Playwright is installed (chromium.launch() works). Screenshot at 1440x900 and at 390x844 (iPhone):
+  the hero, a full search ("14 singers touring LA on March 14..." then Scout), each results section, and
+  each feature section. Look at every screenshot before you commit.
+- Click through: Scout, play the chord, switch rooms in the viewer, drag the sun slider, plan the sample tour,
+  add a venue to bookings, run a film search, pick a new city. Nothing may throw in the console.
+- Save before/after screenshots to docs/design/ (these are fine to commit).
+
+WHEN DONE
+Write docs/handoff-design.md: what changed, the new structure, screenshots, anything you couldn't finish.
+```
