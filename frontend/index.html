@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="tourplan.css">
   <link rel="stylesheet" href="pipeline.css">
   <link rel="stylesheet" href="regions.css">
+  <link rel="stylesheet" href="film.css">
 </head>
 <body>
   <nav class="subnav">
@@ -252,6 +253,57 @@
       <h3 class="rg-h">Sleep close.</h3>
       <ul class="rows" id="rg-lodging"></ul>
       <p class="note">Venues and hotels come from OpenStreetMap. Reverb is a physics estimate from the building's size and type, not a measurement.</p>
+  <section class="frame film" id="film">
+    <div class="wrap">
+      <h2 class="display">Film mode.</h2>
+      <p class="lede-dark">The same buildings, scouted for a crew. Find a room quiet enough for dialogue, see the building from four sides, and check the trucks fit outside.</p>
+      <form class="film-ask" id="film-ask">
+        <textarea id="film-brief" rows="2" aria-label="Describe your shoot">25 crew, quiet interior, LA, 3 weeks in April. Dialogue-heavy.</textarea>
+        <button id="film-go" type="submit">Find locations</button>
+      </form>
+      <p class="film-status" id="film-status"></p>
+
+      <div id="film-results" hidden>
+        <ol class="film-list" id="film-list"></ol>
+      </div>
+
+      <div class="film-detail" id="film-detail" hidden>
+        <h2 class="display" id="film-name"></h2>
+        <p class="lede-dark" id="film-address"></p>
+        <p class="film-room" id="film-room"></p>
+        <div class="figures" id="film-figures"></div>
+
+        <div class="film-part">
+          <h3>Four sides, from the air.</h3>
+          <div class="film-obliques" id="film-obliques"></div>
+        </div>
+
+        <div class="film-part film-camp">
+          <div>
+            <h3>Base camp.</h3>
+            <p class="film-big" id="film-trailers"></p>
+            <p class="film-text" id="film-camp-verdict"></p>
+            <p class="film-text" id="film-overflow"></p>
+            <dl class="specs" id="film-camp-specs"></dl>
+          </div>
+          <figure id="film-camp-map" hidden>
+            <img alt="The parcel from above, with the paved ground left bright">
+            <figcaption>The bright ground is paved and wide enough for a trailer.</figcaption>
+          </figure>
+        </div>
+        <p class="note" id="film-camp-note"></p>
+
+        <div class="film-part">
+          <h3>Outside noise.</h3>
+          <div id="film-noise"></div>
+        </div>
+
+        <div class="film-part">
+          <h3>Light on the shoot days.</h3>
+          <div class="film-light" id="film-light"></div>
+          <p class="note" id="film-light-note"></p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -266,5 +318,6 @@
   <script type="module" src="app.js"></script>
   <script type="module" src="tourplan.js"></script>
   <script type="module" src="pipeline.js"></script>
+  <script type="module" src="film.js"></script>
 </body>
 </html>

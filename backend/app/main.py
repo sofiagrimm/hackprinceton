@@ -165,6 +165,8 @@ from .pipeline import router as pipeline_router  # noqa: E402
 app.include_router(pipeline_router)
 from .regions import router as regions_router  # noqa: E402
 app.include_router(regions_router)
+from .film import router as film_router  # noqa: E402
+app.include_router(film_router)
 
 
 @app.get("/")
