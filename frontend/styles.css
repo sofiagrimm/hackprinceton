@@ -1415,3 +1415,15 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .view[data-view="property"] .logistics-grid .display { margin-top: 0; }
 .view[data-view="property"] .logistics-grid { border-top: 0; position: relative; }
 .view[data-view="property"] .logistics-grid::before { content: ""; position: absolute; top: 0; left: var(--gutter); right: var(--gutter); border-top: 1px solid var(--line-strong); }
+
+/* booking: the calendar comes up right under the title */
+.book-pick .crumbs { margin-bottom: var(--s3); }
+.book-head { position: relative; align-items: center; padding-right: 200px; }
+.book-snap { position: absolute; right: 0; top: -16px; width: 160px; }
+.book-body { margin-top: var(--s5); }
+@media (max-width: 900px) {
+  .book-head { padding-right: 0; }
+  .book-snap { position: static; width: 140px; }
+}
+.book-pick .cal-side { padding-top: 96px; }
+@media (max-width: 900px) { .book-pick .cal-side { padding-top: var(--s4); } }
