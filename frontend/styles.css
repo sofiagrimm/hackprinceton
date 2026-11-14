@@ -1510,3 +1510,5 @@ body[data-view="home"] .collage { height: 100vh; height: 100svh; }
 @keyframes mic-live-link { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 80, 100, 0.6); } 50% { box-shadow: 0 0 0 8px rgba(255, 80, 100, 0); } }
 @keyframes blink { to { visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { #ac-mic[aria-pressed="true"], .pr-mic.live, #mic.live, .pr-mic.live::before, #mic.live::before { animation: none; } }
+/* the clap measurement at the bottom of the acoustics page goes too */
+.view[data-view="acoustics"] .pr-measure { display: none !important; }
