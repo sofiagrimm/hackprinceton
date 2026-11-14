@@ -117,7 +117,7 @@ main { max-width: 1320px; margin: 0 auto; padding: 22px 28px 40px; }
 .sun-controls input[type=range] { flex: 1; min-width: 140px; accent-color: var(--gold); }
 .sun-controls input[type=date] { font: inherit; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); }
 .facts { font-size: 13px; display: grid; gap: 4px; }
-.facts .f { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--line); padding: 3px 0; }
+.budget .f, .facts .f { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--line); padding: 3px 0; }
 
 .stay { display: grid; gap: 8px; }
 .stay .opt { padding: 10px; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; }

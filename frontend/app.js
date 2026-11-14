@@ -4,6 +4,8 @@ import { sunPosition, dayTimeline, utcOffsetFor, localToUtc, fmtMinute, drawShad
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const sound = new RoomSound();
+const money = (n) => "$" + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+const money2 = (n) => "$" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const state = {
   config: null,
@@ -465,16 +467,16 @@ async function loadBudget(id) {
   const c = b.costs, f = b.fund;
   let status = `<span class="muted">Bank not connected</span>`;
   if (b.affordable === true) status = `<span class="ok">Fits the fund</span>`;
-  if (b.affordable === false) status = `<span class="over">$${b.shortfall.toLocaleString()} short</span>`;
-  const fundText = f ? ` · fund $${f.available_after_bills.toLocaleString()} available` : "";
+  if (b.affordable === false) status = `<span class="over">${money(b.shortfall)} short</span>`;
+  const fundText = f ? ` · fund ${money2(f.available_after_bills)} available` : "";
   $("d-budget").innerHTML = `
     <div class="budget">
-      <div class="big">${status} · stop costs ~$${c.total.toLocaleString()}${fundText}</div>
-      <div class="f"><span>Venue fee (estimate)</span><span>$${c.venue_fee_estimate.toLocaleString()} · ${esc(c.venue_fee_basis)}</span></div>
-      <div class="f"><span>Lodging</span><span>$${(c.lodging_estimate || 0).toLocaleString()}</span></div>
-      <div class="f"><span>Break-even ticket</span><span>$${b.break_even_ticket} (suggest $${b.suggested_ticket})</span></div>
-      <div class="f"><span>Each member's share</span><span>$${b.per_member_share}</span></div>
-      ${f ? `<button id="approve" class="primary">Approve: hold $${c.venue_deposit_50pct.toLocaleString()} deposit + lodging, collect dues</button>` : ""}
+      <div class="big">${status} · stop costs ~${money(c.total)}${fundText}</div>
+      <div class="f"><span>Venue fee (estimate)</span><span>${money(c.venue_fee_estimate)} · ${esc(c.venue_fee_basis)}</span></div>
+      <div class="f"><span>Lodging</span><span>${money(c.lodging_estimate)}</span></div>
+      <div class="f"><span>Break-even ticket</span><span>${money2(b.break_even_ticket)} (suggest ${money(b.suggested_ticket)})</span></div>
+      <div class="f"><span>Each member's share</span><span>${money2(b.per_member_share)}</span></div>
+      ${f ? `<button id="approve" class="primary">Approve: hold ${money(c.venue_deposit_50pct)} deposit + lodging, collect dues</button>` : ""}
       <div id="ledger"></div>
     </div>`;
   const btn = $("approve");
@@ -491,10 +493,10 @@ async function approveBudget(id, btn) {
   });
   const out = await res.json();
   if (!res.ok) { btn.textContent = "Failed: " + (out.detail || res.status); return; }
-  btn.textContent = `Done · fund $${out.fund.balance.toLocaleString()}, $${out.fund.pending_bills.toLocaleString()} in pending bills`;
+  btn.textContent = `Approved · fund ${money2(out.fund.balance)}, ${money2(out.fund.pending_bills)} in pending bills`;
   const items = out.actions.map((a) => a.type === "bill"
-    ? `<li>Bill to ${esc(a.payee)}: $${a.amount} (pending)</li>`
-    : `<li>${esc(a.from)} paid their $${a.amount} share</li>`).join("");
+    ? `<li>Bill to ${esc(a.payee)}: ${money2(a.amount)} (pending)</li>`
+    : `<li>${esc(a.from)} paid their ${money2(a.amount)} share</li>`).join("");
   $("ledger").innerHTML = `<ul class="ledger">${items}</ul><p class="hint">${esc(out.note)}</p>`;
 }
 
