@@ -16,14 +16,16 @@ import { detectCity } from "./regions.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "book", "tour", "film", "bookings", "cities"];
+const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
-  home: "Backstage Spaces", search: "Find your space · Backstage Spaces", results: "Results · Backstage Spaces",
-  property: "Backstage Spaces", tour: "Plan a tour · Backstage Spaces", film: "Film mode · Backstage Spaces",
-  bookings: "Bookings · Backstage Spaces", cities: "New cities · Backstage Spaces",
+  home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
+  property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
+  explore: "Explore in 3D · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
+const CHERRY = "#8e1424"; // the button
+const OLIVE = "#4a5140"; // the search page
 
 const state = { search: null, venueId: null, scouting: false, zooming: false, cameFromHome: false };
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -52,7 +54,8 @@ function go(hash) {
 /** Work out the view from the address bar. */
 function route() {
   const h = location.hash;
-  const m = h.match(/^#\/venue\/(\d+)/);
+  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book))?/);
+  if (m && m[2]) { showNextPage(Number(m[1]), m[2] === "3d" ? "explore" : "book"); return; }
   if (m) { show("property"); openVenue(Number(m[1])); return; }
   if (h.startsWith("#/") || !h) {
     const name = h.slice(2) || "home";
@@ -106,10 +109,12 @@ function zoomIn() {
   if (reduced()) { crossFade(() => { go("#/search"); focusBrief(); }); return; }
   state.zooming = true;
   const v = veil();
+  // Starts as the button itself (same cherry), fills the screen, then turns the search page's olive.
   const grow = v.animate([
-    { transform: blobTransform(), opacity: 0.9, borderRadius: "48%" },
-    { transform: "none", opacity: 1, borderRadius: "0%" },
-  ], { duration: ZOOM_MS, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" });
+    { transform: blobTransform(), borderRadius: "48%", backgroundColor: CHERRY },
+    { transform: "none", borderRadius: "0%", backgroundColor: CHERRY, offset: 0.62 },
+    { transform: "none", borderRadius: "0%", backgroundColor: OLIVE },
+  ], { duration: ZOOM_MS + 250, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" });
   grow.onfinish = () => {
     go("#/search");
     focusBrief();
@@ -127,9 +132,11 @@ function zoomOut() {
   const v = veil();
   requestAnimationFrame(() => {
     v.animate([
-      { transform: "none", opacity: 1, borderRadius: "0%" },
-      { transform: blobTransform(), opacity: 0, borderRadius: "48%" },
-    ], { duration: ZOOM_MS, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" }).onfinish = () => {
+      { transform: "none", borderRadius: "0%", backgroundColor: OLIVE, opacity: 1 },
+      { transform: "none", borderRadius: "0%", backgroundColor: CHERRY, opacity: 1, offset: 0.35 },
+      { transform: blobTransform(), borderRadius: "48%", backgroundColor: CHERRY, opacity: 1, offset: 0.95 },
+      { transform: blobTransform(), borderRadius: "48%", backgroundColor: CHERRY, opacity: 0 },
+    ], { duration: ZOOM_MS + 250, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" }).onfinish = () => {
       v.remove();
       state.zooming = false;
     };
@@ -206,17 +213,118 @@ function feeEstimate(v) {
   return Math.round(fee / 10) * 10;
 }
 
-function photoTag(v) {
-  const aerial = `/api/venues/${v.venue_id}/aerial.jpg`;
-  return `<img src="${esc(v.photo || aerial)}" alt="${esc(v.name)}" loading="lazy" data-fallback="${aerial}">`;
+// ------------------------------------------------------------------ pictures of a property
+// Never the straight-down aerial. In order: the room you'd perform in (its 360 photo), CoStar's
+// photo of the outside, then Vexcel's 45-degree obliques that show the front and back.
+
+const venueInfo = {}; // id -> { photo, model } from whatever list we've seen it in
+const roomsCache = {};
+
+function remember(v) {
+  if (!v?.venue_id) return;
+  venueInfo[v.venue_id] = { photo: v.photo || venueInfo[v.venue_id]?.photo, model: v.best_space?.model_id || venueInfo[v.venue_id]?.model };
 }
 
-/** CoStar photos fall back to the building's aerial when they don't load. */
-function fallback(img) {
-  img.addEventListener("error", () => {
-    if (img.dataset.fallback && img.src.indexOf(img.dataset.fallback) < 0) img.src = img.dataset.fallback;
-    else img.style.visibility = "hidden";
+function rooms(id) {
+  roomsCache[id] ||= fetch(`/api/venues/${id}/rooms`).then((r) => (r.ok ? r.json() : { rooms: [] })).then((d) => d.rooms || []).catch(() => []);
+  return roomsCache[id];
+}
+
+// Rooms worth showing: big, open, made for people. Never a bathroom or a back corridor.
+const DULL = /bath|rest ?room|toilet|\bwc\b|powder|closet|laundry|storage|utility|mechanical|electrical|elevator|stair|corridor|hallway|garage|janitor|trash|locker|shower|server|mail|bedroom|kitchen(?!.*living)/i;
+const SHOWY = /ballroom|lounge|rooftop|roof|terrace|hall\b|theat|stage|studio|gallery|atrium|chapel|sanctuary|auditorium|event|great room|club|courtyard|pool|bar\b|library|lobby|living|loft|music|dance|ballet|meeting|conference/i;
+
+function rankRooms(list, model) {
+  return list
+    .filter((r) => !DULL.test(`${r.room || ""} ${r.scan || ""}`))
+    .map((r) => ({ r, score: Math.log10((r.area_sqft || 100) + 10) * 2 + (SHOWY.test(`${r.room || ""} ${r.scan || ""}`) ? 2 : 0) + (r.model_id === model ? 1.5 : 0) }))
+    .sort((a, b) => b.score - a.score)
+    .map((x) => x.r);
+}
+
+/** How good one photo looks: colourful, bright enough, with depth and detail rather than a blank wall. */
+function photoScore(img) {
+  const N = 48, c = document.createElement("canvas");
+  c.width = c.height = N;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, N, N);
+  const d = ctx.getImageData(0, 0, N, N).data;
+  let sumL = 0, sumL2 = 0, rg = 0, rg2 = 0, yb = 0, yb2 = 0, edges = 0;
+  const L = new Float32Array(N * N);
+  for (let i = 0; i < N * N; i++) {
+    const r = d[i * 4], g = d[i * 4 + 1], b = d[i * 4 + 2];
+    const l = 0.299 * r + 0.587 * g + 0.114 * b;
+    L[i] = l; sumL += l; sumL2 += l * l;
+    const a = r - g, y = 0.5 * (r + g) - b;
+    rg += a; rg2 += a * a; yb += y; yb2 += y * y;
+  }
+  for (let y = 0; y < N; y++) for (let x = 1; x < N; x++) edges += Math.abs(L[y * N + x] - L[y * N + x - 1]);
+  const n = N * N, mean = sumL / n, std = Math.sqrt(Math.max(0, sumL2 / n - mean * mean));
+  const sRG = Math.sqrt(Math.max(0, rg2 / n - (rg / n) ** 2)), sYB = Math.sqrt(Math.max(0, yb2 / n - (yb / n) ** 2));
+  const colour = Math.hypot(sRG, sYB) + 0.3 * Math.hypot(rg / n, yb / n);
+  const exposure = mean < 55 ? (55 - mean) * 1.5 : mean > 215 ? (mean - 215) * 1.5 : 0;
+  return colour + std * 0.6 + (edges / (N * (N - 1))) * 2 - exposure;
+}
+
+const faceCache = {};
+/** Of a 360 photo's four walls, the one that looks best. */
+function bestFace(r) {
+  const key = `${r.model_id}/${r.pano_id}`;
+  faceCache[key] ||= Promise.all([1, 2, 3, 4].map((f) => new Promise((done) => {
+    const img = new Image();
+    img.onload = () => { try { done({ f, s: photoScore(img) }); } catch { done({ f, s: 0 }); } };
+    img.onerror = () => done(null);
+    img.src = `/api/pano/${key}/${f}.jpg`;
+  }))).then((faces) => {
+    const ok = faces.filter(Boolean).sort((a, b) => b.s - a.s);
+    return ok.length ? { url: `/api/pano/${key}/${ok[0].f}.jpg`, score: ok[0].s } : null;
   });
+  return faceCache[key];
+}
+
+const listCache = {};
+function pictureList(id) {
+  listCache[id] ||= (async () => {
+    const info = venueInfo[id] || {};
+    const ranked = rankRooms(await rooms(id), info.model);
+    // Look at the three most promising rooms and lead with the best-looking view among them.
+    const views = (await Promise.all(ranked.slice(0, 3).map(bestFace))).filter(Boolean);
+    const inside = views.sort((a, b) => b.score - a.score).map((v) => v.url);
+    return [
+      ...inside.slice(0, 1),
+      info.photo,
+      `/api/film/${id}/oblique/s.jpg`,
+      ...inside.slice(1),
+      `/api/film/${id}/oblique/n.jpg`,
+      `/api/film/${id}/oblique/e.jpg`,
+    ].filter(Boolean);
+  })();
+  return listCache[id];
+}
+
+/** Point an <img> at a property's best picture, stepping down the list when one doesn't load. */
+async function showPicture(img, id) {
+  img.dataset.pic = id;
+  const urls = await pictureList(id);
+  if (img.dataset.pic !== String(id)) return; // reused for another venue meanwhile
+  let k = 0;
+  img.onerror = () => {
+    k += 1;
+    if (k < urls.length) img.src = urls[k];
+    else { img.onerror = null; img.style.visibility = "hidden"; }
+  };
+  img.onload = () => { img.style.visibility = ""; };
+  if (urls.length) img.src = urls[0];
+}
+
+function photoTag(v) {
+  remember(v);
+  return `<img alt="${esc(v.name)}" loading="lazy" data-venue="${v.venue_id}">`;
+}
+
+/** Fill every placeholder <img data-venue> inside a container. */
+function hydrate(root) {
+  root.querySelectorAll("img[data-venue]").forEach((img) => showPicture(img, Number(img.dataset.venue)));
 }
 
 function roomCard(v, n, extra = "") {
@@ -246,7 +354,7 @@ async function renderShelf() {
     fetch(`/api/venues/${id}?audience=80&use=a_cappella_performance`).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
   list.innerHTML = venues.filter((v) => v?.best_space?.acoustics)
     .map((v, i) => `<li>${roomCard(v, i, `${esc(v.metro)}. `)}</li>`).join("");
-  list.querySelectorAll("img[data-fallback]").forEach(fallback);
+  hydrate(list);
   const step = () => Math.max(260, list.clientWidth * 0.8);
   const move = (dir) => list.scrollBy({ left: dir * step(), behavior: reduced() ? "auto" : "smooth" });
   $("feat-next").onclick = () => move(1);
@@ -264,6 +372,7 @@ function why(v) {
 
 function renderResults(r) {
   state.search = r;
+  r.results.forEach(remember);
   $("last-results").hidden = false;
   const n = r.results.length;
   $("rs-title").innerHTML = n
@@ -295,7 +404,9 @@ function renderResults(r) {
     </div>
     <div class="rs-detail" id="rs-detail" aria-live="polite"></div>
     <p class="note">Prices are rough evening rates from the room's size and type. The email to the venue asks for the real number.</p>`;
-  $("rs-list").querySelectorAll("img[data-fallback]").forEach(fallback);
+  hydrate($("rs-list"));
+  // "Other rooms" on the property page: same pictures, not CoStar's photo alone.
+  document.querySelectorAll("#cards .card").forEach((c) => showPicture(c.querySelector("img"), Number(c.dataset.id)));
   wireSlider(r.results);
 }
 
@@ -371,11 +482,65 @@ function openVenue(id) {
 function setPhoto(id) {
   const v = state.search?.results?.find((r) => r.venue_id === id);
   const img = $("prop-photo");
-  const aerial = `/api/venues/${id}/aerial.jpg`;
-  img.dataset.fallback = aerial;
-  img.src = v?.photo || aerial;
-  img.alt = v ? v.name : "The building from the air";
-  $("prop-cap").textContent = v ? `${v.best_space.space_name.toLowerCase()} / ${v.metro}` : "from above";
+  showPicture(img, id);
+  img.alt = v ? `${v.name}, ${v.best_space.space_name}` : "The venue";
+  $("prop-cap").textContent = v ? `${v.best_space.space_name.toLowerCase()} / ${v.metro}` : "the room";
+  $("explore-3d").href = `#/venue/${id}/3d`;
+  $("ready-book").href = `#/venue/${id}/book`;
+  renderThumbs(id);
+  venueFor(id).then((venue) => { if (venue && state.venueId === id) renderRent(venue); });
+}
+
+/** The venue record, from the last search or from the API. */
+function venueFor(id) {
+  const v = state.search?.results?.find((r) => r.venue_id === id);
+  if (v) return Promise.resolve(v);
+  // audience before use, so pipeline.js doesn't mistake this for the venue on screen
+  return fetch(`/api/venues/${id}?audience=${state.search?.audience || 80}&use=${state.search?.use || "a_cappella_performance"}`)
+    .then((r) => (r.ok ? r.json() : null)).then((x) => { remember(x); return x; }).catch(() => null);
+}
+
+/** Small pictures beside the big one; pressing one swaps it in. The 3D square gets an inside view. */
+async function renderThumbs(id) {
+  const urls = await pictureList(id);
+  if (state.venueId !== id && state.venueId != null) return;
+  $("explore-pic").style.backgroundImage = urls[0] ? `url("${urls[0]}")` : "";
+  $("prop-thumbs").innerHTML = urls.slice(1, 5).map((u, i) =>
+    `<li style="--tilt:${[-4, 3, -2, 5][i]}deg"><button type="button" aria-label="Show picture ${i + 2}"><img src="${esc(u)}" alt="" loading="lazy"></button></li>`).join("");
+  $("prop-thumbs").querySelectorAll("li").forEach((li) => {
+    const img = li.querySelector("img");
+    img.onerror = () => li.remove(); // that picture doesn't exist for this building
+    li.querySelector("button").onclick = () => {
+      const main = $("prop-photo");
+      const was = main.src;
+      main.onerror = null;
+      main.src = img.src;
+      img.src = was;
+    };
+  });
+}
+
+function renderRent(v) {
+  const s = v.best_space || {};
+  const fee = feeEstimate(v);
+  const kind = v.hotel || v.is_hotel ? "hotel event space" : v.property_type === "Multifamily" ? "a residential amenity room" : "commercial space";
+  $("prop-rent").innerHTML = `
+    <div class="rent-row"><span class="rent-label">Rent, one evening</span><b class="rent-price">$${fee.toLocaleString()}</b></div>
+    <p class="note">Our estimate for ${esc(kind)} of ${(s.area_sqft || 1500).toLocaleString()} sq ft. The venue confirms the real rate when you book. Beds and the full budget are further down.</p>`;
+}
+
+// ------------------------------------------------------------------ the next pages (placeholders for now)
+
+async function showNextPage(id, which) {
+  show(which);
+  const v = await venueFor(id);
+  document.querySelectorAll(`.view[data-view="${which}"] .venue-name`).forEach((el) => { el.textContent = v?.name || "this venue"; });
+  if (v && which !== "property") document.title = `${which === "explore" ? "Explore" : "Book"} ${v.name} · Stagehand`;
+  const back = `#/venue/${id}`;
+  ["ex-back", "bk-back"].forEach((b) => { $(b).href = back; });
+  const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
+  $("ex-tour").href = back; $("ex-tour").onclick = jump("walk");
+  $("bk-ask").href = back; $("bk-ask").onclick = jump("reach");
 }
 
 function watchVenueName() {
@@ -383,19 +548,11 @@ function watchVenueName() {
     const name = $("d-name").textContent;
     if (!name) return;
     $("vf-title").textContent = name;
-    if (document.body.dataset.view === "property") document.title = `${name} · Backstage Spaces`;
+    if (document.body.dataset.view === "property") document.title = `${name} · Stagehand`;
     const v = state.search?.results?.find((r) => r.name === name);
     if (v && v.venue_id !== state.venueId) { state.venueId = v.venue_id; setPhoto(v.venue_id); }
   };
   new MutationObserver(sync).observe($("d-name"), { childList: true, characterData: true, subtree: true });
-  // Photos that fail in "Other rooms" fall back to the aerial (app.js would hide them).
-  $("cards").addEventListener("error", (e) => {
-    const img = e.target, card = img.closest?.(".card");
-    if (!card || img.dataset.aerial) return;
-    img.dataset.aerial = "1";
-    img.addEventListener("load", () => { img.style.visibility = ""; }, { once: true });
-    img.src = `/api/venues/${card.dataset.id}/aerial.jpg`;
-  }, true);
   // A card in "Other rooms" opens another venue in place; keep the address in step.
   $("cards").addEventListener("click", (e) => {
     const card = e.target.closest(".card");
@@ -412,8 +569,9 @@ function watchVenueName() {
 wireSearch();
 wireZoom();
 watchVenueName();
-fallback($("prop-photo"));
-document.querySelectorAll(".houses img").forEach(fallback);
+// The opening page and Side B: real buildings from the inside or from the side, never straight down.
+[["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330]]
+  .forEach(([id, venue]) => $(id) && showPicture($(id), venue));
 window.addEventListener("popstate", route);
 window.addEventListener("hashchange", route);
 firstView();

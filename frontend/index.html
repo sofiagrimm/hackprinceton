@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Backstage Spaces</title>
+  <title>Stagehand</title>
   <meta name="description" content="Find a room that sounds right for your show, hear it before you book it, and plan the whole tour.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="masthead">
-    <a class="logo" href="#/" aria-label="Backstage Spaces, opening page">B<span>S</span></a>
+    <a class="logo" href="#/" aria-label="Stagehand, opening page">S<span>h</span></a>
     <nav class="modes" aria-label="Modes">
       <a href="#/" data-mode="concerts" class="on" aria-current="page">Browse spaces</a>
       <a href="#/tour" data-mode="tour">Tour</a>
@@ -36,39 +36,36 @@
   <div class="view" data-view="home">
     <header class="paper-hero" id="top">
       <div class="hero-stage" id="hero3d">
-        <!-- top left: paint chips in the palette -->
-        <div class="swatches" aria-hidden="true">
-          <span style="--c:#8e1424;--r:-10deg"><i>cherry</i></span>
-          <span style="--c:#4a0c14;--r:-3deg"><i>oxblood</i></span>
-          <span style="--c:#e8a3b0;--r:5deg"><i>blush</i></span>
-          <span style="--c:#4a5140;--r:-6deg"><i>olive</i></span>
-          <span style="--c:#d9a441;--r:9deg"><i>brass</i></span>
-        </div>
-
         <!-- top right: real buildings from the data, as polaroids and a sticker -->
         <div class="houses">
           <figure class="polaroid hero-snap snap-a">
-            <img id="snap-right" src="/api/venues/6531330/aerial.jpg" alt="Park Fifth, downtown Los Angeles, from the air" width="300" height="300">
+            <img id="snap-right" alt="Inside Park Fifth, downtown Los Angeles" width="300" height="300">
             <figcaption id="snap-right-cap">park fifth / LA</figcaption>
           </figure>
           <figure class="polaroid hero-snap snap-b">
-            <img id="snap-left" src="/api/venues/9530669/aerial.jpg" alt="3033 Wilshire, Los Angeles, from the air" width="300" height="300">
+            <img id="snap-left" alt="Inside 3033 Wilshire, Los Angeles" width="300" height="300">
             <figcaption id="snap-left-cap">3033 wilshire</figcaption>
           </figure>
           <figure class="sticker snap-c">
-            <img src="/api/venues/9956355/aerial.jpg" alt="SMB Hollywood from the air" width="200" height="200">
+            <img id="snap-sticker" alt="Inside SMB Hollywood" width="200" height="200">
           </figure>
         </div>
 
         <div class="lyric">
           <p class="eyebrow">Rooms for people who make things</p>
-          <h1 class="hero-title">Backstage <em>Spaces</em></h1>
+          <h1 class="hero-title">Stage<em>hand</em></h1>
           <a class="hero-cta" href="#/search" id="hero-cta">
             <svg class="blob" viewBox="0 0 440 170" aria-hidden="true" preserveAspectRatio="none">
+              <path class="blob-shadow" d="M40 86C34 44 118 18 222 16c108-2 192 20 196 66 4 48-82 72-196 72C112 154 46 132 40 98"/>
               <path class="blob-fill" d="M40 86C34 44 118 18 222 16c108-2 192 20 196 66 4 48-82 72-196 72C112 154 46 132 40 98"/>
+              <path class="blob-shine" d="M92 58c30-22 90-30 150-28"/>
               <path class="blob-line" d="M40 86C34 44 118 18 222 16c108-2 192 20 196 66 4 48-82 72-196 72C112 154 46 132 40 98c-2-10-14-14-22-6 8-2 12 6 6 12"/>
             </svg>
-            <span class="hero-cta-text">Find your space</span>
+            <span class="hero-cta-text">Find your space <svg class="cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="cta-hint" aria-hidden="true">
+              <svg viewBox="0 0 120 80"><path d="M110 8c-20 4-60 10-82 40-4 6-8 14-10 22m0 0-8-14m8 14 12-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>start here</span>
+            </span>
           </a>
           <p class="hero-sub">Rooms that sound right for your show, beds nearby, and who to write to.</p>
           <p class="hint-record">or tap a record to hear a room</p>
@@ -129,7 +126,6 @@
 
         <span class="script-note" aria-hidden="true">make a scene.</span>
 
-        <p class="side-text" aria-hidden="true">Rehearse / Record / Repeat</p>
       </div>
     </header>
   </div>
@@ -151,7 +147,7 @@
         <form class="cassette" id="ask" aria-label="Your tour stop">
           <div class="cassette-body">
             <div class="cassette-label">
-              <div class="cassette-head"><span>Side A</span><span class="cassette-brand">Backstage Spaces</span><span>C90</span></div>
+              <div class="cassette-head"><span>Side A</span><span class="cassette-brand">Stagehand</span><span>C90</span></div>
               <label class="sr-only" for="brief">Describe your tour stop</label>
               <textarea id="brief" rows="3" placeholder="14 singers touring Los Angeles in March. We need a beautiful show for 80 guests and two nights nearby. Total budget $4,200.">14 singers touring Los Angeles on March 14. We need a beautiful show for 80 guests and two nights nearby. Total budget $4,200.</textarea>
               <div class="cassette-window" aria-hidden="true">
@@ -190,8 +186,8 @@
           </ul>
         </div>
         <figure class="polaroid side-b-snap">
-          <img src="/api/venues/6531330/aerial.jpg" alt="Park Fifth in downtown Los Angeles, seen from the air" loading="lazy" width="360" height="300">
-          <figcaption>from above / Park Fifth</figcaption>
+          <img id="sideb-photo" alt="Park Fifth in downtown Los Angeles" loading="lazy" width="360" height="300">
+          <figcaption>rooftop lounge / Park Fifth</figcaption>
         </figure>
       </div>
     </section>
@@ -237,19 +233,40 @@
 
     <section class="frame pick" id="pick" hidden>
       <div class="wrap wide pick-grid">
-        <figure class="polaroid prop-photo">
-          <img id="prop-photo" alt="" width="520" height="420">
-          <figcaption id="prop-cap"></figcaption>
-        </figure>
+        <!-- top left: pictures of the space -->
+        <div class="prop-gallery">
+          <figure class="polaroid prop-photo">
+            <img id="prop-photo" alt="" width="520" height="420">
+            <figcaption id="prop-cap"></figcaption>
+          </figure>
+          <ul class="prop-thumbs" id="prop-thumbs" aria-label="More pictures"></ul>
+        </div>
+
+        <!-- right: the way into the 3D scan -->
+        <a class="explore-3d" id="explore-3d" href="#/">
+          <span class="explore-pic" id="explore-pic" aria-hidden="true"></span>
+          <svg class="explore-cube" viewBox="0 0 80 80" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M40 8 70 24v32L40 72 10 56V24z"/><path d="M10 24l30 16 30-16M40 40v32"/></g></svg>
+          <span class="explore-label">Explore in 3D</span>
+          <span class="explore-sub">Walk the scanned rooms, hear each one</span>
+        </a>
+
+        <!-- below the pictures: info and rent -->
         <div class="pick-main">
           <p class="kicker eyebrow" id="d-kicker">The pick</p>
           <h1 class="display" id="d-name"></h1>
           <p class="lede-dark" id="d-address"></p>
+          <div class="figures" id="d-stats"></div>
+          <div class="prop-rent" id="prop-rent"></div>
           <div class="pick-actions">
-            <a class="btn" href="#sound">Hear the room</a>
+            <a class="link-dark" href="#sound">Hear the room</a>
             <div id="pl-add" hidden></div>
           </div>
-          <div class="figures" id="d-stats"></div>
+        </div>
+
+        <!-- bottom right: ready to book -->
+        <div class="book-box">
+          <a class="ready-book" id="ready-book" href="#/">Ready to book <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="note">Hold a date and send the ask to the venue.</p>
         </div>
       </div>
       <div class="wrap wide">
@@ -391,6 +408,32 @@
         <h2 class="display">Other rooms <span class="script">worth a listen.</span></h2>
       </div>
       <div class="rail" id="cards"></div>
+    </section>
+  </div>
+
+  <!-- ============================================================ EXPLORE IN 3D (placeholder until its design arrives) -->
+  <div class="view" data-view="explore">
+    <section class="page next-page" aria-labelledby="ex-title">
+      <div class="wrap wide">
+        <p class="crumbs"><a class="back" id="ex-back" href="#/">Back to the room</a></p>
+        <p class="eyebrow">Explore in 3D</p>
+        <h1 class="page-title" id="ex-title">Explore in 3D.</h1>
+        <p class="page-sub">The full walk-through of <b class="venue-name"></b> opens here. This page is being designed next.</p>
+        <p class="next-links"><a class="btn" id="ex-tour" href="#/">Walk the 3D scan for now</a></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ BOOKING (placeholder until its design arrives) -->
+  <div class="view" data-view="book">
+    <section class="page next-page" aria-labelledby="bk-title">
+      <div class="wrap wide">
+        <p class="crumbs"><a class="back" id="bk-back" href="#/">Back to the room</a></p>
+        <p class="eyebrow">Booking</p>
+        <h1 class="page-title" id="bk-title">Ready to <span class="script">book.</span></h1>
+        <p class="page-sub">Booking <b class="venue-name"></b> happens here: pick a date, hold the room and send the ask. This page is being designed next.</p>
+        <p class="next-links"><a class="btn" id="bk-ask" href="#/">See the email we drafted</a></p>
+      </div>
     </section>
   </div>
 
@@ -574,7 +617,7 @@
 
   <footer class="footer">
     <div class="wrap wide">
-      <p class="footer-logo">Backstage Spaces</p>
+      <p class="footer-logo">Stagehand</p>
       <p>Made at HackPrinceton 2026 with CoStar property data, Matterport scans and Vexcel aerial imagery. Payments use Capital One's Nessie sandbox.</p>
       <p>Reverb figures are physics estimates from scan geometry and assumed finishes. Rates are CoStar averages, not quotes.</p>
     </div>
