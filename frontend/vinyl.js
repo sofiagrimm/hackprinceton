@@ -85,10 +85,11 @@ export function createVinylHero(root) {
     canvas.width = W * dpr; canvas.height = H * dpr;
     canvas.style.width = `${W}px`; canvas.style.height = `${H}px`;
     const narrow = W < 760;
-    const rl = narrow ? W * 0.3 : Math.min(W * 0.13, H * 0.24);
-    const rr = narrow ? W * 0.42 : Math.min(W * 0.2, H * 0.36);
-    discs.left.r = rl; discs.left.x = narrow ? -rl * 0.3 : W * 0.05; discs.left.y = narrow ? H * 0.06 : H * 0.2;
-    discs.right.r = rr; discs.right.x = narrow ? W - rr * 0.45 : W - rr * 0.62; discs.right.y = narrow ? H - rr * 0.35 : H - rr * 0.5;
+    // One record peeks in from each side, between the collage in the corners.
+    const rl = narrow ? W * 0.24 : Math.min(W * 0.13, H * 0.22);
+    const rr = narrow ? W * 0.26 : Math.min(W * 0.15, H * 0.25);
+    discs.left.r = rl; discs.left.x = -rl * 0.4; discs.left.y = H * 0.5;
+    discs.right.r = rr; discs.right.x = W + rr * 0.35; discs.right.y = H * 0.56;
     for (const d of Object.values(discs)) {
       const size = Math.round(d.r * 2 * dpr);
       if (!d.tex || d.tex.width !== size) d.tex = renderDisc(size, { seed: d.seed, marble: d.marble });
