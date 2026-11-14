@@ -26,6 +26,10 @@ Vexcel aerial imagery for the same buildings.
 7. **Finds lodging**: hotels (CoStar average daily rates, so a hotel can be stage *and* bed) for short stops,
    apartment communities with short-term leases (Apartments.com listings) for longer stays.
 8. **Drafts outreach** to the listing broker or hotel sales team.
+9. **Keeps the tour solvent** (Capital One Nessie): the agent checks the group's tour fund before it
+   recommends a stop and reports the break-even ticket price and each member's share. The treasurer approves
+   with one click, which posts the venue deposit and lodging hold as bills and collects each member's dues by
+   transfer into the fund. The agent plans; a person moves the money.
 
 ## The agent
 
