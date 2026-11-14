@@ -140,7 +140,8 @@ function zoomIn() {
   state.cameFromHome = true;
   // The collage's name is artwork, not a button shape: fade to the search page instead of
   // growing a coloured box out of it (that flashed the name cherry red).
-  if (reduced() || $("hero-cta")?.classList.contains("cl-hit")) { crossFade(() => { go("#/search"); focusBrief(); }); return; }
+  if (reduced()) { crossFade(() => { go("#/search"); focusBrief(); }); return; }
+  if ($("hero-cta")?.classList.contains("cl-hit")) { igniteIntoSearch(); return; }
   state.zooming = true;
   const v = veil();
   // Starts as the button itself (same cherry), fills the screen, then turns the search page's olive.
@@ -155,6 +156,35 @@ function zoomIn() {
     // once the screen is coloured, the search page fades in through it
     v.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1100, easing: "ease-in-out", fill: "forwards" }).onfinish = () => {
       v.remove();
+      state.zooming = false;
+    };
+  };
+}
+
+/** The Stagehand name keeps glowing brighter until its light fills the screen, then the search page fades in. */
+function igniteIntoSearch() {
+  state.zooming = true;
+  const cta = $("hero-cta"), logo = cta.querySelector(".cl-logo");
+  const r = (logo || cta).getBoundingClientRect();
+  const cx = ((r.left + r.width / 2) / innerWidth) * 100, cy = ((r.top + r.height / 2) / innerHeight) * 100;
+  cta.classList.add("igniting");
+  const light = document.createElement("div");
+  light.className = "ignite-light";
+  light.setAttribute("aria-hidden", "true");
+  light.style.setProperty("--cx", `${cx}%`);
+  light.style.setProperty("--cy", `${cy}%`);
+  document.body.appendChild(light);
+  // the bloom grows out of the name and washes the screen in warm light
+  light.animate([
+    { opacity: 0, transform: "scale(0.35)" },
+    { opacity: 0.85, transform: "scale(1)", offset: 0.6 },
+    { opacity: 1, transform: "scale(1.6)" },
+  ], { duration: 1300, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }).onfinish = () => {
+    cta.classList.remove("igniting");
+    go("#/search");
+    focusBrief();
+    light.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, easing: "ease-in-out", fill: "forwards" }).onfinish = () => {
+      light.remove();
       state.zooming = false;
     };
   };
