@@ -317,8 +317,8 @@ function pictureList(id) {
     const ranked = rankRooms(await rooms(id), info.model);
     // Look at the three most promising rooms and lead with the best-looking view among them.
     // the biggest, showiest rooms get a head start over a merely colourful photo
-    const views = (await Promise.all(ranked.slice(0, 4).map(bestFace)))
-      .map((v, i) => v && { ...v, score: v.score + [14, 8, 3, 0][i] }).filter(Boolean);
+    const views = (await Promise.all(ranked.slice(0, 8).map(bestFace)))
+      .map((v, i) => v && { ...v, score: v.score + ([14, 8, 3][i] || 0) }).filter(Boolean);
     const inside = views.sort((a, b) => b.score - a.score).map((v) => v.url);
     return [
       ...inside.slice(0, 1),
@@ -327,6 +327,7 @@ function pictureList(id) {
       `/api/film/${id}/oblique/s.jpg`,
       `/api/film/${id}/oblique/n.jpg`,
       `/api/film/${id}/oblique/e.jpg`,
+      `/api/film/${id}/oblique/w.jpg`,
     ].filter(Boolean);
   })();
   return listCache[id];
@@ -611,18 +612,27 @@ async function renderThumbs(id) {
   const urls = await pictureList(id);
   if (state.venueId !== id && state.venueId != null) return;
   $("explore-pic").style.backgroundImage = urls[0] ? `url("${urls[0]}")` : "";
-  // Four frames of the film strip (img/filmstrip.webp lies over them).
-  $("prop-thumbs").innerHTML = urls.slice(1, 5).map((u, i) =>
-    `<li><button type="button" aria-label="Show picture ${i + 2}"><img src="${esc(u)}" alt="" loading="lazy"></button></li>`).join("");
-  $("prop-thumbs").querySelectorAll("li").forEach((li) => {
-    const img = li.querySelector("img");
-    img.onerror = () => li.remove(); // that picture doesn't exist for this building
-    li.querySelector("button").onclick = () => {
+  // A film strip across the page: every picture of the venue in its frames, drifting slowly.
+  // Each strip image has four frames; strips repeat until they span the screen, then the whole
+  // run is doubled so the loop is seamless.
+  const pics = urls.slice(1);
+  const track = $("prop-thumbs");
+  if (!pics.length) { track.innerHTML = ""; return; }
+  const strips = Math.max(3, Math.ceil(pics.length / 4));
+  const frames = Array.from({ length: strips * 4 }, (_, i) => pics[i % pics.length]);
+  const strip = (k, copy) => `<li class="film-strip"${copy ? ' aria-hidden="true"' : ""}>${frames.slice(k * 4, k * 4 + 4).map((u, i) =>
+    `<button type="button" class="film-frame" data-src="${esc(u)}" ${copy ? 'tabindex="-1"' : `aria-label="Show picture ${k * 4 + i + 1}"`}><img src="${esc(u)}" alt="" loading="lazy"></button>`).join("")}</li>`;
+  const run = (copy) => Array.from({ length: strips }, (_, k) => strip(k, copy)).join("");
+  track.innerHTML = run(false) + run(true);
+  track.style.setProperty("--strips", strips);
+  track.querySelectorAll(".film-frame").forEach((b) => {
+    const img = b.querySelector("img");
+    img.onerror = () => { img.removeAttribute("src"); b.disabled = true; }; // a view that doesn't exist for this building
+    b.onclick = () => {
       const main = $("prop-photo");
-      const was = main.src;
       main.onerror = null;
-      main.src = img.src;
-      img.src = was;
+      main.src = b.dataset.src;
+      main.scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
   });
 }
