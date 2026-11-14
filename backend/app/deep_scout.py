@@ -135,7 +135,7 @@ class DeepScout:
             try:
                 for chunk in agent.stream({"messages": [{"role": "user", "content": brief_text}]},
                                           stream_mode="updates", subgraphs=True):
-                    for ev in _translate(chunk):
+                    for ev in _safe_translate(chunk):
                         events.put(ev)
                     final["last"] = chunk
             except Exception as exc:
@@ -152,6 +152,14 @@ class DeepScout:
         yield {"type": "done", "brief": parse_brief(brief_text)}
 
 
+def _safe_translate(chunk) -> list[dict]:
+    """Never let a display hiccup on one update stop the agent run."""
+    try:
+        return _translate(chunk)
+    except Exception:
+        return []
+
+
 def _translate(chunk) -> list[dict]:
     """Turn Deep Agents graph updates into the UI's event stream."""
     namespace, update = chunk if isinstance(chunk, tuple) else ((), chunk)
@@ -164,8 +172,22 @@ def _translate(chunk) -> list[dict]:
             calls = getattr(msg, "tool_calls", None) or []
             for call in calls:
                 if call["name"] == "write_todos":
-                    todos = call["args"].get("todos") or []
-                    out.append({"type": "plan", "text": " -> ".join(t.get("content", "") for t in todos)})
+                    args = call.get("args") or {}
+                    if isinstance(args, str):
+                        try:
+                            args = json.loads(args)
+                        except ValueError:
+                            args = {}
+                    todos = args.get("todos") or [] if isinstance(args, dict) else []
+                    if isinstance(todos, str):  # some models send the list as a JSON string
+                        try:
+                            todos = json.loads(todos)
+                        except ValueError:
+                            todos = [todos]
+                    if isinstance(todos, dict):
+                        todos = [todos]
+                    steps = [t.get("content", "") if isinstance(t, dict) else str(t) for t in todos]
+                    out.append({"type": "plan", "text": " -> ".join(x for x in steps if x)})
                 elif call["name"] == "task":
                     out.append({"type": "delegate", "agent": call["args"].get("subagent_type"),
                                 "text": call["args"].get("description", "")[:300]})
