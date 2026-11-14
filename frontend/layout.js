@@ -840,9 +840,20 @@ function renderRent(v) {
 
 // ------------------------------------------------------------------ the next pages (placeholders for now)
 
+function updateVenueSwitch(id, which, name) {
+  const paths = { overview: "", acoustics: "/sound", lighting: "/light", walk3d: "/walk", book: "/book" };
+  document.querySelectorAll("#venue-switch [data-vs]").forEach((a) => {
+    a.href = `#/venue/${id}${paths[a.dataset.vs]}`;
+    if (a.dataset.vs === which) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  if (name) $("vs-name").textContent = name;
+}
+
 async function showNextPage(id, which) {
   show(which);
+  updateVenueSwitch(id, which, venueInfo[id]?.name);
   const v = await venueFor(id);
+  updateVenueSwitch(id, which, v?.name);
   document.querySelectorAll(`.view[data-view="${which}"] .venue-name`).forEach((el) => { el.textContent = v?.name || "this venue"; });
   if (v) document.title = `${{ explore: "Explore", book: "Book", walk3d: "Walk through", acoustics: "How it sounds:", lighting: "Light" }[which]} ${v.name} · Stagehand`;
   const back = `#/venue/${id}`;

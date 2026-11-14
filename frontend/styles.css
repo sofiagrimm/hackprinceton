@@ -1733,3 +1733,17 @@ body[data-view="by-sound"] .view[data-view="by-sound"], body[data-view="by-light
 .bc-tag.sun { background: #f6dca0; } .bc-tag.dark { background: #d9cfe0; }
 .bc-go { justify-self: end; margin-top: 4px; font-size: var(--fs-xs); font-weight: 600; color: #2a1012; border-bottom: 1.5px solid #2a1012; }
 .bc-go::after { content: " \2192"; }
+
+/* jump between a venue's pages from the top right */
+.venue-switch { display: none; position: fixed; z-index: 35; top: calc(var(--nav-h) + 12px); right: var(--gutter);
+  align-items: center; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(44, 13, 16, 0.88); border: 1px solid rgba(243, 231, 216, 0.25);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); backdrop-filter: blur(6px); }
+body:is([data-view="acoustics"], [data-view="lighting"], [data-view="walk3d"], [data-view="explore"], [data-view="book"]) .venue-switch { display: flex; }
+.vs-name { font-family: var(--serif); font-style: italic; color: #e8a3b0; font-size: var(--fs-sm); padding: 0 10px 0 12px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.venue-switch a { font-size: var(--fs-xs); font-weight: 600; color: #f3e7d8; text-decoration: none; padding: 7px 12px; border-radius: 999px; white-space: nowrap; }
+.venue-switch a:hover { background: rgba(243, 231, 216, 0.14); color: #fff6ea; }
+.venue-switch a[aria-current="page"] { background: #f3e7d8; color: #2a1012; }
+@media (max-width: 900px) {
+  .venue-switch { left: var(--gutter); right: var(--gutter); top: auto; bottom: 12px; justify-content: space-between; overflow-x: auto; }
+  .vs-name { display: none; }
+}
