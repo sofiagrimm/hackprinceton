@@ -7,7 +7,7 @@
   <meta name="description" content="Find a room that sounds right for your show, hear it before you book it, and plan the whole tour.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Caveat+Brush&family=Special+Elite&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Syne:wght@600;700;800&family=Caveat+Brush&family=Special+Elite&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tourplan.css">
   <link rel="stylesheet" href="pipeline.css">
@@ -18,15 +18,15 @@
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="masthead">
-    <a class="logo" href="#/">Backstage Spaces</a>
+    <a class="logo" href="#/" aria-label="Backstage Spaces, opening page">B<span>S</span></a>
     <nav class="modes" aria-label="Modes">
-      <a href="#/search" data-mode="concerts">Browse spaces</a>
+      <a href="#/" data-mode="concerts" class="on" aria-current="page">Browse spaces</a>
       <a href="#/tour" data-mode="tour">Tour</a>
       <a href="#/film" data-mode="film">Film</a>
       <a href="#/bookings" data-mode="bookings">Bookings</a>
       <a href="#/cities" data-mode="cities">New cities</a>
     </nav>
-    <a class="nav-cta" href="#/" id="nav-cta">Find a room</a>
+    <a class="nav-cta" href="#/search" id="nav-cta">Find a room</a>
   </header>
 
   <main id="main">
@@ -35,40 +35,99 @@
   <div class="view" data-view="home">
     <header class="paper-hero" id="top">
       <div class="hero-stage" id="hero3d">
+        <!-- top left: paint chips in the palette -->
         <div class="swatches" aria-hidden="true">
-          <span style="--c:#742d36;--r:-9deg"><i>wine</i></span>
-          <span style="--c:#4a5140;--r:4deg"><i>olive</i></span>
-          <span style="--c:#d9a441;--r:-2deg"><i>brass</i></span>
-          <span style="--c:#2d5a8a;--r:8deg"><i>stage blue</i></span>
-          <span style="--c:#c3c9a8;--r:-5deg"><i>sage</i></span>
+          <span style="--c:#8e1424;--r:-10deg"><i>cherry</i></span>
+          <span style="--c:#4a0c14;--r:-3deg"><i>oxblood</i></span>
+          <span style="--c:#e8a3b0;--r:5deg"><i>blush</i></span>
+          <span style="--c:#4a5140;--r:-6deg"><i>olive</i></span>
+          <span style="--c:#d9a441;--r:9deg"><i>brass</i></span>
         </div>
 
-        <div class="houses" aria-label="Some of the buildings we've scanned">
+        <!-- top right: real buildings from the data, as polaroids and a sticker -->
+        <div class="houses">
           <figure class="polaroid hero-snap snap-a">
-            <img src="/api/venues/9530669/aerial.jpg" alt="3033 Wilshire from the air" width="300" height="300">
-            <figcaption>3033 wilshire / LA</figcaption>
+            <img id="snap-right" src="/api/venues/6531330/aerial.jpg" alt="Park Fifth, downtown Los Angeles, from the air" width="300" height="300">
+            <figcaption id="snap-right-cap">park fifth / LA</figcaption>
           </figure>
           <figure class="polaroid hero-snap snap-b">
-            <img id="snap-right" alt="" width="300" height="300">
-            <figcaption id="snap-right-cap">lobby / LA</figcaption>
+            <img id="snap-left" src="/api/venues/9530669/aerial.jpg" alt="3033 Wilshire, Los Angeles, from the air" width="300" height="300">
+            <figcaption id="snap-left-cap">3033 wilshire</figcaption>
           </figure>
-          <figure class="polaroid hero-snap snap-c">
-            <img id="snap-left" alt="" width="300" height="300">
-            <figcaption id="snap-left-cap">sound check, 7:42 pm</figcaption>
+          <figure class="sticker snap-c">
+            <img src="/api/venues/9956355/aerial.jpg" alt="SMB Hollywood from the air" width="200" height="200">
           </figure>
         </div>
 
         <div class="lyric">
           <p class="eyebrow">Rooms for people who make things</p>
-          <h1 class="hero-title"><span class="ht-main">Backstage</span><span class="ht-script">Spaces</span></h1>
-          <a class="hero-cta" href="#/search" id="hero-cta"><span class="hero-cta-text">Find your space</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <h1 class="hero-title">Backstage <em>Spaces</em></h1>
+          <a class="hero-cta" href="#/search" id="hero-cta">
+            <svg class="blob" viewBox="0 0 440 170" aria-hidden="true" preserveAspectRatio="none">
+              <path class="blob-fill" d="M40 86C34 44 118 18 222 16c108-2 192 20 196 66 4 48-82 72-196 72C112 154 46 132 40 98"/>
+              <path class="blob-line" d="M40 86C34 44 118 18 222 16c108-2 192 20 196 66 4 48-82 72-196 72C112 154 46 132 40 98c-2-10-14-14-22-6 8-2 12 6 6 12"/>
+            </svg>
+            <span class="hero-cta-text">Find your space</span>
+          </a>
           <p class="hero-sub">Rooms that sound right for your show, beds nearby, and who to write to.</p>
           <p class="hint-record">or tap a record to hear a room</p>
         </div>
 
-        <svg class="doodle doodle-notes" viewBox="0 0 260 200" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 150c50-10 120-14 248-6M6 162c50-10 120-14 248-6M6 174c50-10 120-14 248-6M6 186c50-10 120-14 248-6M6 198c50-10 120-14 248-6" stroke-width="1.5" opacity=".45"/><path d="M40 196c-14 2-18-14-6-20 16-8 26 10 18 26-10 22-40 14-36-12 4-22 40-44 34-86-2-14-16-12-16 2 0 34 22 74 12 112-3 12-10 18-16 20" stroke-width="4"/><path d="M98 132V58l60-14v74" stroke-width="5"/><path d="M98 76l60-14" stroke-width="5"/><ellipse cx="88" cy="134" rx="12" ry="9" transform="rotate(-20 88 134)" fill="currentColor"/><ellipse cx="148" cy="120" rx="12" ry="9" transform="rotate(-20 148 120)" fill="currentColor"/><path d="M206 110V30c14 10 26 16 30 34" stroke-width="5"/><ellipse cx="196" cy="112" rx="12" ry="9" transform="rotate(-20 196 112)" fill="currentColor"/></g></svg>
-        <svg class="doodle doodle-cam" viewBox="0 0 260 200" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="78" cy="44" r="34"/><circle cx="78" cy="44" r="9"/><circle cx="160" cy="44" r="34"/><circle cx="160" cy="44" r="9"/><path d="M52 30l-6-4M190 58l6 5"/><rect x="24" y="84" width="176" height="96" rx="10"/><circle cx="84" cy="132" r="28"/><circle cx="84" cy="132" r="14"/><path d="M200 112l46-22v84l-46-22z"/><path d="M130 104h48M130 120h34M130 136h40"/><path d="M60 180l-14 18M170 180l14 18"/></g></svg>
+        <!-- bottom left: musical symbols in marker -->
+        <svg class="doodle doodle-notes" viewBox="0 0 340 230" aria-hidden="true">
+          <g class="ink" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <!-- staff -->
+            <path pathLength="1" style="--d:0s" stroke-width="2" d="M8 132c80-6 200-8 324-2"/>
+            <path pathLength="1" style="--d:.1s" stroke-width="2" d="M8 150c80-6 200-8 324-2"/>
+            <path pathLength="1" style="--d:.2s" stroke-width="2" d="M8 168c80-6 200-8 324-2"/>
+            <path pathLength="1" style="--d:.3s" stroke-width="2" d="M8 186c80-6 200-8 324-2"/>
+            <path pathLength="1" style="--d:.4s" stroke-width="2" d="M8 204c80-6 200-8 324-2"/>
+            <!-- treble clef -->
+            <path pathLength="1" style="--d:.6s" stroke-width="5" d="M52 222c4 8-6 12-12 8-8-6 0-16 8-12M48 218 40 58c-2-24 22-26 22-4 0 30-42 54-42 100 0 34 44 44 56 18 10-22-14-38-30-24-12 10-4 28 10 24"/>
+            <!-- beamed eighth notes -->
+            <path pathLength="1" style="--d:1s" stroke-width="5" d="M118 150V70M178 140V60"/>
+            <path pathLength="1" style="--d:1.2s" stroke-width="11" d="M118 72l60-12"/>
+            <path pathLength="1" style="--d:1.35s" stroke-width="5" d="M118 150c-2 10-24 14-28 4-4-10 16-16 26-10m-22 6 18-6m-16 10 16-6"/>
+            <path pathLength="1" style="--d:1.45s" stroke-width="5" d="M178 140c-2 10-24 14-28 4-4-10 16-16 26-10m-22 6 18-6m-16 10 16-6"/>
+            <!-- a single eighth with a flag -->
+            <path pathLength="1" style="--d:1.6s" stroke-width="5" d="M248 158V78c10 12 26 18 28 40"/>
+            <path pathLength="1" style="--d:1.75s" stroke-width="5" d="M248 158c-2 10-24 14-28 4-4-10 16-16 26-10m-22 6 18-6m-16 10 16-6"/>
+            <!-- fermata -->
+            <path pathLength="1" style="--d:1.9s" stroke-width="5" d="M268 40c10-30 56-30 64 2"/>
+            <path pathLength="1" style="--d:2.1s" stroke-width="7" d="M299 34h1"/>
+          </g>
+        </svg>
+
+        <!-- bottom right: a reel-to-reel movie camera and a clapperboard -->
+        <svg class="doodle doodle-cam" viewBox="0 0 470 250" aria-hidden="true">
+          <g class="ink" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+            <!-- reels -->
+            <circle pathLength="1" style="--d:.4s" cx="88" cy="58" r="44"/>
+            <circle pathLength="1" style="--d:.55s" cx="88" cy="58" r="7"/>
+            <path pathLength="1" style="--d:.65s" d="M80 32a10 10 0 1 0 1 0M60 70a10 10 0 1 0 1 0M106 72a10 10 0 1 0 1 0"/>
+            <circle pathLength="1" style="--d:.7s" cx="184" cy="58" r="44"/>
+            <circle pathLength="1" style="--d:.85s" cx="184" cy="58" r="7"/>
+            <path pathLength="1" style="--d:.95s" d="M176 32a10 10 0 1 0 1 0M156 70a10 10 0 1 0 1 0M202 72a10 10 0 1 0 1 0"/>
+            <!-- film running into the body -->
+            <path pathLength="1" style="--d:1.05s" d="M50 82 68 112M222 82l-16 30"/>
+            <!-- body, lens, matte box -->
+            <path pathLength="1" style="--d:1.1s" d="M58 112h150c8 0 12 4 12 12v58c0 8-4 12-12 12H58c-8 0-12-4-12-12v-58c0-8 4-12 12-12z"/>
+            <path pathLength="1" style="--d:1.3s" d="M220 136h26v34h-26M246 126l42-18v90l-42-18z"/>
+            <path pathLength="1" style="--d:1.45s" d="M96 136h60M96 152h40M178 140a8 8 0 1 0 1 0"/>
+            <path pathLength="1" style="--d:1.55s" d="M46 152H30m0-8v16"/>
+            <!-- tripod -->
+            <path pathLength="1" style="--d:1.65s" d="M110 194 86 244M134 194v50M158 194l24 50"/>
+            <!-- clapperboard -->
+            <path pathLength="1" style="--d:1.9s" d="M318 126h136v112H318z"/>
+            <path pathLength="1" style="--d:2.05s" d="M318 126h136v24H318M338 126l14 24M370 126l14 24M402 126l14 24M434 126l14 24"/>
+            <path pathLength="1" style="--d:2.2s" d="M318 120 448 84l6 22-130 36z"/>
+            <path pathLength="1" style="--d:2.3s" d="M350 135l-6-22M382 126l-6-22M414 117l-6-22"/>
+            <path pathLength="1" style="--d:2.35s" stroke-width="3" d="M318 178h136M318 206h136M386 150v88M330 166h28M398 166h20M330 194h20M398 194h36M330 222h40"/>
+          </g>
+        </svg>
+
         <span class="script-note" aria-hidden="true">make a scene.</span>
+
         <p class="side-text" aria-hidden="true">Rehearse / Record / Repeat</p>
       </div>
     </header>
@@ -88,15 +147,20 @@
           <p class="search-aside">Search like you talk. Tell us who's performing, when, how many people are coming, how many nights and your budget. We find rooms that can handle it.</p>
         </div>
 
-        <form class="searchbar" id="ask" aria-label="Your tour stop">
-          <span class="cassette-window" aria-hidden="true">
-            <span class="reel" id="reel-l"></span>
-            <span class="tape"></span>
-            <span class="reel" id="reel-r"></span>
-          </span>
-          <label class="sr-only" for="brief">Describe your tour stop</label>
-          <textarea id="brief" rows="2" placeholder="14 singers touring Los Angeles in March. We need a beautiful show for 80 guests and two nights nearby. Total budget $4,200.">14 singers touring Los Angeles on March 14. We need a beautiful show for 80 guests and two nights nearby. Total budget $4,200.</textarea>
-          <button id="go" type="submit">Search <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <form class="cassette" id="ask" aria-label="Your tour stop">
+          <div class="cassette-body">
+            <div class="cassette-label">
+              <div class="cassette-head"><span>Side A</span><span class="cassette-brand">Backstage Spaces</span><span>C90</span></div>
+              <label class="sr-only" for="brief">Describe your tour stop</label>
+              <textarea id="brief" rows="3" placeholder="14 singers touring Los Angeles in March. We need a beautiful show for 80 guests and two nights nearby. Total budget $4,200.">14 singers touring Los Angeles on March 14. We need a beautiful show for 80 guests and two nights nearby. Total budget $4,200.</textarea>
+              <div class="cassette-window" aria-hidden="true">
+                <span class="reel" id="reel-l"></span>
+                <span class="tape"></span>
+                <span class="reel" id="reel-r"></span>
+              </div>
+            </div>
+            <button id="go" type="submit">Scout</button>
+          </div>
         </form>
         <p class="try" id="examples">Try </p>
         <p class="last-results" id="last-results" hidden><a href="#/results">Back to your last results</a></p>
