@@ -269,6 +269,7 @@ function renderCards() {
       </button>`;
   }).join("");
   document.querySelectorAll(".card").forEach((el) => (el.onclick = () => openVenue(Number(el.dataset.id), true)));
+  window.dispatchEvent(new CustomEvent("scout:results", { detail: r })); // layout.js renders the results page
 }
 
 function scoreColor(score) {

@@ -1,37 +1,31 @@
-/* Estimated venues outside LA and Houston. Same type scale as the rest of the page. */
+/* Estimated venues outside LA and Houston. Shared type, rows, figures and buttons come from styles.css. */
 
-.regions { background: var(--bg); border-top: 1px solid var(--line); }
+.rg-picker { margin-top: var(--s7); }
+.rg-picker li { grid-template-columns: 240px 1fr; align-items: baseline; }
+.rg-region { font-family: var(--type); font-size: var(--fs-sm); letter-spacing: 0.1em; text-transform: uppercase; }
+.rg-cities { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.rg-cities button { font: 500 var(--fs-sm)/1 var(--body); color: var(--ink); padding: 10px 14px; border: 1.5px solid var(--line-strong); border-radius: var(--radius); }
+.rg-cities button:hover { background: var(--ink); color: var(--paper); }
+.rg-status { font-family: var(--script); font-size: 26px; color: var(--wine); margin-top: var(--s6); min-height: 34px; }
 
-.rg-picker { margin-top: 56px; }
-.rg-picker li { grid-template-columns: 220px 1fr; align-items: baseline; }
-.rg-region { font-size: 21px; font-weight: 600; }
-.rg-cities { display: flex; flex-wrap: wrap; gap: 6px 22px; }
-.rg-cities button { color: var(--link); font-size: 19px; }
-.rg-cities button:hover { text-decoration: underline; }
-.rg-status { font-size: 21px; font-weight: 600; color: var(--ink-2); margin: 40px 0 0; min-height: 30px; }
+.rg-estimated { display: inline-block; font-family: var(--type); font-size: var(--fs-xs); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); background: var(--sage); padding: 4px 10px; margin-bottom: var(--s4); transform: rotate(-1deg); }
+#rg-name { font-size: var(--fs-3xl); line-height: 0.98; }
+.rg-verdict { font-family: var(--display); font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; margin-top: var(--s7); max-width: 760px; }
+.rg-basis { color: var(--ink-2); margin-top: var(--s4); max-width: 720px; }
+.rg-summary { color: var(--ink-2); font-size: var(--fs-lg); margin-top: var(--s6); max-width: 720px; }
+.rg-listen { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s4) var(--s6); margin-top: var(--s6); }
 
-.rg-estimated { color: var(--ink-2); font-size: 21px; font-weight: 600; margin: 0 0 8px; }
-.rg-verdict { font-size: clamp(21px, 2.4vw, 28px); font-weight: 600; line-height: 1.25; margin: 56px 0 0; max-width: 760px; }
-.rg-basis { color: var(--ink-2); font-size: 17px; margin: 16px 0 0; max-width: 692px; }
-.rg-summary { color: var(--ink-2); font-size: 19px; margin: 40px 0 0; max-width: 692px; }
-
-.rg-listen { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin: 32px 0 0; }
-.link-dark { color: var(--link); font-size: 17px; }
-.link-dark:hover { text-decoration: underline; }
-.rg-seg { display: inline-flex; padding: 2px; border-radius: 9px; background: var(--bg-alt); }
-.rg-seg button { padding: 6px 18px; border-radius: 7px; font-size: 14px; color: var(--ink-2); }
-.rg-seg button.on { background: var(--bg); color: var(--ink); outline: 1px solid var(--line); }
-
-.rg-3d-wrap { margin: 72px 0 0; background: #000; }
+.rg-3d-wrap { margin-top: var(--s8); }
 .rg-3d { position: relative; height: min(64vh, 600px); }
 .rg-3d canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-.rg-h { font-size: clamp(28px, 3.4vw, 40px); font-weight: 600; letter-spacing: -0.01em; margin: 88px 0 0; }
-#rg-list .name { text-align: left; color: var(--link); }
-#rg-list .name:hover { text-decoration: underline; }
-#rg-list li.on .name { color: var(--ink); }
-#rg-lodging .name a { color: var(--link); }
+.rg-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s8); }
+#rg-list .name { text-align: left; color: var(--wine); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+#rg-list .name:hover { color: var(--ink); }
+#rg-list li.on .name { color: var(--ink); text-decoration: none; }
+#rg-lodging .name a { color: var(--wine); }
 
 @media (max-width: 834px) {
   .rg-picker li { grid-template-columns: 1fr; }
+  .rg-cols { grid-template-columns: 1fr; gap: 0; }
 }

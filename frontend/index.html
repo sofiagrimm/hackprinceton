@@ -3,20 +3,163 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Encore Scout</title>
-  <meta name="description" content="Find the room your group was made for, somewhere to stay, and who to call.">
+  <title>Backstage Spaces</title>
+  <meta name="description" content="Find a room that sounds right for your show, hear it before you book it, and plan the whole tour.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Caveat+Brush&family=Special+Elite&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tourplan.css">
   <link rel="stylesheet" href="pipeline.css">
   <link rel="stylesheet" href="regions.css">
   <link rel="stylesheet" href="film.css">
 </head>
-<body>
-  <nav class="subnav">
-    <a class="product" href="#top">Encore Scout</a>
-    <div class="subnav-right">
+<body data-view="home">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <a class="logo" href="#/">Backstage Spaces</a>
+    <nav class="modes" aria-label="Modes">
+      <a href="#/search" data-mode="concerts">Browse spaces</a>
+      <a href="#/tour" data-mode="tour">Tour</a>
+      <a href="#/film" data-mode="film">Film</a>
+      <a href="#/bookings" data-mode="bookings">Bookings</a>
+      <a href="#/cities" data-mode="cities">New cities</a>
+    </nav>
+    <a class="nav-cta" href="#/" id="nav-cta">Find a room</a>
+  </header>
+
+  <main id="main">
+
+  <!-- ============================================================ HOME: the opening page -->
+  <div class="view" data-view="home">
+    <header class="paper-hero" id="top">
+      <div class="hero-stage" id="hero3d">
+        <div class="swatches" aria-hidden="true">
+          <span style="--c:#742d36;--r:-9deg"><i>wine</i></span>
+          <span style="--c:#4a5140;--r:4deg"><i>olive</i></span>
+          <span style="--c:#d9a441;--r:-2deg"><i>brass</i></span>
+          <span style="--c:#2d5a8a;--r:8deg"><i>stage blue</i></span>
+          <span style="--c:#c3c9a8;--r:-5deg"><i>sage</i></span>
+        </div>
+
+        <div class="houses" aria-label="Some of the buildings we've scanned">
+          <figure class="polaroid hero-snap snap-a">
+            <img src="/api/venues/9530669/aerial.jpg" alt="3033 Wilshire from the air" width="300" height="300">
+            <figcaption>3033 wilshire / LA</figcaption>
+          </figure>
+          <figure class="polaroid hero-snap snap-b">
+            <img id="snap-right" alt="" width="300" height="300">
+            <figcaption id="snap-right-cap">lobby / LA</figcaption>
+          </figure>
+          <figure class="polaroid hero-snap snap-c">
+            <img id="snap-left" alt="" width="300" height="300">
+            <figcaption id="snap-left-cap">sound check, 7:42 pm</figcaption>
+          </figure>
+        </div>
+
+        <div class="lyric">
+          <p class="eyebrow">Rooms for people who make things</p>
+          <h1 class="hero-title"><span class="ht-main">Backstage</span><span class="ht-script">Spaces</span></h1>
+          <a class="hero-cta" href="#/search" id="hero-cta"><span class="hero-cta-text">Find your space</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <p class="hero-sub">Rooms that sound right for your show, beds nearby, and who to write to.</p>
+          <p class="hint-record">or tap a record to hear a room</p>
+        </div>
+
+        <svg class="doodle doodle-notes" viewBox="0 0 260 200" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 150c50-10 120-14 248-6M6 162c50-10 120-14 248-6M6 174c50-10 120-14 248-6M6 186c50-10 120-14 248-6M6 198c50-10 120-14 248-6" stroke-width="1.5" opacity=".45"/><path d="M40 196c-14 2-18-14-6-20 16-8 26 10 18 26-10 22-40 14-36-12 4-22 40-44 34-86-2-14-16-12-16 2 0 34 22 74 12 112-3 12-10 18-16 20" stroke-width="4"/><path d="M98 132V58l60-14v74" stroke-width="5"/><path d="M98 76l60-14" stroke-width="5"/><ellipse cx="88" cy="134" rx="12" ry="9" transform="rotate(-20 88 134)" fill="currentColor"/><ellipse cx="148" cy="120" rx="12" ry="9" transform="rotate(-20 148 120)" fill="currentColor"/><path d="M206 110V30c14 10 26 16 30 34" stroke-width="5"/><ellipse cx="196" cy="112" rx="12" ry="9" transform="rotate(-20 196 112)" fill="currentColor"/></g></svg>
+        <svg class="doodle doodle-cam" viewBox="0 0 260 200" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="78" cy="44" r="34"/><circle cx="78" cy="44" r="9"/><circle cx="160" cy="44" r="34"/><circle cx="160" cy="44" r="9"/><path d="M52 30l-6-4M190 58l6 5"/><rect x="24" y="84" width="176" height="96" rx="10"/><circle cx="84" cy="132" r="28"/><circle cx="84" cy="132" r="14"/><path d="M200 112l46-22v84l-46-22z"/><path d="M130 104h48M130 120h34M130 136h40"/><path d="M60 180l-14 18M170 180l14 18"/></g></svg>
+        <span class="script-note" aria-hidden="true">make a scene.</span>
+        <p class="side-text" aria-hidden="true">Rehearse / Record / Repeat</p>
+      </div>
+    </header>
+  </div>
+
+  <!-- ============================================================ SEARCH: the search engine -->
+  <div class="view" data-view="search">
+    <section class="band olive search-band" id="search" aria-labelledby="search-title">
+      <svg class="doodle search-note" viewBox="0 0 64 80" aria-hidden="true"><path d="M22 62V14l34-8v46" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="14" cy="64" r="9" fill="currentColor"/><circle cx="48" cy="56" r="9" fill="currentColor"/></svg>
+      <svg class="doodle search-cam" viewBox="0 0 120 84" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 26c0-4 3-7 7-7h16l6-9h24l6 9h34c4 0 7 3 7 7v42c0 4-3 7-7 7H17c-4 0-7-3-7-7z"/><circle cx="58" cy="47" r="19"/><circle cx="58" cy="47" r="9"/><path d="M88 32h14M20 31h10"/></g></svg>
+      <div class="wrap wide">
+        <div class="search-head">
+          <div>
+            <p class="eyebrow">01 / Curated for creators</p>
+            <h1 class="display" id="search-title">Your next great idea needs the <span class="script">right room.</span></h1>
+          </div>
+          <p class="search-aside">Search like you talk. Tell us who's performing, when, how many people are coming, how many nights and your budget. We find rooms that can handle it.</p>
+        </div>
+
+        <form class="searchbar" id="ask" aria-label="Your tour stop">
+          <span class="cassette-window" aria-hidden="true">
+            <span class="reel" id="reel-l"></span>
+            <span class="tape"></span>
+            <span class="reel" id="reel-r"></span>
+          </span>
+          <label class="sr-only" for="brief">Describe your tour stop</label>
+          <textarea id="brief" rows="2" placeholder="14 singers touring Los Angeles in March. We need a beautiful show for 80 guests and two nights nearby. Total budget $4,200.">14 singers touring Los Angeles on March 14. We need a beautiful show for 80 guests and two nights nearby. Total budget $4,200.</textarea>
+          <button id="go" type="submit">Search <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </form>
+        <p class="try" id="examples">Try </p>
+        <p class="last-results" id="last-results" hidden><a href="#/results">Back to your last results</a></p>
+
+        <div class="featured-head">
+          <h2 class="featured-title">Rooms on the shelf</h2>
+          <div class="featured-arrows">
+            <button type="button" class="arrow" id="feat-prev" aria-label="Earlier rooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button type="button" class="arrow" id="feat-next" aria-label="More rooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <ul class="featured" id="featured" aria-label="Scanned rooms you can book"></ul>
+    </section>
+
+    <section class="band wine side-b" aria-labelledby="sideb-title">
+      <div class="wrap side-b-grid">
+        <div>
+          <p class="eyebrow">Side B / More than one night</p>
+          <h2 class="display" id="sideb-title">Taking it on the road?</h2>
+          <ul class="side-b-list">
+            <li><a href="#/tour">Plan the whole tour</a><span>Every stop, the drive between, one total and a vote for the group.</span></li>
+            <li><a href="#/bookings">Keep every ask moving</a><span>Who you've written to, who owes you a reply, and two rooms side by side.</span></li>
+            <li><a href="#/film">Shooting instead?</a><span>Quiet rooms for dialogue, base camp for the trucks, light for each shoot day.</span></li>
+            <li><a href="#/cities">Somewhere new</a><span>Nine more cities, estimated from the outside of each building.</span></li>
+          </ul>
+        </div>
+        <figure class="polaroid side-b-snap">
+          <img src="/api/venues/6531330/aerial.jpg" alt="Park Fifth in downtown Los Angeles, seen from the air" loading="lazy" width="360" height="300">
+          <figcaption>from above / Park Fifth</figcaption>
+        </figure>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ SEARCH RESULTS -->
+  <div class="view" data-view="results">
+    <section class="page results-page" aria-labelledby="rs-title">
+      <div class="wrap wide">
+        <p class="crumbs"><a href="#/search" class="back">New search</a></p>
+        <p class="eyebrow">01 / What we found</p>
+        <h1 class="page-title" id="rs-title">Scouting.</h1>
+        <p class="page-sub" id="rs-sub"></p>
+
+        <div class="results-layout">
+          <div class="rs-list" id="rs-list" aria-live="polite"></div>
+          <aside class="rs-aside" aria-label="How we searched">
+            <section class="plan" id="plan" hidden>
+              <p class="eyebrow">Tracklist</p>
+              <h2 id="plan-title">Scouting.</h2>
+              <p class="note" id="agent-name"></p>
+              <ol class="steps" id="timeline"></ol>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ PROPERTY -->
+  <div class="view" data-view="property">
+    <nav class="prop-nav" aria-label="On this page">
+      <a href="#/results" class="back">All results</a>
       <div class="subnav-links" id="nav-links" hidden>
         <a href="#pick">Overview</a>
         <a href="#sound">Sound</a>
@@ -25,295 +168,349 @@
         <a href="#stay">Stay</a>
         <a href="#fund">Budget</a>
       </div>
-      <a class="buy" href="#top" id="nav-cta">Scout</a>
-    </div>
-  </nav>
-
-  <header class="paper-hero" id="top">
-    <div class="hero-stage" id="hero3d">
-      <div class="lyric">
-        <h1><span>Find the room</span><span class="indent">that sings back.</span></h1>
-        <p class="hero-sub">Tell us about your tour stop. We'll find a room that sounds right, somewhere to stay, and who to write to.</p>
-      </div>
-
-      <form class="cassette" id="ask" aria-label="Your tour stop">
-        <div class="cassette-body">
-          <div class="cassette-label">
-            <div class="cassette-head"><span>Side A</span><span class="cassette-brand">Encore Scout</span><span>C90</span></div>
-            <textarea id="brief" rows="3" aria-label="Describe your tour stop">14 singers touring LA on March 14. A show for 80 guests, 2 nights, same building if we can.</textarea>
-            <div class="cassette-window">
-              <span class="reel" id="reel-l"></span>
-              <span class="tape"></span>
-              <span class="reel" id="reel-r"></span>
-            </div>
-          </div>
-          <button id="go" type="submit">Scout</button>
-        </div>
-      </form>
-      <p class="try" id="examples">Or try </p>
-      <p class="hint-record">Tap a record to hear the room.</p>
-    </div>
-  </header>
-
-  <main>
-    <section class="frame plan" id="plan" hidden>
-      <div class="wrap narrow">
-        <h2 id="plan-title">Scouting.</h2>
-        <p class="note" id="agent-name"></p>
-        <ol class="steps" id="timeline"></ol>
-      </div>
-    </section>
+    </nav>
 
     <section class="frame pick" id="pick" hidden>
-      <div class="wrap">
-        <p class="kicker" id="d-kicker">The pick</p>
-        <h2 class="display" id="d-name"></h2>
-        <p class="lede-dark" id="d-address"></p>
-        <div class="figures" id="d-stats"></div>
-        <div class="report" id="report"></div>
+      <div class="wrap wide pick-grid">
+        <figure class="polaroid prop-photo">
+          <img id="prop-photo" alt="" width="520" height="420">
+          <figcaption id="prop-cap"></figcaption>
+        </figure>
+        <div class="pick-main">
+          <p class="kicker eyebrow" id="d-kicker">The pick</p>
+          <h1 class="display" id="d-name"></h1>
+          <p class="lede-dark" id="d-address"></p>
+          <div class="pick-actions">
+            <a class="btn" href="#sound">Hear the room</a>
+            <div id="pl-add" hidden></div>
+          </div>
+          <div class="figures" id="d-stats"></div>
+        </div>
+      </div>
+      <div class="wrap wide">
+        <div class="liner">
+          <p class="eyebrow">Liner notes / from the scout</p>
+          <div class="report" id="report"></div>
+        </div>
       </div>
     </section>
 
     <section class="frame black sound" id="sound" hidden>
-      <div class="wrap center">
-        <h2 class="display">Hear it before<br>you book it.</h2>
-        <p class="lede" id="d-verdict"></p>
-        <div class="rooms" id="d-spaces"></div>
-        <button id="play-choir" class="play" aria-label="Play a four-part chord in this room"><span class="tri"></span></button>
-        <p class="note">Plays a four-part chord with this room's reverb.</p>
-        <div class="seg" role="group" aria-label="Audience">
-          <button data-crowd="empty">Empty</button>
-          <button data-crowd="full" class="on">Full house</button>
+      <div class="wrap wide">
+        <div class="sound-top">
+          <div class="sound-head">
+            <p class="eyebrow">02 / Hear it</p>
+            <h2 class="display">Hear it before you <span class="script">book it.</span></h2>
+            <p class="lede" id="d-verdict"></p>
+          </div>
+          <div class="sound-console">
+            <div class="rooms" id="d-spaces"></div>
+            <button id="play-choir" class="play" type="button" aria-label="Play a four-part chord in this room"><span class="tri"></span></button>
+            <p class="note">Plays a four-part chord with this room's reverb.</p>
+            <div class="seg" role="group" aria-label="Audience">
+              <button type="button" data-crowd="empty">Empty</button>
+              <button type="button" data-crowd="full" class="on">Full house</button>
+            </div>
+            <p class="links"><button type="button" class="link" id="clap">Clap</button><button type="button" class="link" id="mic">Sing into the room</button></p>
+          </div>
         </div>
-        <p class="links"><button class="link" id="clap">Clap</button><button class="link" id="mic">Sing into the room</button></p>
-        <canvas id="scope" height="80"></canvas>
+        <canvas id="scope" height="80" aria-hidden="true"></canvas>
         <div class="rt" id="d-rtchart"></div>
-        <h3 class="sub-head">How it rings, low to high</h3>
-        <p class="note">Reverberation in each octave band with the audience in. Low notes usually ring longest.</p>
-        <div class="bands" id="d-bands"></div>
-        <h3 class="sub-head">Where to stand</h3>
-        <p class="note">Green is where every line of the arrangement stays clear. Blue is close and dry; orange is where the room starts to smear things.</p>
-        <canvas id="roommap" class="roommap"></canvas>
-        <p class="lede" id="d-mapnote"></p>
-        <dl class="specs dark-specs" id="d-acoustics"></dl>
-        <h3 class="sub-head">How close are these numbers?</h3>
-        <p class="note">The same engine, run on concert halls with published measurements.</p>
-        <dl class="specs dark-specs" id="d-validation"></dl>
+
+        <div class="sound-grid">
+          <div>
+            <h3 class="sub-head">How it rings, low to high</h3>
+            <p class="note">Reverberation in each octave band with the audience in. Low notes usually ring longest.</p>
+            <div class="bands" id="d-bands"></div>
+          </div>
+          <div>
+            <h3 class="sub-head">Where to stand</h3>
+            <p class="note">Green is where every line of the arrangement stays clear. Blue is close and dry; orange is where the room starts to smear things.</p>
+            <canvas id="roommap" class="roommap" aria-label="Map of the room showing where the sound stays clear"></canvas>
+            <p class="lede" id="d-mapnote"></p>
+          </div>
+        </div>
+
+        <details class="fold dark">
+          <summary>The numbers behind it</summary>
+          <dl class="specs dark-specs" id="d-acoustics"></dl>
+          <h3 class="sub-head">How close are these numbers?</h3>
+          <p class="note">The same engine, run on concert halls with published measurements.</p>
+          <dl class="specs dark-specs" id="d-validation"></dl>
+        </details>
       </div>
     </section>
 
     <section class="frame light-frame" id="light" hidden>
-      <div class="wrap">
-        <h2 class="display">See the room<br>at showtime.</h2>
-        <p class="lede-dark">Pick a room, then drag through the day. The light follows the real sun over this building on your date.</p>
-        <div class="room-picker" id="room-picker"></div>
-      </div>
-      <div class="room-view" id="roomview"><p class="room-view-empty" id="roomview-empty">Loading the rooms…</p></div>
-      <div class="wrap">
-        <div class="sun-controls">
-          <input type="date" id="sun-date" aria-label="Date">
-          <input type="range" id="sun-time" min="300" max="1260" step="5" value="1110" aria-label="Time of day">
-          <b id="sun-clock"></b>
+      <div class="wrap wide location">
+        <div class="loc-copy">
+          <p class="eyebrow">03 / See it before you book it</p>
+          <h2 class="display">Scout the room. <span class="script">Skip the guesswork.</span></h2>
+          <p class="loc-lede">Pick a room, then drag through the day. The light follows the real sun over this building on your date.</p>
+          <h3 class="mini-head">Rooms with a 360 photo</h3>
+          <div class="room-picker" id="room-picker"></div>
+          <p class="loc-date"><label for="sun-date">Show date</label><input type="date" id="sun-date"></p>
+          <dl class="specs" id="sun-facts"></dl>
         </div>
-        <p class="note">Drag the photo to look around. This shows the mood of the light, warmer at golden hour and lamp-lit after dark. It isn't a lighting simulation.</p>
-        <dl class="specs cols" id="sun-facts"></dl>
-        <h3 class="sub-head">From outside</h3>
-        <p class="note">The building from its Vexcel aerial and footprint, with the same sun.</p>
+        <div class="viewer">
+          <div class="viewer-frame">
+            <div class="vf-bar"><span class="vf-dot" aria-hidden="true"></span><span class="vf-title" id="vf-title">The room</span><span class="vf-tag">360 photo</span></div>
+            <div class="room-view" id="roomview"><p class="room-view-empty" id="roomview-empty">Loading the rooms…</p></div>
+            <div class="vf-bar vf-foot sun-controls">
+              <label for="sun-time">Time of day</label>
+              <input type="range" id="sun-time" min="300" max="1260" step="5" value="1110">
+              <b id="sun-clock"></b>
+            </div>
+          </div>
+          <p class="script-hint" aria-hidden="true">drag to look around</p>
+        </div>
       </div>
-      <div class="light-canvas" id="light3d"></div>
-      <div class="wrap">
-        <dl class="specs cols" id="d-site"></dl>
+      <div class="wrap wide">
+        <p class="note">This shows the mood of the light, warmer at golden hour and lamp-lit after dark. It isn't a lighting simulation.</p>
+        <details class="fold" id="outside">
+          <summary>From outside: the building from the air, with the same sun</summary>
+          <div class="light-canvas" id="light3d"></div>
+          <dl class="specs cols" id="d-site"></dl>
+        </details>
       </div>
     </section>
 
     <section class="frame walk" id="walk" hidden>
-      <div class="wrap">
+      <div class="wrap wide">
+        <p class="eyebrow">04 / Walk it</p>
         <h2 class="display">Step inside.</h2>
         <p class="lede-dark" id="walk-sub">The full 3D scan, room by room.</p>
-      </div>
-      <div class="tour" id="tour">
-        <iframe id="d-tour" title="Matterport 3D tour" allow="xr-spatial-tracking; fullscreen; autoplay" allowfullscreen hidden></iframe>
-        <button class="tour-poster" id="tour-poster"><span class="tri"></span><span>Open the 3D tour</span></button>
-      </div>
-      <div class="wrap">
-        <p class="walk-status" id="walk-status"></p>
+        <div class="viewer-frame tour-frame">
+          <div class="tour" id="tour">
+            <iframe id="d-tour" title="Matterport 3D tour" allow="xr-spatial-tracking; fullscreen; autoplay" allowfullscreen hidden></iframe>
+            <button class="tour-poster" id="tour-poster" type="button"><span class="tri"></span><span>Open the 3D tour</span></button>
+          </div>
+        </div>
+        <p class="walk-status" id="walk-status" aria-live="polite"></p>
         <p class="note"><a id="d-tour-link" target="_blank" rel="noopener" hidden>Open in a new tab</a></p>
       </div>
     </section>
 
-    <section class="frame stay" id="stay" hidden>
-      <div class="wrap narrow">
-        <h2 class="display">Sleep close.</h2>
-        <ul class="rows" id="d-housing"></ul>
-        <p class="note" id="d-housing-note"></p>
+    <div class="logistics">
+      <div class="wrap wide logistics-grid">
+        <section class="stay" id="stay" hidden>
+          <p class="eyebrow">05 / Stay</p>
+          <h2 class="display">Sleep close.</h2>
+          <ul class="rows" id="d-housing"></ul>
+          <p class="note" id="d-housing-note"></p>
+        </section>
+        <section class="fund" id="fund" hidden>
+          <div class="stub" id="d-budget"></div>
+        </section>
       </div>
-    </section>
-
-    <section class="frame fund" id="fund" hidden>
-      <div class="wrap narrow" id="d-budget"></div>
-    </section>
+    </div>
 
     <section class="frame reach" id="reach" hidden>
-      <div class="wrap narrow">
-        <h2 class="display">Make the ask.</h2>
-        <div id="d-email"></div>
+      <div class="wrap">
+        <p class="eyebrow">06 / Make the ask</p>
+        <h2 class="display">Write to them.</h2>
+        <div class="jcard">
+          <div class="jcard-spine" aria-hidden="true"><span>Side A</span><span>The ask</span></div>
+          <div class="jcard-body" id="d-email"></div>
+        </div>
       </div>
     </section>
 
     <section class="frame more" id="more" hidden>
-      <div class="wrap">
-        <h2 class="display">Other rooms<br>worth a listen.</h2>
+      <div class="wrap wide">
+        <h2 class="display">Other rooms <span class="script">worth a listen.</span></h2>
       </div>
       <div class="rail" id="cards"></div>
     </section>
+  </div>
+
+  <!-- ============================================================ TOUR -->
+  <div class="view" data-view="tour">
+    <section class="page tour-plan" id="tour-plan" aria-labelledby="tp-title">
+      <div class="wrap wide">
+        <p class="eyebrow">Tour / Setlist</p>
+        <h1 class="page-title" id="tp-title">Plan the whole <span class="script">tour.</span></h1>
+        <p class="page-sub">Tell us every show. We pick a room and a bed for each stop, work out the drive or the flight in between, and add it all up.</p>
+        <form class="searchbar tp-form" id="tp-form">
+          <label class="sr-only" for="tp-brief">Describe every stop on the tour</label>
+          <textarea id="tp-brief" rows="2" placeholder="14 singers, LA March 14, LA March 16, Houston March 20. 80 guests each, budget $6,000."></textarea>
+          <button class="cta" id="tp-go" type="submit">Plan the tour</button>
+        </form>
+        <p class="try tp-try"><button type="button" id="tp-example">Try the spring tour</button></p>
+        <p class="tp-status" id="tp-status" aria-live="polite"></p>
+
+        <div id="tp-result" hidden>
+          <p class="tp-summary" id="tp-summary"></p>
+          <ol class="tp-stops" id="tp-stops"></ol>
+          <div class="tp-name-row" id="tp-name-row" hidden>
+            <form id="tp-name-form"><label for="tp-name">Who's voting?</label>
+              <input id="tp-name" autocomplete="name" placeholder="Your first name"><button type="submit" class="btn">Save my vote</button></form>
+          </div>
+          <div class="tp-bottom">
+            <div class="stub" id="tp-totals"></div>
+            <div class="tp-share-block">
+              <h3>Let the group weigh in.</h3>
+              <p>Anyone with the link sees this plan and can vote for each stop's room or its backup.</p>
+              <a class="tp-share-link" id="tp-share" href="#">Share with the group</a>
+              <div class="tp-url" id="tp-share-url"></div>
+              <button class="cta" id="tp-dues" type="button">Collect dues for the tour</button>
+              <ul class="ledger" id="tp-dues-out"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ BOOKINGS -->
+  <div class="view" data-view="bookings">
+    <section class="page pipeline" id="pipeline" aria-labelledby="pl-title">
+      <div class="wrap">
+        <p class="eyebrow">Bookings</p>
+        <h1 class="page-title" id="pl-title">Keep every ask <span class="script">moving.</span></h1>
+        <p class="page-sub">Every venue you've written to, where it stands, and what to send next. Add a venue from its page in Concerts.</p>
+        <div id="pl-board"></div>
+      </div>
+      <div class="pl-compare band" id="pl-compare" hidden>
+        <div class="wrap">
+          <p class="eyebrow">A / B</p>
+          <h2 class="display">Two rooms. <span class="script">One chord.</span></h2>
+          <p class="lede-dark">Play it in one room, then switch to the other while it's still ringing.</p>
+          <div class="pl-pickers">
+            <select id="pl-a" aria-label="First venue"></select>
+            <span>and</span>
+            <select id="pl-b" aria-label="Second venue"></select>
+          </div>
+          <div class="seg light" id="pl-crowd" role="group" aria-label="Audience">
+            <button type="button" data-crowd="empty">Empty</button>
+            <button type="button" data-crowd="full" class="on">Full house</button>
+          </div>
+          <p class="note" id="pl-now" aria-live="polite"></p>
+          <div id="pl-sides"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ NEW CITIES -->
+  <div class="view" data-view="cities">
+    <section class="page regions" id="regions" aria-labelledby="rg-title">
+      <div class="wrap wide">
+        <div id="rg-intro">
+          <p class="eyebrow">New cities / Estimated</p>
+          <h1 class="page-title" id="rg-title">Beyond LA <span class="script">and Houston.</span></h1>
+          <p class="page-sub">Nine more cities. Nobody has scanned these rooms, so we estimate each one from the outside of the building.</p>
+          <ul class="rows rg-picker" id="rg-picker"></ul>
+          <p class="rg-status" id="rg-status" aria-live="polite"></p>
+        </div>
+        <div id="rg-results" hidden>
+          <p class="rg-estimated">Estimated. No one has scanned the inside of this building.</p>
+          <h2 class="display" id="rg-name"></h2>
+          <p class="lede-dark" id="rg-address"></p>
+          <div class="figures" id="rg-figures"></div>
+          <p class="rg-verdict" id="rg-verdict"></p>
+          <p class="rg-basis" id="rg-basis"></p>
+          <p class="rg-listen">
+            <button type="button" class="btn" id="rg-play">Play a chord in this room</button>
+            <span class="seg light rg-seg" role="group" aria-label="Audience"><button type="button" data-rg-crowd="empty">Empty</button><button type="button" data-rg-crowd="full" class="on">Full house</button></span>
+          </p>
+        </div>
+      </div>
+      <div class="wrap wide rg-3d-wrap" id="rg-3d-wrap" hidden>
+        <div class="viewer-frame"><div class="rg-3d" id="rg-3d"></div></div>
+      </div>
+      <div class="wrap wide" id="rg-more" hidden>
+        <p class="note" id="rg-model-note"></p>
+        <p class="rg-summary" id="rg-summary"></p>
+        <div class="rg-cols">
+          <div>
+            <h3 class="sub-head">The shortlist.</h3>
+            <ul class="rows" id="rg-list"></ul>
+            <p class="note" id="rg-coverage"></p>
+          </div>
+          <div>
+            <h3 class="sub-head">Sleep close.</h3>
+            <ul class="rows" id="rg-lodging"></ul>
+          </div>
+        </div>
+        <p class="note">Venues and hotels come from OpenStreetMap. Reverb is a physics estimate from the building's size and type, not a measurement.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ FILM -->
+  <div class="view" data-view="film">
+    <section class="page film" id="film" aria-labelledby="film-title">
+      <div class="wrap wide">
+        <p class="eyebrow">Film / Location scout</p>
+        <div class="film-head">
+          <h1 class="page-title" id="film-title">Film <span class="script">mode.</span></h1>
+          <svg class="film-cam" viewBox="0 0 220 150" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="48" width="150" height="86" rx="8"/><circle cx="62" cy="26" r="22"/><circle cx="122" cy="26" r="22"/><circle cx="62" cy="26" r="6"/><circle cx="122" cy="26" r="6"/><path d="M164 74l42-20v74l-42-20z"/><circle cx="60" cy="91" r="20"/><path d="M104 70h40M104 84h28"/><path d="M40 134l-12 14M138 134l12 14"/></g></svg>
+        </div>
+        <p class="page-sub">The same buildings, scouted for a crew. Find a room quiet enough for dialogue, see the building from four sides, and check the trucks fit outside.</p>
+        <form class="searchbar film-ask" id="film-ask">
+          <label class="sr-only" for="film-brief">Describe your shoot</label>
+          <textarea id="film-brief" rows="2">25 crew, quiet interior, LA, 3 weeks in April. Dialogue-heavy.</textarea>
+          <button id="film-go" type="submit">Find locations</button>
+        </form>
+        <p class="film-status" id="film-status" aria-live="polite"></p>
+
+        <div id="film-results" hidden>
+          <ol class="film-list" id="film-list"></ol>
+        </div>
+
+        <div class="film-detail" id="film-detail" hidden>
+          <h2 class="display" id="film-name"></h2>
+          <p class="lede-dark" id="film-address"></p>
+          <p class="film-room" id="film-room"></p>
+          <div class="figures" id="film-figures"></div>
+
+          <div class="film-part">
+            <h3>Four sides, from the air.</h3>
+            <div class="film-obliques" id="film-obliques"></div>
+          </div>
+
+          <div class="film-part film-camp">
+            <div>
+              <h3>Base camp.</h3>
+              <p class="film-big" id="film-trailers"></p>
+              <p class="film-text" id="film-camp-verdict"></p>
+              <p class="film-text" id="film-overflow"></p>
+              <dl class="specs" id="film-camp-specs"></dl>
+            </div>
+            <figure id="film-camp-map" hidden>
+              <img alt="The parcel from above, with the paved ground left bright">
+              <figcaption>The bright ground is paved and wide enough for a trailer.</figcaption>
+            </figure>
+          </div>
+          <p class="note" id="film-camp-note"></p>
+
+          <div class="film-part">
+            <h3>Outside noise.</h3>
+            <div id="film-noise"></div>
+          </div>
+
+          <div class="film-part">
+            <h3>Light on the shoot days.</h3>
+            <div class="film-light" id="film-light"></div>
+            <p class="note" id="film-light-note"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
   </main>
 
-  <section class="frame tour-plan" id="tour-plan">
-    <div class="wrap">
-      <h2 class="display">Plan the whole tour.</h2>
-      <p class="lede-dark">Tell us every show. We pick a room and a bed for each stop, work out the drive or the flight in between, and add it all up.</p>
-      <form class="tp-form" id="tp-form">
-        <textarea id="tp-brief" rows="2" placeholder="14 singers, LA March 14, LA March 16, Houston March 20. 80 guests each, budget $6,000."></textarea>
-        <button class="cta" id="tp-go" type="submit">Plan the tour</button>
-      </form>
-      <p class="tp-try"><button type="button" id="tp-example">Try the spring tour</button></p>
-      <p class="tp-status" id="tp-status" aria-live="polite"></p>
-
-      <div id="tp-result" hidden>
-        <p class="tp-summary" id="tp-summary"></p>
-        <ol class="tp-stops" id="tp-stops"></ol>
-        <div class="tp-name-row" id="tp-name-row" hidden>
-          <form id="tp-name-form"><label for="tp-name">Who's voting?</label>
-            <input id="tp-name" autocomplete="name" placeholder="Your first name"><button type="submit">Save my vote</button></form>
-        </div>
-        <div class="tp-bottom">
-          <div id="tp-totals"></div>
-          <div class="tp-share-block">
-            <h3>Let the group weigh in.</h3>
-            <p>Anyone with the link sees this plan and can vote for each stop's room or its backup.</p>
-            <a class="tp-share-link" id="tp-share" href="#">Share with the group</a>
-            <div class="tp-url" id="tp-share-url"></div>
-            <button class="cta" id="tp-dues" type="button">Collect dues for the tour</button>
-            <ul class="ledger" id="tp-dues-out"></ul>
-          </div>
-        </div>
-  <section class="frame pipeline" id="pipeline">
-    <div class="wrap narrow">
-      <h2 class="display">Keep every<br>ask moving.</h2>
-      <p class="lede-dark">Every venue you've written to, where it stands, and what to send next.</p>
-      <div id="pl-add" hidden></div>
-      <div id="pl-board"></div>
-    </div>
-    <div class="pl-compare" id="pl-compare" hidden>
-      <div class="wrap">
-        <h2 class="display">Two rooms.<br>One chord.</h2>
-        <p class="lede-dark">Play it in one room, then switch to the other while it's still ringing.</p>
-        <div class="pl-pickers">
-          <select id="pl-a" aria-label="First venue"></select>
-          <span>and</span>
-          <select id="pl-b" aria-label="Second venue"></select>
-        </div>
-        <div class="seg" id="pl-crowd" role="group" aria-label="Audience">
-          <button data-crowd="empty">Empty</button>
-          <button data-crowd="full" class="on">Full house</button>
-        </div>
-        <p class="note" id="pl-now"></p>
-        <div id="pl-sides"></div>
-      </div>
-  <section class="frame regions" id="regions">
-    <div class="wrap">
-      <div id="rg-intro">
-        <h2 class="display">Beyond LA<br>and Houston.</h2>
-        <p class="lede-dark">Nine more cities. Nobody has scanned these rooms, so we estimate each one from the outside of the building.</p>
-        <ul class="rows rg-picker" id="rg-picker"></ul>
-        <p class="rg-status" id="rg-status"></p>
-      </div>
-      <div id="rg-results" hidden>
-        <p class="rg-estimated">Estimated. No one has scanned the inside of this building.</p>
-        <h2 class="display" id="rg-name"></h2>
-        <p class="lede-dark" id="rg-address"></p>
-        <div class="figures" id="rg-figures"></div>
-        <p class="rg-verdict" id="rg-verdict"></p>
-        <p class="rg-basis" id="rg-basis"></p>
-        <p class="rg-listen">
-          <button type="button" class="link-dark" id="rg-play">Play a chord in this room</button>
-          <span class="rg-seg"><button type="button" data-rg-crowd="empty">Empty</button><button type="button" data-rg-crowd="full" class="on">Full house</button></span>
-        </p>
-      </div>
-    </div>
-    <div class="rg-3d-wrap" id="rg-3d-wrap" hidden>
-      <div class="rg-3d" id="rg-3d"></div>
-    </div>
-    <div class="wrap" id="rg-more" hidden>
-      <p class="note" id="rg-model-note"></p>
-      <p class="rg-summary" id="rg-summary"></p>
-      <h3 class="rg-h">The shortlist.</h3>
-      <ul class="rows" id="rg-list"></ul>
-      <p class="note" id="rg-coverage"></p>
-      <h3 class="rg-h">Sleep close.</h3>
-      <ul class="rows" id="rg-lodging"></ul>
-      <p class="note">Venues and hotels come from OpenStreetMap. Reverb is a physics estimate from the building's size and type, not a measurement.</p>
-  <section class="frame film" id="film">
-    <div class="wrap">
-      <h2 class="display">Film mode.</h2>
-      <p class="lede-dark">The same buildings, scouted for a crew. Find a room quiet enough for dialogue, see the building from four sides, and check the trucks fit outside.</p>
-      <form class="film-ask" id="film-ask">
-        <textarea id="film-brief" rows="2" aria-label="Describe your shoot">25 crew, quiet interior, LA, 3 weeks in April. Dialogue-heavy.</textarea>
-        <button id="film-go" type="submit">Find locations</button>
-      </form>
-      <p class="film-status" id="film-status"></p>
-
-      <div id="film-results" hidden>
-        <ol class="film-list" id="film-list"></ol>
-      </div>
-
-      <div class="film-detail" id="film-detail" hidden>
-        <h2 class="display" id="film-name"></h2>
-        <p class="lede-dark" id="film-address"></p>
-        <p class="film-room" id="film-room"></p>
-        <div class="figures" id="film-figures"></div>
-
-        <div class="film-part">
-          <h3>Four sides, from the air.</h3>
-          <div class="film-obliques" id="film-obliques"></div>
-        </div>
-
-        <div class="film-part film-camp">
-          <div>
-            <h3>Base camp.</h3>
-            <p class="film-big" id="film-trailers"></p>
-            <p class="film-text" id="film-camp-verdict"></p>
-            <p class="film-text" id="film-overflow"></p>
-            <dl class="specs" id="film-camp-specs"></dl>
-          </div>
-          <figure id="film-camp-map" hidden>
-            <img alt="The parcel from above, with the paved ground left bright">
-            <figcaption>The bright ground is paved and wide enough for a trailer.</figcaption>
-          </figure>
-        </div>
-        <p class="note" id="film-camp-note"></p>
-
-        <div class="film-part">
-          <h3>Outside noise.</h3>
-          <div id="film-noise"></div>
-        </div>
-
-        <div class="film-part">
-          <h3>Light on the shoot days.</h3>
-          <div class="film-light" id="film-light"></div>
-          <p class="note" id="film-light-note"></p>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <footer class="footer">
-    <div class="wrap">
+    <div class="wrap wide">
+      <p class="footer-logo">Backstage Spaces</p>
       <p>Made at HackPrinceton 2026 with CoStar property data, Matterport scans and Vexcel aerial imagery. Payments use Capital One's Nessie sandbox.</p>
       <p>Reverb figures are physics estimates from scan geometry and assumed finishes. Rates are CoStar averages, not quotes.</p>
     </div>
   </footer>
 
+  <script type="module" src="layout.js"></script>
   <script type="module" src="regions.js"></script>
   <script type="module" src="app.js"></script>
   <script type="module" src="tourplan.js"></script>
