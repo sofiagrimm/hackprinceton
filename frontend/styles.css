@@ -589,6 +589,36 @@ body::after {
   .ready-book { width: 100%; justify-content: center; }
 }
 
+/* ---------------------------------------------------------------- EXPLORE IN 3D */
+.explore-hub { min-height: calc(100vh - var(--nav-h)); display: flex; align-items: center; }
+.explore-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--s8); align-items: center; width: 100%; }
+.explore-hub .page-title .script { font-size: 0.9em; color: var(--cherry); }
+.ex-choices { list-style: none; padding: 0; margin: var(--s7) 0 0; display: grid; gap: var(--s5); max-width: 560px; }
+.ex-choice {
+  display: flex; align-items: center; gap: var(--s5); width: 100%; text-align: left; padding: var(--s4) var(--s6);
+  background: var(--card); color: var(--ink); border: 2.5px solid var(--ink);
+  border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px; /* a hand-drawn pill */
+  box-shadow: 5px 6px 0 var(--ink); transition: transform .15s, box-shadow .15s, background .15s;
+}
+.ex-choice:nth-child(1), .ex-choices li:nth-child(1) .ex-choice { transform: rotate(-1deg); }
+.ex-choices li:nth-child(2) .ex-choice { transform: rotate(0.8deg); margin-left: 14px; }
+.ex-choices li:nth-child(3) .ex-choice { transform: rotate(-0.6deg); }
+.ex-choice svg { width: 44px; height: 44px; flex: none; color: var(--cherry); }
+.ex-choice b { display: block; font-family: var(--script); font-weight: 400; font-size: clamp(28px, 2.8vw, 36px); line-height: 1; }
+.ex-choice small { display: block; color: var(--ink-2); font-size: var(--fs-sm); margin-top: 4px; }
+.ex-choice:hover { background: var(--blush); box-shadow: 7px 9px 0 var(--ink); }
+.ex-choice[aria-pressed="true"] { background: var(--cherry); color: var(--paper); box-shadow: 3px 3px 0 var(--ink); }
+.ex-choice[aria-pressed="true"] svg, .ex-choice[aria-pressed="true"] small { color: var(--paper); }
+.explore-snap { --tilt: 4deg; max-width: 420px; justify-self: center; }
+/* only the chosen evaluation shows under the buttons */
+.view[data-view="explore"] .ex-off { display: none !important; }
+.view[data-view="explore"] > section:not(.explore-hub) { scroll-margin-top: var(--nav-h); }
+@media (max-width: 900px) {
+  .explore-grid { grid-template-columns: 1fr; gap: var(--s6); }
+  .explore-snap { order: -1; max-width: 240px; }
+  .ex-choices li:nth-child(2) .ex-choice { margin-left: 0; }
+}
+
 /* ---------------------------------------------------------------- BOOKING */
 .book-pick { min-height: calc(100vh - var(--nav-h)); }
 .book-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s7); }

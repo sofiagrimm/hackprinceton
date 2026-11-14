@@ -306,6 +306,64 @@
       </div>
     </section>
 
+    <div class="logistics">
+      <div class="wrap wide logistics-grid">
+        <section class="stay" id="stay" hidden>
+          <h2 class="display">Sleep close.</h2>
+          <ul class="rows" id="d-housing"></ul>
+          <p class="note" id="d-housing-note"></p>
+        </section>
+        <section class="fund" id="fund" hidden>
+          <div class="stub" id="d-budget"></div>
+        </section>
+      </div>
+    </div>
+
+    <section class="frame reach" id="reach" hidden>
+      <div class="wrap">
+        <h2 class="display">Write to them.</h2>
+        <div class="jcard">
+          <div class="jcard-spine" aria-hidden="true"><span>Side A</span><span>The ask</span></div>
+          <div class="jcard-body" id="d-email"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="frame more" id="more" hidden>
+      <div class="wrap wide">
+        <h2 class="display">Other rooms worth a listen.</h2>
+      </div>
+      <div class="rail" id="cards"></div>
+    </section>
+  </div>
+
+  <!-- ============================================================ EXPLORE IN 3D (placeholder until its design arrives) -->
+  <div class="view" data-view="explore">
+    <section class="page explore-hub" aria-labelledby="ex-title">
+      <div class="wrap wide explore-grid">
+        <div>
+          <p class="crumbs"><a class="back" id="ex-back" href="#/">Back to the room</a></p>
+          <h1 class="page-title" id="ex-title">Explore <span class="script venue-name"></span></h1>
+          <p class="page-sub">Hear it, see the light on your date, or walk through the scan.</p>
+          <ul class="ex-choices">
+            <li><button type="button" class="ex-choice" data-ex="sound" aria-controls="sound" aria-pressed="false">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M8 20v8M15 14v20M22 8v32M29 16v16M36 12v24M43 21v6"/></g></svg>
+              <span><b>Acoustics</b><small>Play a chord in the room, see how it rings and where to stand</small></span></button></li>
+            <li><button type="button" class="ex-choice" data-ex="light" aria-controls="light" aria-pressed="false">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="24" cy="24" r="8"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6M10 10l4 4M34 34l4 4M38 10l-4 4M14 34l-4 4"/></g></svg>
+              <span><b>Lighting</b><small>Look around the room as the sun moves over your date</small></span></button></li>
+            <li><button type="button" class="ex-choice" data-ex="walk" aria-controls="walk" aria-pressed="false">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M24 5 41 14v20L24 43 7 34V14z"/><path d="M7 14l17 9 17-9M24 23v20"/></g></svg>
+              <span><b>3D walkthrough</b><small>Walk the full Matterport scan, room by room</small></span></button></li>
+          </ul>
+        </div>
+        <figure class="polaroid explore-snap">
+          <img id="explore-photo" alt="" width="420" height="420">
+          <figcaption class="venue-name"></figcaption>
+        </figure>
+      </div>
+    </section>
+
     <section class="frame black sound" id="sound" hidden>
       <div class="wrap wide">
         <div class="sound-top">
@@ -404,48 +462,6 @@
       </div>
     </section>
 
-    <div class="logistics">
-      <div class="wrap wide logistics-grid">
-        <section class="stay" id="stay" hidden>
-          <h2 class="display">Sleep close.</h2>
-          <ul class="rows" id="d-housing"></ul>
-          <p class="note" id="d-housing-note"></p>
-        </section>
-        <section class="fund" id="fund" hidden>
-          <div class="stub" id="d-budget"></div>
-        </section>
-      </div>
-    </div>
-
-    <section class="frame reach" id="reach" hidden>
-      <div class="wrap">
-        <h2 class="display">Write to them.</h2>
-        <div class="jcard">
-          <div class="jcard-spine" aria-hidden="true"><span>Side A</span><span>The ask</span></div>
-          <div class="jcard-body" id="d-email"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="frame more" id="more" hidden>
-      <div class="wrap wide">
-        <h2 class="display">Other rooms worth a listen.</h2>
-      </div>
-      <div class="rail" id="cards"></div>
-    </section>
-  </div>
-
-  <!-- ============================================================ EXPLORE IN 3D (placeholder until its design arrives) -->
-  <div class="view" data-view="explore">
-    <section class="page next-page" aria-labelledby="ex-title">
-      <div class="wrap wide">
-        <p class="crumbs"><a class="back" id="ex-back" href="#/">Back to the room</a></p>
-        <p class="eyebrow">Explore in 3D</p>
-        <h1 class="page-title" id="ex-title">Explore in 3D.</h1>
-        <p class="page-sub">The full walk-through of <b class="venue-name"></b> opens here. This page is being designed next.</p>
-        <p class="next-links"><a class="btn" id="ex-tour" href="#/">Walk the 3D scan for now</a></p>
-      </div>
-    </section>
   </div>
 
   <!-- ============================================================ BOOKING (placeholder until its design arrives) -->

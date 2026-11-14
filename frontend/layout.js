@@ -65,6 +65,12 @@ function route() {
   // A plain anchor (#sound, #tour-plan): show the view that holds it, leave the scroll to the browser.
   const el = h.length > 1 && document.getElementById(h.slice(1));
   const holder = el?.closest("[data-view]");
+  if (holder?.dataset.view === "explore") {
+    const key = EXPLORE.find((k) => $(k).contains(el));
+    if (holder.dataset.view !== document.body.dataset.view) show("explore", { keepScroll: true });
+    if (key) selectExplore(key);
+    return;
+  }
   if (holder && holder.dataset.view !== document.body.dataset.view) {
     show(holder.dataset.view, { keepScroll: true });
     requestAnimationFrame(() => el.scrollIntoView());
@@ -75,6 +81,10 @@ function firstView() {
   const q = new URLSearchParams(location.search);
   if (q.get("tour")) return show("tour");
   if (q.get("film")) return show("film");
+  if (q.get("venue") && /^#\/venue\/\d+\/(3d|book)/.test(location.hash)) {
+    state.venueId = Number(q.get("venue"));
+    return route();
+  }
   if (q.get("venue")) {
     state.venueId = Number(q.get("venue"));
     setPhoto(state.venueId);
@@ -542,9 +552,38 @@ async function showNextPage(id, which) {
   const back = `#/venue/${id}`;
   ["ex-back", "bk-back"].forEach((b) => { $(b).href = back; });
   const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
-  $("ex-tour").href = back; $("ex-tour").onclick = jump("walk");
   $("bk-ask").href = back; $("bk-ask").onclick = jump("reach");
   if (which === "book") startBooking(id, v);
+  if (which === "explore") startExplore(id);
+}
+
+// ------------------------------------------------------------------ explore: acoustics, lighting, 3D walkthrough
+
+const EXPLORE = ["sound", "light", "walk"];
+
+/** The evaluations are app.js's sections, so the venue must be open in app.js first. */
+function ensureVenue(id, hash) {
+  if (state.venueId === id && !$("pick").hidden) return;
+  state.venueId = id;
+  const card = document.querySelector(`#cards .card[data-id="${id}"]`);
+  if (card) { state.quietCard = true; card.click(); state.quietCard = false; return; }
+  location.href = `/?venue=${id}${hash}`;
+}
+
+function startExplore(id) {
+  ensureVenue(id, `#/venue/${id}/3d`);
+  showPicture($("explore-photo"), id);
+  EXPLORE.forEach((k) => $(k).classList.add("ex-off"));
+  document.querySelectorAll(".ex-choice").forEach((b) => {
+    b.setAttribute("aria-pressed", "false");
+    b.onclick = () => selectExplore(b.dataset.ex);
+  });
+}
+
+function selectExplore(key, scroll = true) {
+  EXPLORE.forEach((k) => $(k).classList.toggle("ex-off", k !== key));
+  document.querySelectorAll(".ex-choice").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.ex === key)));
+  if (scroll) revealAndScroll($(key));
 }
 
 // ------------------------------------------------------------------ booking: pick dates, then the next step appears
@@ -829,7 +868,7 @@ function watchVenueName() {
   // A card in "Other rooms" opens another venue in place; keep the address in step.
   $("cards").addEventListener("click", (e) => {
     const card = e.target.closest(".card");
-    if (!card) return;
+    if (!card || state.quietCard) return;
     const id = Number(card.dataset.id);
     state.venueId = id;
     setPhoto(id);
