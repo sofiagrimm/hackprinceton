@@ -5,8 +5,13 @@ import { loadTour, sdkUsable } from "./tour.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const money = (n) => "$" + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
-const money2 = (n) => "$" + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtMoney = (n, digits) => {
+  const v = Number(n || 0);
+  const body = Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return (v < 0 ? "\u2212$" : "$") + body;
+};
+const money = (n) => fmtMoney(n, 0);
+const money2 = (n) => fmtMoney(n, 2);
 const sound = new RoomSound();
 
 const DEFAULT_VENUE = 9530669; // 3033 Wilshire, Los Angeles: the hero before the first search
@@ -348,7 +353,7 @@ function renderAcoustics() {
   }
   $("d-verdict").textContent = a.verdict;
   $("d-acoustics").innerHTML = dl([
-    ["Room", state.roomOverride ? `${esc(state.roomOverride.label)}, from the 3D tour` : `${esc(cleanSpace(s.space_name, state.venue.name))}, ${esc(a.space_label)}`],
+    ["Room", state.roomOverride ? `${esc(state.roomOverride.label)}, from the 3D tour` : roomLabel(cleanSpace(s.space_name, state.venue.name), a.space_label)],
     ["Size", state.roomOverride ? `${Math.round(state.roomOverride.areaSqft).toLocaleString()} sq ft` : `${s.area_sqft.toLocaleString()} sq ft${s.height_ft ? `, ${s.height_ft} ft ceiling` : ""}`],
     ["Reverb", `${a.rt60_empty_s}s empty, ${a.rt60_occupied_s}s with ${a.audience} guests`],
     ["Capacity", `${a.capacity_seated} seated, ${a.capacity_standing} standing`],
@@ -422,6 +427,7 @@ function wireListen() {
 
 function drawScope() {
   const canvas = $("scope");
+  canvas.classList.add("on");
   if (!sound.analyser || canvas.dataset.running) return;
   canvas.dataset.running = "1";
   const ctx = canvas.getContext("2d");
@@ -622,7 +628,7 @@ async function loadBudget(id) {
       ["Each member's share", money2(b.per_member_share)],
     ])}</dl>
     ${f ? `<button id="approve" class="cta">Hold the deposit and collect dues</button>` : ""}
-    <p class="note">Planned by the scout, approved by the treasurer, settled in Capital One's Nessie sandbox. ${esc(c.venue_fee_basis)}.</p>
+    <p class="note">Planned by the scout, approved by the treasurer, settled in Capital One's Nessie sandbox. Venue fee estimated for ${esc(c.venue_fee_basis)}.</p>
     <ul class="ledger" id="ledger"></ul>`;
   const btn = $("approve");
   if (btn) btn.onclick = () => approveBudget(id, btn);
@@ -670,6 +676,12 @@ function dlRows(rows) {
 }
 
 function dl(rows) { return dlRows(rows); }
+
+function roomLabel(name, kind) {
+  const n = esc(name), k = esc(kind);
+  const first = (kind || "").split(/[\s/]+/)[0].toLowerCase();
+  return first && name.toLowerCase().includes(first) ? n : `${n}, ${k}`;
+}
 
 function cleanSpace(space, venue) {
   if (space && venue && space.toLowerCase().startsWith(venue.toLowerCase())) {

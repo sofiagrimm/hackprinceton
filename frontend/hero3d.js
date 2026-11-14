@@ -205,7 +205,7 @@ export function createHero(container, { shiftX = 0, zoom = 1 } = {}) {
     const a = angle + p * 2.4;
     camera.position.set(center.x + Math.cos(a) * r, r * lift, center.z + Math.sin(a) * r);
     // Aim above the roof so the model sits in the lower part of the frame, under the headline.
-    camera.lookAt(center.x, framing * (0.62 - p * 0.12), center.z);
+    camera.lookAt(center.x, framing * (0.57 - p * 0.1), center.z);
 
     // Rings: one per beat; louder and more frequent while audio plays.
     const playing = performance.now() < pulseUntil;
