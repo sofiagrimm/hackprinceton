@@ -251,7 +251,7 @@ input[type=range] { accent-color: var(--wine); }
 
 /* ---------------------------------------------------------------- scrapbook pieces */
 .polaroid { position: relative; display: block; margin: 0; padding: 12px 12px 0; background: var(--card); box-shadow: var(--shadow-photo); transform: rotate(var(--tilt, -2deg)); color: var(--ink); text-decoration: none; }
-.polaroid img { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #2b2722; }
+.polaroid img { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; background: #2b2722; }
 .polaroid figcaption { font-family: var(--type); font-size: var(--fs-xs); padding: 12px 4px 16px; color: var(--ink); }
 .polaroid::before { content: ""; position: absolute; top: -14px; left: 50%; width: 42%; height: 30px; transform: translateX(-50%) rotate(-4deg); background: var(--tape); z-index: 1; }
 .doodle { position: absolute; color: var(--ink); pointer-events: none; }
@@ -304,7 +304,7 @@ input[type=range] { accent-color: var(--wine); }
 .snap-a { right: 0; top: 0; width: 56%; --tilt: 6deg; }
 .snap-b { left: 0; top: 16%; width: 52%; --tilt: -7deg; }
 .snap-c { position: absolute; right: 22%; bottom: 0; width: 34%; margin: 0; transform: rotate(10deg); }
-.sticker img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border: 6px solid #fff; border-radius: 22px; box-shadow: var(--shadow-photo); }
+.sticker img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border: 6px solid #fff; border-radius: 22px; box-shadow: var(--shadow-photo); }
 .script-note { position: absolute; z-index: 2; right: clamp(16px, 5vw, 80px); top: calc(clamp(16px, 4vh, 48px) + clamp(220px, 26vw, 380px) * 0.92 + 44px); font-family: var(--script); font-size: clamp(22px, 2.2vw, 30px); color: var(--cherry); transform: rotate(-6deg); white-space: nowrap; }
 
 /* bottom: marker drawings that draw themselves in once */
@@ -616,7 +616,7 @@ input[type=range] { accent-color: var(--wine); }
   .logo { width: 34px; height: 34px; font-size: 14px; }
   .modes { overflow-x: auto; scrollbar-width: none; padding-right: var(--s4); }
   .modes::-webkit-scrollbar { display: none; }
-  .modes a { min-width: 0; padding: 10px 14px 9px; font-size: var(--fs-xs); }
+  .modes a { flex: none; min-width: 0; padding: 10px 14px 9px; font-size: var(--fs-xs); }
   .modes a.on::after { left: 14px; right: 14px; }
   .nav-cta { display: none; }
 
