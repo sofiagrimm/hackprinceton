@@ -761,7 +761,7 @@ async function loadBudget(id) {
   if (b.affordable === true) verdict = `<span class="ok">The tour fund covers it, with ${money(f.available_after_bills - c.total)} left over.</span>`;
   if (b.affordable === false) verdict = `<span class="over">That's ${money(b.shortfall)} more than the tour fund has.</span>`;
   $("d-budget").innerHTML = `
-    <h2 class="display">Can the tour afford it?</h2>
+    <h2 class="display">Price breakdown for on the road</h2>
     <p class="total">${money(c.total)}</p>
     <p class="verdict">${verdict}</p>
     <dl class="specs">${dlRows([
