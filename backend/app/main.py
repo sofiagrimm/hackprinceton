@@ -138,6 +138,10 @@ def aerial(venue_id: int) -> Response:
     return Response(image, media_type="image/jpeg", headers={"Cache-Control": "max-age=86400"})
 
 
+from .film import router as film_router  # noqa: E402
+app.include_router(film_router)
+
+
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(FRONTEND_DIR / "index.html")
