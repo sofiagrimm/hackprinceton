@@ -251,9 +251,12 @@ function selectSpace(i) {
   const s = v.spaces?.[i];
   state.spaceIndex = i;
   document.querySelectorAll("#d-spaces button").forEach((b) => b.classList.toggle("on", Number(b.dataset.i) === i));
+  // The hackathon scans are public/unlisted, so the standard Showcase embed needs no SDK key and works on
+  // any domain. (The SDK key is limited to localhost and is only needed for scripting the viewer.)
   const model = s?.model_id || v.matterport_models?.[0];
-  const key = state.config?.matterport_sdk_key ? `&applicationKey=${state.config.matterport_sdk_key}` : "";
-  $("d-tour").src = model ? `https://my.matterport.com/show/?m=${model}&play=1&qs=1${key}` : "about:blank";
+  $("d-tour").src = model ? `https://my.matterport.com/show/?m=${model}&play=1&qs=1&brand=0` : "about:blank";
+  $("d-tour-link").href = model ? `https://my.matterport.com/show/?m=${model}` : "#";
+  $("d-tour-link").hidden = !model;
   if (!s) {
     $("d-acoustics").innerHTML = `<p class="muted">No measurable room in this scan.</p>`;
     return;
