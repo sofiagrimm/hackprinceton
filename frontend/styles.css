@@ -1480,3 +1480,6 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .ac-mic-tag { font-size: 11px; margin-top: var(--s2); }
 @media (max-width: 1000px) { .ac-mics { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .ac-mics { grid-template-columns: 1fr; } }
+
+/* venue pages: no section links across the top, just the way back */
+.prop-nav .subnav-links { display: none !important; }

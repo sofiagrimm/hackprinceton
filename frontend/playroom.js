@@ -395,7 +395,7 @@ const TEMPLATE = `
   </div>
   <div class="pr-verdicts">
     <div class="pr-card">
-      <p class="eyebrow">For your audience</p>
+      <p class="eyebrow">What the audience hears</p>
       <p class="pr-big pr-aud-num"></p>
       <p class="pr-aud"></p>
       <div class="pr-range" hidden>
@@ -404,7 +404,7 @@ const TEMPLATE = `
       </div>
     </div>
     <div class="pr-card">
-      <p class="eyebrow">For your singers</p>
+      <p class="eyebrow">On stage</p>
       <p class="pr-big pr-sing-num"></p>
       <p class="pr-sing"></p>
     </div>
@@ -420,7 +420,8 @@ const TEMPLATE = `
       </div>
     </div>
     <div class="pr-card pr-modes">
-      <p class="eyebrow">Notes that boom</p>
+      <p class="eyebrow">Low notes</p>
+      <p class="pr-big pr-modes-num"></p>
       <p class="pr-modes-text"></p>
       <div class="pr-notes"></div>
       <p class="note pr-mode-where"></p>
@@ -666,13 +667,17 @@ export function createPlayRoom(root) {
   function renderVerdicts() {
     const a = room();
     if (!a) return;
-    $(root, ".pr-aud-num").textContent = `${fmtS(rtOf(a))} reverb`;
-    $(root, ".pr-aud").textContent = a.verdict || "";
+    const rt = rtOf(a), [lo, hi] = a.target_s || [1.2, 2];
+    $(root, ".pr-aud-num").textContent = `${fmtS(rt)} of echo`;
+    $(root, ".pr-aud").textContent = rt < lo ? "A little dry: voices sound close and plain."
+      : rt > hi ? "Quite echoey: slow songs bloom, fast ones may blur." : "Just right: the sound blends without getting muddy.";
     const st = a.stage_support_db;
-    $(root, ".pr-sing-num").textContent = st == null ? "Open air" : `${st > 0 ? "+" : st < 0 ? "\u2212" : ""}${Math.abs(st)} dB stage support`;
-    const ref = validation?.find?.((h) => h.stage_support_db != null && /Musikverein/.test(h.hall));
-    const cmp = st != null && ref ? ` The same model gives the Musikverein in Vienna ${ref.stage_support_db} dB.` : "";
-    $(root, ".pr-sing").textContent = (a.singers_verdict || "") + cmp;
+    const [head, text] = st == null ? ["Open air", "Nothing bounces back, so stand close to hear each other."]
+      : st >= -9 ? ["Easy to hear each other", "Sound comes straight back to the stage. Tuning is easy, though it can feel a bit crowded."]
+      : st <= -15 ? ["Hard to hear each other", "Little sound comes back to the stage. Stand closer together."]
+      : ["Good for hearing each other", "You'll hear the rest of the group without straining."];
+    $(root, ".pr-sing-num").textContent = head;
+    $(root, ".pr-sing").textContent = text;
   }
 
   function renderCompare() {
@@ -703,8 +708,8 @@ export function createPlayRoom(root) {
     band.style.left = pct(u.p10); band.style.width = `calc(${pct(u.p90)} - ${pct(u.p10)})`;
     mid.style.left = pct(u.p50);
     const chance = Math.round(u.in_target * 10);
-    $(root, ".pr-range-text").textContent = `We don't know every finish, so we ran the model ${u.samples} times with them varied. `
-      + `Most runs land between ${u.p10} and ${u.p90} s; ${chance === 10 ? "all" : chance === 0 ? "none" : `${chance} in 10`} land inside the ${lo} to ${hi} s target (the green band).`;
+    $(root, ".pr-range-text").textContent = `Our best guess: ${u.p10} to ${u.p90} s. `
+      + (chance >= 8 ? "Very likely just right." : chance >= 5 ? "Probably just right." : chance >= 2 ? "It might miss the sweet spot." : "Likely outside the sweet spot.");
   }
 
   function renderExtras() {
@@ -714,17 +719,21 @@ export function createPlayRoom(root) {
     // Fix the room
     const t = a.treatment, fix = fixOf(a);
     $(root, ".pr-fix-num").textContent = !t ? "" : t.status === "in_range" ? "Nothing to fix"
-      : fix ? `${fix.area_sqft.toLocaleString()} sq ft of ${fix.label}` : t.status === "too_dry" ? "Too dry to fix with curtains" : "Hard to fix";
-    $(root, ".pr-fix-text").textContent = t?.summary || "";
+      : fix ? `Add ${fix.label}` : t.status === "too_dry" ? "Too dry to fix" : "Hard to fix";
+    $(root, ".pr-fix-text").textContent = !t ? "" : t.status === "in_range" ? "The echo is already right for you."
+      : fix ? `About ${fix.area_sqft.toLocaleString()} sq ft would bring the echo into the sweet spot. Try it with the buttons below.`
+      : t.status === "too_dry" ? "Soft furnishings won't help here; a livelier room will sound better." : "It would take more than curtains or rugs.";
     $(root, ".pr-fix-seg").hidden = !fix;
     root.querySelectorAll("[data-fix]").forEach((b) => b.classList.toggle("on", Number(b.dataset.fix) === (fixOn ? 1 : 0)));
     // Notes that boom
     const m = a.modes;
-    $(root, ".pr-modes-text").textContent = m?.summary || "Open air: the room has no resonances to speak of.";
+    const boom = m?.booming_notes?.length;
+    $(root, ".pr-modes-num").textContent = boom ? `${boom} note${boom > 1 ? "s" : ""} ring louder` : "Every note sounds even";
+    $(root, ".pr-modes-text").textContent = boom ? "Some low notes get a boost in this room. Press one to hear it." : "No low note jumps out in this room.";
     $(root, ".pr-notes").innerHTML = (m?.booming_notes || []).map((b, i) =>
       `<button type="button" class="pr-note${modeSel === i ? " on" : ""}" data-note="${i}">${b.note}<small>${Math.round(b.hz)} Hz${b.parts.length ? `, ${b.parts.join(", ")}` : ""}</small></button>`).join("");
     root.querySelectorAll("[data-note]").forEach((el) => (el.onclick = () => playNote(Number(el.dataset.note))));
-    if (modeSel == null) $(root, ".pr-mode-where").textContent = m?.booming_notes?.length ? "Press a note to hear it in this room and see where it's loudest." : "";
+    if (modeSel == null) $(root, ".pr-mode-where").textContent = "";
   }
 
   /** Where a standing wave is loud: |cos(nx pi x / L) cos(ny pi y / W)| over the floor plan. */

@@ -98,3 +98,32 @@
 
 /* while the chord plays, the record shows a pause sign */
 .pr-play.on .tri { width: 14px; height: 18px; margin-left: 0; border: 0; background: linear-gradient(90deg, var(--wine) 0 35%, transparent 35% 65%, var(--wine) 65%); }
+
+/* the four plain-language cards sit to the right of the room view */
+.playroom { max-width: none; display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 1fr); column-gap: var(--s6); align-items: start; }
+.playroom > .pr-stage, .playroom > .pr-controls, .playroom > .pr-compare { grid-column: 1; }
+.playroom > .pr-verdicts { grid-column: 2; grid-row: 1 / span 3; margin-top: 0; align-self: start; }
+.playroom > .pr-verdicts.pr-extras { grid-row: 4; margin-top: var(--s3); }
+.playroom > .pr-measure { grid-column: 1 / -1; }
+.playroom .pr-verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.playroom .pr-card { padding: var(--s3) var(--s4); }
+.playroom .pr-card .eyebrow { font-size: 11px; margin-bottom: 4px; }
+.playroom .pr-big { font-size: var(--fs-md); line-height: 1.25; margin-bottom: 4px; }
+.playroom .pr-card p:not(.eyebrow):not(.pr-big) { font-size: var(--fs-xs); line-height: 1.45; }
+.playroom .pr-range-text { font-size: var(--fs-xs); }
+.playroom .pr-range { margin-top: var(--s2); }
+@media (max-width: 1000px) {
+  .playroom { grid-template-columns: 1fr; }
+  .playroom > .pr-verdicts, .playroom > .pr-verdicts.pr-extras { grid-column: 1; grid-row: auto; margin-top: var(--s4); }
+}
+.playroom > .pr-verdicts { grid-row: 1; }
+.playroom > .pr-verdicts.pr-extras { grid-row: 2 / span 2; margin-top: var(--s3); }
+.playroom > .pr-stage { grid-row: 1 / span 3; }
+.playroom > .pr-controls { grid-row: 4; }
+.playroom > .pr-compare { grid-row: 5; }
+.playroom > .pr-verdicts { grid-row: 1; }
+.playroom > .pr-verdicts.pr-extras { grid-row: 2; margin-top: var(--s3); }
+.playroom > .pr-measure { grid-row: 6; }
+@media (max-width: 1000px) { .playroom > * { grid-row: auto !important; } }
+.playroom .pr-controls { grid-template-columns: auto minmax(0, 1fr); }
+.playroom .pr-buttons { grid-column: 1 / -1; flex-wrap: wrap; gap: var(--s2) var(--s5); }
