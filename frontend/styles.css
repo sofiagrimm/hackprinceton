@@ -633,6 +633,43 @@ body::after {
   .ex-choices li:nth-child(2) .ex-choice { margin-left: 0; }
 }
 
+/* ---------------------------------------------------------------- SAVED */
+body[data-view="saved"] .view[data-view="saved"] { display: block; }
+.tab-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; margin-left: 4px; border-radius: 10px; background: var(--cherry); color: var(--paper); font-size: 11px; vertical-align: 1px; }
+.save-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px 9px 12px; border-radius: 999px; font: 600 var(--fs-xs)/1 var(--body);
+  background: var(--card); color: var(--ink); border: 1.5px solid var(--cherry); transition: background .15s, color .15s, transform .15s;
+}
+.save-btn svg { width: 18px; height: 18px; color: transparent; stroke: var(--cherry); }
+.save-btn svg path { stroke: var(--cherry); }
+.save-btn:hover { background: var(--blush); }
+.save-btn[aria-pressed="true"] { background: var(--cherry); color: var(--paper); }
+.save-btn[aria-pressed="true"] svg { color: var(--paper); }
+.save-btn[aria-pressed="true"] svg path { stroke: var(--paper); }
+.save-btn.pop { transform: scale(1.08); }
+.ac-rooms .save-btn { margin-top: var(--s4); }
+.saved-page .page-title .script { font-size: 0.9em; color: var(--cherry); }
+.sv-group { margin-top: var(--s8); }
+.sv-h { font-size: var(--fs-xl); margin-bottom: var(--s5); }
+.sv-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--s7) var(--s5); }
+.sv-grid:empty::after { content: attr(data-empty); color: var(--ink-3); font-size: var(--fs-sm); }
+.sv-card { padding-bottom: var(--s4); }
+.sv-card img, .sv-card .sv-sound-face { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #2b2722; }
+.sv-sound-face { display: grid !important; place-items: center; background: var(--wine-deep) !important; color: var(--on-dark); font-family: var(--display); font-weight: 800; font-size: 46px; letter-spacing: -0.03em; }
+.sv-sound-face small { display: block; font-family: var(--type); font-weight: 400; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-dark-2); text-align: center; }
+.sv-body { padding: var(--s3) 2px 0; display: grid; gap: 4px; }
+.sv-kind { font-family: var(--type); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.sv-name { font-family: var(--display); font-weight: 700; font-size: var(--fs-lg); letter-spacing: -0.02em; line-height: 1.1; }
+.sv-meta { font-size: var(--fs-xs); color: var(--ink-2); }
+.sv-actions { display: flex; gap: var(--s4); margin-top: var(--s2); padding-top: var(--s2); border-top: 1px solid var(--line); }
+.sv-actions a, .sv-actions button { font-size: var(--fs-xs); font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.sv-actions button { color: var(--wine); margin-left: auto; }
+.toast {
+  position: fixed; left: 50%; bottom: 28px; z-index: 80; transform: translateX(-50%); display: flex; align-items: center; gap: var(--s4);
+  padding: 12px 18px; background: var(--ink); color: var(--paper); border-radius: 999px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); font-size: var(--fs-sm);
+}
+.toast a { color: var(--blush); font-weight: 600; }
+
 /* ---------------------------------------------------------------- LIGHTING LAB */
 body[data-view="lighting"] .view[data-view="lighting"] { display: block; }
 .lab .page-title .script { font-size: 0.9em; color: var(--cherry); }
@@ -1009,6 +1046,9 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .stub .display { font-size: var(--fs-xl); }
 .stub .total, .tp-total { font-family: var(--display); font-size: clamp(56px, 7vw, 96px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin: var(--s5) 0 0; }
 .stub .verdict { font-size: var(--fs-lg); font-weight: 600; margin-top: var(--s3); }
+
+/* the drafted email is still written by app.js, but the venue page no longer shows it; it lives in Bookings */
+#reach { display: none !important; }
 
 /* the email, as a cassette J-card */
 .jcard { display: grid; grid-template-columns: 64px minmax(0, 1fr); margin-top: var(--s7); background: var(--card); border: 1.5px solid var(--line-strong); box-shadow: var(--shadow-photo); }

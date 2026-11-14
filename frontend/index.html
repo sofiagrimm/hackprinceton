@@ -25,6 +25,7 @@
       <a href="#/tour" data-mode="tour">Tour</a>
       <a href="#/film" data-mode="film">Film</a>
       <a href="#/bookings" data-mode="bookings">Bookings</a>
+      <a href="#/saved" data-mode="saved">Saved <span class="tab-count" id="saved-count" hidden></span></a>
     </nav>
     <a class="nav-cta" href="#/search" id="nav-cta">Find a room</a>
   </header>
@@ -286,6 +287,7 @@
           <div class="figures" id="d-stats"></div>
           <div class="prop-rent" id="prop-rent"></div>
           <div class="pick-actions">
+            <button type="button" class="save-btn" id="save-space" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Save this space</span></button>
             <a class="link-dark" href="#sound">Hear the room</a>
             <div id="pl-add" hidden></div>
           </div>
@@ -413,7 +415,7 @@
             <div class="lab-placed">
               <p class="mini-head">In the room</p>
               <ol class="lab-list" id="lab-list"></ol>
-              <p class="lab-actions"><button type="button" class="lab-act" id="lab-undo">Undo last</button><button type="button" class="lab-act" id="lab-clear">Clear all</button></p>
+              <p class="lab-actions"><button type="button" class="save-btn" id="save-light"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Save this lighting</span></button><button type="button" class="lab-act" id="lab-undo">Undo last</button><button type="button" class="lab-act" id="lab-clear">Clear all</button></p>
             </div>
             <p class="note">A sketch of the mood, not a lighting plan: the photo is treated as a box the size of the scanned room, so light falls off with distance and only lights what faces it.</p>
           </div>
@@ -468,6 +470,7 @@
           <div class="ac-rooms">
             <p class="mini-head">Which room</p>
             <div class="rooms" id="d-spaces"></div>
+            <button type="button" class="save-btn" id="save-sound"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Save this sound</span></button>
           </div>
         </div>
 
@@ -692,13 +695,37 @@
           </ol>
           <p class="next-links">
             <a class="btn" href="#/bookings">See it in Bookings</a>
-            <a class="btn" id="bk-ask" href="#/">Read the email</a>
           </p>
         </div>
         <div class="stub book-stub done-stub" id="done-stub"></div>
       </div>
     </section>
   </div>
+
+  <!-- ============================================================ SAVED -->
+  <div class="view" data-view="saved">
+    <section class="page saved-page" aria-labelledby="sv-title">
+      <div class="wrap wide">
+        <h1 class="page-title" id="sv-title">Your <span class="script">favourites.</span></h1>
+        <p class="page-sub">Lighting you designed, rooms whose sound you liked, and spaces you want to come back to. Saved in this browser on this device.</p>
+
+        <section class="sv-group" aria-labelledby="sv-light-h">
+          <h2 class="sv-h" id="sv-light-h">Lighting designs</h2>
+          <ul class="sv-grid" id="sv-light"></ul>
+        </section>
+        <section class="sv-group" aria-labelledby="sv-sound-h">
+          <h2 class="sv-h" id="sv-sound-h">Sounds</h2>
+          <ul class="sv-grid" id="sv-sound"></ul>
+        </section>
+        <section class="sv-group" aria-labelledby="sv-space-h">
+          <h2 class="sv-h" id="sv-space-h">Spaces</h2>
+          <ul class="sv-grid" id="sv-space"></ul>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <!-- ============================================================ TOUR -->
   <div class="view" data-view="tour">
