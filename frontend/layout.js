@@ -230,19 +230,76 @@ function rooms(id) {
   return roomsCache[id];
 }
 
-async function pictureList(id) {
-  const info = venueInfo[id] || {};
-  const list = await rooms(id);
-  const inside = list.filter((r) => r.model_id === info.model).concat(list.filter((r) => r.model_id !== info.model));
-  const pano = (r) => `/api/pano/${r.model_id}/${r.pano_id}/2.jpg`;
-  return [
-    ...inside.slice(0, 1).map(pano),
-    info.photo,
-    `/api/film/${id}/oblique/s.jpg`,
-    ...inside.slice(1, 3).map(pano),
-    `/api/film/${id}/oblique/n.jpg`,
-    `/api/film/${id}/oblique/e.jpg`,
-  ].filter(Boolean);
+// Rooms worth showing: big, open, made for people. Never a bathroom or a back corridor.
+const DULL = /bath|rest ?room|toilet|\bwc\b|powder|closet|laundry|storage|utility|mechanical|electrical|elevator|stair|corridor|hallway|garage|janitor|trash|locker|shower|server|mail|bedroom|kitchen(?!.*living)/i;
+const SHOWY = /ballroom|lounge|rooftop|roof|terrace|hall\b|theat|stage|studio|gallery|atrium|chapel|sanctuary|auditorium|event|great room|club|courtyard|pool|bar\b|library|lobby|living|loft|music|dance|ballet|meeting|conference/i;
+
+function rankRooms(list, model) {
+  return list
+    .filter((r) => !DULL.test(`${r.room || ""} ${r.scan || ""}`))
+    .map((r) => ({ r, score: Math.log10((r.area_sqft || 100) + 10) * 2 + (SHOWY.test(`${r.room || ""} ${r.scan || ""}`) ? 2 : 0) + (r.model_id === model ? 1.5 : 0) }))
+    .sort((a, b) => b.score - a.score)
+    .map((x) => x.r);
+}
+
+/** How good one photo looks: colourful, bright enough, with depth and detail rather than a blank wall. */
+function photoScore(img) {
+  const N = 48, c = document.createElement("canvas");
+  c.width = c.height = N;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, N, N);
+  const d = ctx.getImageData(0, 0, N, N).data;
+  let sumL = 0, sumL2 = 0, rg = 0, rg2 = 0, yb = 0, yb2 = 0, edges = 0;
+  const L = new Float32Array(N * N);
+  for (let i = 0; i < N * N; i++) {
+    const r = d[i * 4], g = d[i * 4 + 1], b = d[i * 4 + 2];
+    const l = 0.299 * r + 0.587 * g + 0.114 * b;
+    L[i] = l; sumL += l; sumL2 += l * l;
+    const a = r - g, y = 0.5 * (r + g) - b;
+    rg += a; rg2 += a * a; yb += y; yb2 += y * y;
+  }
+  for (let y = 0; y < N; y++) for (let x = 1; x < N; x++) edges += Math.abs(L[y * N + x] - L[y * N + x - 1]);
+  const n = N * N, mean = sumL / n, std = Math.sqrt(Math.max(0, sumL2 / n - mean * mean));
+  const sRG = Math.sqrt(Math.max(0, rg2 / n - (rg / n) ** 2)), sYB = Math.sqrt(Math.max(0, yb2 / n - (yb / n) ** 2));
+  const colour = Math.hypot(sRG, sYB) + 0.3 * Math.hypot(rg / n, yb / n);
+  const exposure = mean < 55 ? (55 - mean) * 1.5 : mean > 215 ? (mean - 215) * 1.5 : 0;
+  return colour + std * 0.6 + (edges / (N * (N - 1))) * 2 - exposure;
+}
+
+const faceCache = {};
+/** Of a 360 photo's four walls, the one that looks best. */
+function bestFace(r) {
+  const key = `${r.model_id}/${r.pano_id}`;
+  faceCache[key] ||= Promise.all([1, 2, 3, 4].map((f) => new Promise((done) => {
+    const img = new Image();
+    img.onload = () => { try { done({ f, s: photoScore(img) }); } catch { done({ f, s: 0 }); } };
+    img.onerror = () => done(null);
+    img.src = `/api/pano/${key}/${f}.jpg`;
+  }))).then((faces) => {
+    const ok = faces.filter(Boolean).sort((a, b) => b.s - a.s);
+    return ok.length ? { url: `/api/pano/${key}/${ok[0].f}.jpg`, score: ok[0].s } : null;
+  });
+  return faceCache[key];
+}
+
+const listCache = {};
+function pictureList(id) {
+  listCache[id] ||= (async () => {
+    const info = venueInfo[id] || {};
+    const ranked = rankRooms(await rooms(id), info.model);
+    // Look at the three most promising rooms and lead with the best-looking view among them.
+    const views = (await Promise.all(ranked.slice(0, 3).map(bestFace))).filter(Boolean);
+    const inside = views.sort((a, b) => b.score - a.score).map((v) => v.url);
+    return [
+      ...inside.slice(0, 1),
+      info.photo,
+      `/api/film/${id}/oblique/s.jpg`,
+      ...inside.slice(1),
+      `/api/film/${id}/oblique/n.jpg`,
+      `/api/film/${id}/oblique/e.jpg`,
+    ].filter(Boolean);
+  })();
+  return listCache[id];
 }
 
 /** Point an <img> at a property's best picture, stepping down the list when one doesn't load. */
