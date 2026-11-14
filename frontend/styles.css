@@ -1337,7 +1337,7 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .view[data-view="results"] .rs-why { background: #dfe6cf; }
 
 /* "find your space" under the lower staff, in the cream letterpress serif of the design */
-.collage .find-space { left: 290px; top: 702px; width: 900px; text-align: center; text-decoration: none;
+.collage .find-space { left: 290px; top: 552px; width: 900px; text-align: center; text-decoration: none;
   font-family: "IM Fell English", "Iowan Old Style", Georgia, serif; font-size: 58px; letter-spacing: 0.06em; line-height: 1;
   color: #f3e7d8; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 0 1px rgba(243, 231, 216, 0.6); }
 .collage .find-space span { font-family: "IM Fell English SC", "IM Fell English", Georgia, serif; }
