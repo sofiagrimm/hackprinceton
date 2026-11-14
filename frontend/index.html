@@ -671,6 +671,47 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+  <!-- ============================================================ BROWSE BY ACOUSTICS -->
+  <div class="view" data-view="by-sound">
+    <section class="page browse-page" aria-labelledby="bs-title">
+      <div class="wrap wide">
+        <h1 class="browse-title" id="bs-title">Browse by acoustics</h1>
+        <p class="page-sub">Every scanned room, by how it sounds with an audience in. Pick one to hear it.</p>
+        <div class="browse-filters" role="group" aria-label="Filter rooms">
+          <label>Good for <select id="bs-use">
+            <option value="a_cappella_performance">A cappella</option>
+            <option value="choral_performance">Choir</option>
+            <option value="rehearsal">Rehearsal</option>
+            <option value="recording">Recording</option>
+            <option value="film_dialogue">Film dialogue</option>
+            <option value="any">Anything</option>
+          </select></label>
+          <label>City <select id="bs-city"><option value="">Both</option><option>Los Angeles</option><option>Houston</option></select></label>
+          <label>Sort <select id="bs-sort"><option value="fit">Best fit first</option><option value="echo">Most echo</option><option value="dry">Driest</option><option value="seats">Most seats</option></select></label>
+        </div>
+        <p class="browse-count" id="bs-count" aria-live="polite">Loading rooms…</p>
+        <ul class="browse-grid" id="bs-grid"></ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ BROWSE BY LIGHTING -->
+  <div class="view" data-view="by-light">
+    <section class="page browse-page" aria-labelledby="bl-title">
+      <div class="wrap wide">
+        <h1 class="browse-title" id="bl-title">Browse by lighting</h1>
+        <p class="page-sub">Venues by their light: daylight through big windows, tall ceilings to hang fixtures from. Pick one to light it your way.</p>
+        <div class="browse-filters" role="group" aria-label="Filter venues">
+          <label>Light <select id="bl-light"><option value="">Any</option><option value="day">Lots of daylight</option><option value="dark">Easy to black out</option></select></label>
+          <label>Ceiling <select id="bl-ceiling"><option value="">Any</option><option value="12">12 ft or more</option><option value="16">16 ft or more</option></select></label>
+          <label>City <select id="bl-city"><option value="">Both</option><option>Los Angeles</option><option>Houston</option></select></label>
+        </div>
+        <p class="browse-count" id="bl-count" aria-live="polite">Loading venues…</p>
+        <ul class="browse-grid" id="bl-grid"></ul>
+      </div>
+    </section>
+  </div>
+
   <!-- ============================================================ TOUR -->
   <div class="view" data-view="tour">
     <section class="page tour-plan" id="tour-plan" aria-labelledby="tp-title">

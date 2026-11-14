@@ -1709,3 +1709,27 @@ select option { background: #2c0d10; color: var(--ink); }
 .lab-kinds .lab-move + .lab-erase { margin-top: 0; }
 .rs-track { cursor: grab; user-select: none; -webkit-user-select: none; }
 .rs-track img { -webkit-user-drag: none; user-select: none; }
+
+/* ---------------------------------------------------------------- browse by acoustics / lighting */
+body[data-view="by-sound"] .view[data-view="by-sound"], body[data-view="by-light"] .view[data-view="by-light"] { display: block; }
+.browse-title { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.05; font-size: clamp(32px, 4vw, 56px); }
+.browse-filters { display: flex; flex-wrap: wrap; gap: var(--s3) var(--s5); margin-top: var(--s5); font-size: var(--fs-sm); color: var(--ink-2); }
+.browse-filters label { display: inline-flex; align-items: center; gap: var(--s2); }
+.browse-count { margin-top: var(--s4); color: var(--ink-2); font-size: var(--fs-sm); }
+.browse-grid { list-style: none; padding: 0; margin: var(--s5) 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--s6) var(--s5); }
+.browse-card { padding-bottom: var(--s4); transition: transform .15s; }
+.browse-card:hover { transform: rotate(0) translateY(-3px); }
+.browse-card img { aspect-ratio: 4 / 3; }
+.bc-body { display: grid; gap: 4px; padding: var(--s3) 2px 0; }
+.bc-kind { font-family: var(--type); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #7a5a52; }
+.bc-name { font-family: var(--serif); font-weight: 700; font-size: var(--fs-lg); line-height: 1.15; color: #2a1012; }
+.bc-line { font-size: var(--fs-xs); color: #5c3a35; }
+.bc-line b { color: #2a1012; }
+.bc-meter { position: relative; height: 6px; margin: 6px 0 4px; border-radius: 3px; background: rgba(42, 16, 18, 0.12); }
+.bc-band { position: absolute; top: 0; bottom: 0; background: #c3c9a8; border-radius: 3px; }
+.bc-dot { position: absolute; top: 50%; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; background: #8e1424; border: 1.5px solid #f6efe6; }
+.bc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.bc-tag { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: rgba(42, 16, 18, 0.08); color: #2a1012; }
+.bc-tag.sun { background: #f6dca0; } .bc-tag.dark { background: #d9cfe0; }
+.bc-go { justify-self: end; margin-top: 4px; font-size: var(--fs-xs); font-weight: 600; color: #2a1012; border-bottom: 1.5px solid #2a1012; }
+.bc-go::after { content: " \2192"; }
