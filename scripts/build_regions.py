@@ -29,7 +29,14 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.geofence import covered  # noqa: E402
 from app.region_cities import CITIES  # noqa: E402
 
-OVERPASS = "https://overpass-api.de/api/interpreter"
+OVERPASS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
+    "https://z.overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+]
 VENUE_AMENITIES = ("place_of_worship", "theatre", "arts_centre", "community_centre", "events_venue", "concert_hall")
 OUT = ROOT / "data" / "index" / "regions.json"
 RAW = ROOT / "data" / "cache" / "overpass"
@@ -58,18 +65,19 @@ def fetch(city: str, spec: dict, use_cache: bool = True) -> dict:
         return json.loads(path.read_text())
     q = query_for(spec["lat"], spec["lon"], int(spec["radius_mi"] * 1609))
     body = urllib.parse.urlencode({"data": q}).encode()
-    req = urllib.request.Request(OVERPASS, data=body, headers={"User-Agent": "encore-scout-hackathon/1.0"})
-    for attempt in range(4):
+    for attempt in range(2 * len(OVERPASS)):
+        url = OVERPASS[attempt % len(OVERPASS)]
+        req = urllib.request.Request(url, data=body, headers={"User-Agent": "encore-scout-hackathon/1.0"})
         try:
             with urllib.request.urlopen(req, timeout=240) as r:
                 raw = json.loads(r.read())
             path.write_text(json.dumps(raw))
             return raw
         except Exception as exc:  # 429 and 504 are common on the public server
-            wait = 10 * (attempt + 1)
-            print(f"  {city}: {exc}; retrying in {wait}s", file=sys.stderr)
+            wait = 5 * (attempt // len(OVERPASS) + 1)
+            print(f"  {city}: {url.split('/')[2]} failed ({exc}); next server in {wait}s", file=sys.stderr)
             time.sleep(wait)
-    raise SystemExit(f"Overpass failed for {city}. Is overpass-api.de allowed on this network?")
+    raise SystemExit(f"Overpass failed for {city}. Every Overpass server failed; try again in a few minutes.")
 
 
 # ----------------------------------------------------------------------------- shaping
