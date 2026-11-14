@@ -1251,3 +1251,5 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
   .rs-slide.on { width: 70%; min-width: 0; }
   .rs-slide { width: 26%; }
 }
+/* "Taking it on the road?": a dusty plum, same muted shade as the rose above but its own colour */
+.side-b.band.wine { background: linear-gradient(rgba(112, 84, 118, 0.72), rgba(112, 84, 118, 0.72)), #3a1517 url("img/home/paper.jpg") center / cover no-repeat; }
