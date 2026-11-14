@@ -1493,3 +1493,20 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 /* The opening page is the collage alone: no tab bar, and the collage fills the whole screen. */
 body[data-view="home"] .masthead { display: none; }
 body[data-view="home"] .collage { height: 100vh; height: 100svh; }
+
+/* Sing into the room: obvious when the microphone is live */
+#ac-mic[aria-pressed="true"] { position: relative; background: #c21f3a; color: #fff; animation: mic-live 1.4s ease-in-out infinite; }
+#ac-mic[aria-pressed="true"] svg, #ac-mic[aria-pressed="true"] span { color: #fff; }
+#ac-mic[aria-pressed="true"]::after {
+  content: "\25CF  LIVE"; position: absolute; top: 10px; right: 14px; font: 600 11px/1 var(--type); letter-spacing: 0.14em;
+  color: #fff; background: rgba(0, 0, 0, 0.25); padding: 4px 8px; border-radius: 999px;
+}
+@keyframes mic-live { 0%, 100% { box-shadow: 5px 6px 0 var(--wine-deep), 0 0 0 0 rgba(255, 80, 100, 0.55); } 50% { box-shadow: 5px 6px 0 var(--wine-deep), 0 0 0 10px rgba(255, 80, 100, 0); } }
+.pr-mic.live, #mic.live {
+  color: #fff !important; background: #c21f3a; text-decoration: none; padding: 4px 12px 4px 10px; border-radius: 999px;
+  animation: mic-live-link 1.4s ease-in-out infinite;
+}
+.pr-mic.live::before, #mic.live::before { content: "\25CF "; animation: blink 1s steps(2, start) infinite; }
+@keyframes mic-live-link { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 80, 100, 0.6); } 50% { box-shadow: 0 0 0 8px rgba(255, 80, 100, 0); } }
+@keyframes blink { to { visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { #ac-mic[aria-pressed="true"], .pr-mic.live, #mic.live, .pr-mic.live::before, #mic.live::before { animation: none; } }
