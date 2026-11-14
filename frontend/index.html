@@ -6,6 +6,7 @@
   <title>Encore Scout</title>
   <meta name="description" content="Find the room your group was made for, somewhere to stay, and who to call.">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="regions.css">
 </head>
 <body>
   <nav class="subnav">
@@ -154,6 +155,42 @@
     </section>
   </main>
 
+  <section class="frame regions" id="regions">
+    <div class="wrap">
+      <div id="rg-intro">
+        <h2 class="display">Beyond LA<br>and Houston.</h2>
+        <p class="lede-dark">Nine more cities. Nobody has scanned these rooms, so we estimate each one from the outside of the building.</p>
+        <ul class="rows rg-picker" id="rg-picker"></ul>
+        <p class="rg-status" id="rg-status"></p>
+      </div>
+      <div id="rg-results" hidden>
+        <p class="rg-estimated">Estimated. No one has scanned the inside of this building.</p>
+        <h2 class="display" id="rg-name"></h2>
+        <p class="lede-dark" id="rg-address"></p>
+        <div class="figures" id="rg-figures"></div>
+        <p class="rg-verdict" id="rg-verdict"></p>
+        <p class="rg-basis" id="rg-basis"></p>
+        <p class="rg-listen">
+          <button type="button" class="link-dark" id="rg-play">Play a chord in this room</button>
+          <span class="rg-seg"><button type="button" data-rg-crowd="empty">Empty</button><button type="button" data-rg-crowd="full" class="on">Full house</button></span>
+        </p>
+      </div>
+    </div>
+    <div class="rg-3d-wrap" id="rg-3d-wrap" hidden>
+      <div class="rg-3d" id="rg-3d"></div>
+    </div>
+    <div class="wrap" id="rg-more" hidden>
+      <p class="note" id="rg-model-note"></p>
+      <p class="rg-summary" id="rg-summary"></p>
+      <h3 class="rg-h">The shortlist.</h3>
+      <ul class="rows" id="rg-list"></ul>
+      <p class="note" id="rg-coverage"></p>
+      <h3 class="rg-h">Sleep close.</h3>
+      <ul class="rows" id="rg-lodging"></ul>
+      <p class="note">Venues and hotels come from OpenStreetMap. Reverb is a physics estimate from the building's size and type, not a measurement.</p>
+    </div>
+  </section>
+
   <footer class="footer">
     <div class="wrap">
       <p>Made at HackPrinceton 2026 with CoStar property data, Matterport scans and Vexcel aerial imagery. Payments use Capital One's Nessie sandbox.</p>
@@ -161,6 +198,7 @@
     </div>
   </footer>
 
+  <script type="module" src="regions.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
