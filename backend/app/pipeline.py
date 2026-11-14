@@ -1,4 +1,4 @@
-"""Booking pipeline: who the group has written to, where each conversation stands, and what to send next.
+r"""Booking pipeline: who the group has written to, where each conversation stands, and what to send next.
 
 Stored as one small JSON file (data/cache/pipeline.json), one entry per venue:
 
@@ -163,7 +163,7 @@ def draft_follow_up(venue_id: int, days_since: int | None = None, sender_name: s
     greeting = f"Hi {first}," if first and contact.get("name") != "Sales & Events Team" else "Hello,"
     when = f" on {entry['event_date']}" if entry.get("event_date") else ""
     space = entry.get("space_name") or "your space"
-    if space.lower().startswith(entry["name"].lower()):
+    if space.startswith(entry["name"].lower()):
         space = space[len(entry["name"]):].lstrip(" -:") or space
     if days <= 0:
         ago = "recently"
@@ -175,27 +175,28 @@ def draft_follow_up(venue_id: int, days_since: int | None = None, sender_name: s
         ago = "last week"
     else:
         ago = f"{days // 7} weeks ago"
-    who = entry.get("group_name") or "our a cappella group"
     sign = sender_name or "[Your name]"
+    if entry.get("group_name"):
+        sign += "\n" + entry["group_name"]
 
     status = entry["status"]
     if status == "holding":
-        middle = (f"Thanks again for holding the {space.lower()} for us{when}. We're still keen. "
+        middle = (f"Thanks again for holding the {space} for us{when}. We're still keen. "
                   "Could you tell me how long the hold lasts and what you need from us to confirm it? "
                   "If there's a deposit, I can send it this week.")
     elif status == "replied":
-        middle = (f"Thanks for getting back to us about the {space.lower()}{when}. "
+        middle = (f"Thanks for getting back to us about the {space}{when}. "
                   "I wanted to pick the thread back up so it doesn't slip. "
                   "Is the date still open, and is there anything else you need from us to put a hold on it?")
     elif status == "booked":
         middle = (f"Just checking in ahead of our show{when}. "
                   "Is there anything you need from us before load-in, like a list of names or a time to arrive?")
     else:
-        middle = (f"I wrote {ago} about singing in the {space.lower()} at {entry['name']}{when}, "
+        middle = (f"I wrote {ago} about singing in the {space} at {entry['name']}{when}, "
                   f"for an audience of about {entry.get('audience') or 60}. "
                   "I know inboxes fill up, so I wanted to check it reached the right person. "
                   "If the date doesn't work, we're happy to hear about other evenings that week.")
-    body = f"{greeting}\n\n{middle}\n\nThanks so much,\n{sign}\n{who}\n"
+    body = f"{greeting}\n\n{middle}\n\nThanks so much,\n{sign}\n"
     subject = "Re: " + (entry.get("email") or {}).get("subject", f"Booking a concert at {entry['name']}")
     draft = {"to": contact, "subject": subject, "body": body, "days_since_sent": days}
 
