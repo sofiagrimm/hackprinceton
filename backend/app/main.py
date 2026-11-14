@@ -67,6 +67,40 @@ def venue_housing(venue_id: int, group_size: int = 14, nights: int = 2) -> dict:
     return scout.find_housing(venue_id, group_size=group_size, nights=nights)
 
 
+class CommitRequest(BaseModel):
+    group_size: int = 14
+    nights: int = 2
+    audience: int = 60
+    space_area_sqft: float | None = None
+
+
+@app.get("/api/treasury")
+def treasury_snapshot() -> dict:
+    from .treasury import NessieError, fund_snapshot
+    try:
+        return fund_snapshot()
+    except NessieError as exc:
+        raise HTTPException(503, str(exc))
+
+
+@app.get("/api/venues/{venue_id}/budget")
+def venue_budget(venue_id: int, group_size: int = 14, nights: int = 2, audience: int = 60,
+                 space_area_sqft: float | None = None) -> dict:
+    return scout.tour_budget(venue_id, group_size=group_size, nights=nights, audience=audience,
+                             space_area_sqft=space_area_sqft)
+
+
+@app.post("/api/venues/{venue_id}/budget/commit")
+def venue_budget_commit(venue_id: int, req: CommitRequest) -> dict:
+    """The treasurer approves: hold the deposit and lodging as bills and collect member shares."""
+    from .treasury import NessieError, commit_stop
+    try:
+        return commit_stop(venue_id, group_size=req.group_size, nights=req.nights, audience=req.audience,
+                           space_area_sqft=req.space_area_sqft)
+    except NessieError as exc:
+        raise HTTPException(503, str(exc))
+
+
 @app.get("/api/venues/{venue_id}/aerial.jpg")
 def aerial(venue_id: int) -> Response:
     venue = data.venues().get(venue_id)

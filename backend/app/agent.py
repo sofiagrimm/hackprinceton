@@ -110,6 +110,9 @@ class PlannerScout:
         housing = yield from _call("find_housing", {
             "venue_id": pick["venue_id"], "group_size": brief["group_size"], "nights": brief["nights"]})
         best = pick["best_space"]
+        budget = yield from _call("tour_budget", {
+            "venue_id": pick["venue_id"], "group_size": brief["group_size"], "nights": brief["nights"],
+            "audience": brief["audience"], "space_area_sqft": best["area_sqft"]})
         yield from _call("draft_outreach", {
             "venue_id": pick["venue_id"], "event_date": brief["event_date"], "audience": brief["audience"],
             "group_size": brief["group_size"], "nights": brief["nights"], "space_name": best["space_name"]})
@@ -124,11 +127,26 @@ class PlannerScout:
         if stay:
             lines.append(f"- Stay: {stay.get('name')} ({stay.get('distance_miles')} mi"
                          f"{', same building' if stay.get('same_building') else ''}), est. ${stay.get('estimated_total') or '?'} total.")
+        if budget.get("costs"):
+            lines.append(_budget_line(budget))
         for alt in top[1:]:
             lines.append(f"- Backup: {alt['name']} - {alt['best_space']['space_name']} "
                          f"({alt['best_space']['acoustics']['rt60_occupied_s']}s).")
         yield {"type": "message", "text": "\n".join(lines)}
         yield {"type": "done", "brief": brief}
+
+
+def _budget_line(budget: dict) -> str:
+    total = budget["costs"]["total"]
+    fund = budget.get("fund") or {}
+    if budget.get("affordable"):
+        verdict = f"fits the tour fund (${fund.get('available_after_bills', 0):,.0f} available)"
+    elif budget.get("shortfall"):
+        verdict = f"is ${budget['shortfall']:,.0f} over the tour fund"
+    else:
+        verdict = "(tour fund not connected)"
+    return (f"- Budget: ~${total:,.0f} for this stop {verdict}; break-even ticket "
+            f"${budget['break_even_ticket']}, ${budget['per_member_share']} per member.")
 
 
 def _call(name: str, args: dict):
@@ -157,8 +175,10 @@ audience or stay_and_perform) and search again rather than settling.
 occupied RT60 lands in the target band; a room that is a little dry is better than one that is very live.
 4. Call site_check on your top pick to look at parking and the building from the air.
 5. Call find_housing for the top pick with the group size and nights.
-6. Call draft_outreach for the top pick, naming the specific room.
-7. Finish with a short recommendation in Markdown: the pick and why (cite RT60 numbers and capacity), \
+6. Call tour_budget for the top pick to check the group's fund; if it is over budget, consider a cheaper \
+backup or lodging option and say so.
+7. Call draft_outreach for the top pick, naming the specific room.
+8. Finish with a short recommendation in Markdown: the pick and why (cite RT60 numbers and capacity), \
 lodging and estimated cost, one or two backups, and any caveats. Keep it under 200 words.
 
 The acoustic numbers are physics estimates from scan geometry and assumed finishes; say so briefly. \
@@ -217,6 +237,22 @@ TOOL_SCHEMAS = [
                 "radius_miles": {"type": "number", "description": "Default 8."},
             },
             "required": ["venue_id", "group_size", "nights"],
+        },
+    },
+    {
+        "name": "tour_budget",
+        "description": "Check the group's tour fund (Capital One Nessie bank account) against this stop: "
+                       "venue fee estimate, lodging, break-even ticket price and per-member share. Moves no money.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "venue_id": {"type": "integer"},
+                "group_size": {"type": "integer"},
+                "nights": {"type": "integer"},
+                "audience": {"type": "integer"},
+                "space_area_sqft": {"type": "number"},
+            },
+            "required": ["venue_id", "group_size", "nights", "audience"],
         },
     },
     {

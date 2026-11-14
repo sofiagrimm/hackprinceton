@@ -290,10 +290,20 @@ def draft_outreach(venue_id: int, group_name: str = "our a cappella group", even
     }
 
 
+def tour_budget(venue_id: int, group_size: int = 14, nights: int = 2, audience: int = 60,
+                space_area_sqft: float | None = None) -> dict:
+    """Check the group's tour fund (Capital One Nessie) against this stop's costs: venue fee estimate,
+    lodging, break-even ticket price and each member's share. Plans only; moves no money."""
+    from .treasury import plan_tour_budget
+    return plan_tour_budget(venue_id, group_size=group_size, nights=nights, audience=audience,
+                            space_area_sqft=space_area_sqft)
+
+
 TOOLS = {
     "search_venues": search_venues,
     "analyze_venue": analyze_venue,
     "site_check": site_check,
     "find_housing": find_housing,
     "draft_outreach": draft_outreach,
+    "tour_budget": tour_budget,
 }

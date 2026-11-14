@@ -239,7 +239,7 @@ async function openVenue(id) {
   selectSpace(0);
 
   loadSite(id);
-  loadHousing(id, brief.group_size || 14, brief.nights || 2);
+  loadHousing(id, brief.group_size || 14, brief.nights || 2).then(() => loadBudget(id));
   renderEmail(id);
   $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -443,6 +443,59 @@ async function loadHousing(id, groupSize, nights) {
       <div>${o.estimated_total ? `~$${o.estimated_total.toLocaleString()} total · ` : ""}${esc(o.why)}</div>
     </div>`).join("") || `<p class="muted">No lodging found nearby.</p>`}</div>
     <p class="hint">${esc(h.note || "")}</p>`;
+}
+
+function budgetParams() {
+  const brief = state.brief || {};
+  const space = state.venue?.spaces?.[state.spaceIndex];
+  return {
+    group_size: brief.group_size || 14,
+    nights: brief.nights || 2,
+    audience: state.search?.audience || 60,
+    space_area_sqft: space?.area_sqft || null,
+  };
+}
+
+async function loadBudget(id) {
+  const p = budgetParams();
+  const q = new URLSearchParams(Object.entries(p).filter(([, v]) => v != null));
+  $("d-budget").innerHTML = `<p class="muted">Checking the tour fund…</p>`;
+  const b = await (await fetch(`/api/venues/${id}/budget?${q}`)).json();
+  if (b.error) { $("d-budget").innerHTML = `<p class="muted">${esc(b.error)}</p>`; return; }
+  const c = b.costs, f = b.fund;
+  let status = `<span class="muted">Bank not connected</span>`;
+  if (b.affordable === true) status = `<span class="ok">Fits the fund</span>`;
+  if (b.affordable === false) status = `<span class="over">$${b.shortfall.toLocaleString()} short</span>`;
+  const fundText = f ? ` · fund $${f.available_after_bills.toLocaleString()} available` : "";
+  $("d-budget").innerHTML = `
+    <div class="budget">
+      <div class="big">${status} · stop costs ~$${c.total.toLocaleString()}${fundText}</div>
+      <div class="f"><span>Venue fee (estimate)</span><span>$${c.venue_fee_estimate.toLocaleString()} · ${esc(c.venue_fee_basis)}</span></div>
+      <div class="f"><span>Lodging</span><span>$${(c.lodging_estimate || 0).toLocaleString()}</span></div>
+      <div class="f"><span>Break-even ticket</span><span>$${b.break_even_ticket} (suggest $${b.suggested_ticket})</span></div>
+      <div class="f"><span>Each member's share</span><span>$${b.per_member_share}</span></div>
+      ${f ? `<button id="approve" class="primary">Approve: hold $${c.venue_deposit_50pct.toLocaleString()} deposit + lodging, collect dues</button>` : ""}
+      <div id="ledger"></div>
+    </div>`;
+  const btn = $("approve");
+  if (btn) btn.onclick = () => approveBudget(id, btn);
+}
+
+async function approveBudget(id, btn) {
+  btn.disabled = true;
+  btn.textContent = "Posting to Nessie…";
+  const res = await fetch(`/api/venues/${id}/budget/commit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(budgetParams()),
+  });
+  const out = await res.json();
+  if (!res.ok) { btn.textContent = "Failed: " + (out.detail || res.status); return; }
+  btn.textContent = `Done · fund $${out.fund.balance.toLocaleString()}, $${out.fund.pending_bills.toLocaleString()} in pending bills`;
+  const items = out.actions.map((a) => a.type === "bill"
+    ? `<li>Bill to ${esc(a.payee)}: $${a.amount} (pending)</li>`
+    : `<li>${esc(a.from)} paid their $${a.amount} share</li>`).join("");
+  $("ledger").innerHTML = `<ul class="ledger">${items}</ul><p class="hint">${esc(out.note)}</p>`;
 }
 
 async function renderEmail(id) {

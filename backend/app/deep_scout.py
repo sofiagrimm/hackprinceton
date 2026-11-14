@@ -54,7 +54,9 @@ its RT60 (empty and occupied), capacity, and one sentence on why it beats the ot
 
 STAY_PROMPT = """You are a tour logistics planner. For the venue_id you are given, call site_check to judge \
 parking and load-in from the aerial data, then find_housing with the group size and nights. Return the best \
-lodging option with distance and estimated total cost, plus one line on parking / load-in."""
+lodging option with distance and estimated total cost, plus one line on parking / load-in. Then call \
+tour_budget with the venue_id, group size, nights and audience to check the group's bank balance, and report \
+whether the stop is affordable, the break-even ticket price and each member's share."""
 
 
 def _make_model(spec: str):
@@ -109,10 +111,10 @@ class DeepScout:
                  "system_prompt": ACOUSTICS_PROMPT,
                  "tools": [tools["analyze_venue"]]},
                 {"name": "stay-planner",
-                 "description": "Checks parking and load-in from aerial data and finds lodging near a chosen "
-                                "venue with an estimated cost.",
+                 "description": "Checks parking and load-in from aerial data, finds lodging near a chosen "
+                                "venue, and checks the cost against the group's tour fund.",
                  "system_prompt": STAY_PROMPT,
-                 "tools": [tools["site_check"], tools["find_housing"]]},
+                 "tools": [tools["site_check"], tools["find_housing"], tools["tour_budget"]]},
             ],
             name="encore-scout",
         )

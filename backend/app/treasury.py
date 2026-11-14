@@ -184,6 +184,11 @@ def commit_stop(venue_id: int, group_size: int = 14, nights: int = 2, audience: 
             t = _req("POST", f"/accounts/{m['account_id']}/transfers", {
                 "payee_id": fund_id, "amount_cents": share_cents,
                 "description": f"Tour share: {venue['name']}"})
+            if t.get("id") and t.get("status") == "pending":
+                try:  # sandbox: fast-forward settlement so the fund updates during the demo
+                    t = _req("POST", f"/transactions/{t['id']}/settle") or t
+                except NessieError:
+                    pass
             actions.append({"type": "transfer", "from": m["name"], "amount": plan["per_member_share"],
                             "id": t.get("id"), "status": t.get("status")})
     return {"plan": plan, "actions": actions, "fund": fund_snapshot(),
