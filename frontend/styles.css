@@ -1285,3 +1285,11 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .ss-slide.on img { transform: scale(1); }
 .ss-slide:hover img { filter: brightness(1.06); }
 .side-show figcaption { min-height: 1.6em; transition: opacity .4s; }
+
+/* search headline: the first line on one line, the second a touch smaller */
+.search-band #search-title { font-size: clamp(30px, 3.9vw, 58px); }
+.search-band .sb-line { white-space: nowrap; }
+.search-band .sb-em { font-size: 0.82em; margin-top: 0.08em; }
+@media (max-width: 760px) {
+  .search-band #search-title { font-size: clamp(24px, 7.4vw, 34px); }
+}
