@@ -1,0 +1,12 @@
+# secrets
+.env
+.env.*
+# hackathon-only licensed data and vendor docs (do not publish)
+data/
+docs/vendor/
+*.zip
+# python / node
+__pycache__/
+.venv/
+node_modules/
+.next/
