@@ -28,7 +28,7 @@ from .config import CACHE_DIR
 STORE = CACHE_DIR / "pipeline.json"
 STATUSES = ["drafted", "sent", "replied", "holding", "booked", "declined"]
 # How long to wait before nudging, by status. None means nothing to chase.
-FOLLOW_UP_DAYS = {"drafted": 0, "sent": 4, "replied": 2, "holding": 3, "booked": None, "declined": None}
+FOLLOW_UP_DAYS = {"drafted": None, "sent": 4, "replied": 2, "holding": 3, "booked": None, "declined": None}
 _lock = threading.Lock()
 
 
