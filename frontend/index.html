@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tourplan.css">
+  <link rel="stylesheet" href="pipeline.css">
 </head>
 <body>
   <nav class="subnav">
@@ -194,6 +195,28 @@
             <ul class="ledger" id="tp-dues-out"></ul>
           </div>
         </div>
+  <section class="frame pipeline" id="pipeline">
+    <div class="wrap narrow">
+      <h2 class="display">Keep every<br>ask moving.</h2>
+      <p class="lede-dark">Every venue you've written to, where it stands, and what to send next.</p>
+      <div id="pl-add" hidden></div>
+      <div id="pl-board"></div>
+    </div>
+    <div class="pl-compare" id="pl-compare" hidden>
+      <div class="wrap">
+        <h2 class="display">Two rooms.<br>One chord.</h2>
+        <p class="lede-dark">Play it in one room, then switch to the other while it's still ringing.</p>
+        <div class="pl-pickers">
+          <select id="pl-a" aria-label="First venue"></select>
+          <span>and</span>
+          <select id="pl-b" aria-label="Second venue"></select>
+        </div>
+        <div class="seg" id="pl-crowd" role="group" aria-label="Audience">
+          <button data-crowd="empty">Empty</button>
+          <button data-crowd="full" class="on">Full house</button>
+        </div>
+        <p class="note" id="pl-now"></p>
+        <div id="pl-sides"></div>
       </div>
     </div>
   </section>
@@ -207,5 +230,6 @@
 
   <script type="module" src="app.js"></script>
   <script type="module" src="tourplan.js"></script>
+  <script type="module" src="pipeline.js"></script>
 </body>
 </html>
