@@ -34,124 +34,17 @@
 
   <!-- ============================================================ HOME: the opening page -->
   <div class="view" data-view="home">
-    <header class="paper-hero" id="top">
-      <div class="hero-stage" id="hero3d">
-        <!-- top right: real buildings from the data, as polaroids and a sticker -->
-        <div class="houses houses-left">
-          <svg class="string" viewBox="0 0 100 92" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M26 10C40 22 60 16 78 24M78 24C70 50 56 62 42 72M26 10C20 36 30 54 42 72"/>
-          </svg>
-          <span class="pin" style="left:26%;top:10%" aria-hidden="true"></span>
-          <span class="pin" style="left:78%;top:24%" aria-hidden="true"></span>
-          <span class="pin" style="left:42%;top:72%" aria-hidden="true"></span>
-          <figure class="polaroid hero-snap snap-a">
-            <img id="snap-left-a" alt="The pool deck at Rae on Sunset, Los Angeles" width="300" height="300">
-            <figcaption>club lounge / LA</figcaption>
-          </figure>
-          <figure class="polaroid hero-snap snap-b">
-            <img id="snap-left-b" alt="Buffalo Lounge at St. Andrie, Houston" width="300" height="300">
-            <figcaption>buffalo lounge / houston</figcaption>
-          </figure>
-          <figure class="sticker snap-c">
-            <img id="snap-left-c" alt="The clubhouse at The Sapphire Resort, Houston" width="200" height="200">
-          </figure>
+    <header class="paper-hero collage-hero" id="top">
+      <h1 class="sr-only">Stagehand</h1>
+      <div class="collage" id="collage">
+        <div class="collage-art" id="collage-art">
+          <img class="cl cl-staff" src="img/home/staff.webp" alt="" width="2172" height="294" style="transform:matrix(0.60851,-0.03404,0.03402,0.60817,251.8,85.8)" aria-hidden="true" decoding="async">
+          <img class="cl cl-staff" src="img/home/staff.webp" alt="" width="2172" height="294" style="transform:matrix(0.60845,0.03501,-0.03499,0.60811,-102.4,423.5)" aria-hidden="true" decoding="async">
+          <button type="button" class="cl cl-hit cl-record-hit" id="hero-record" aria-label="Play a chord in a real room" style="transform:matrix(1.09337,0.0,-0.0,1.09343,0.0,-23.2);width:1247px;height:784px"><img class="cl-img cl-record" src="img/home/record.webp" alt="" width="1247" height="784" decoding="async"></button>
+          <img class="cl cl-gramophone" src="img/home/gramophone.webp" alt="" width="577" height="811" style="transform:matrix(0.58921,0.1761,-0.17594,0.5887,1217.5,334.8)" aria-hidden="true" decoding="async">
+          <img class="cl cl-camera" src="img/home/camera.webp" alt="" width="552" height="588" style="transform:matrix(0.57007,-0.17015,0.17031,0.5706,1110.1,-8.3)" aria-hidden="true" decoding="async">
+          <a class="cl cl-hit" href="#/search" id="hero-cta" aria-label="Stagehand. Find your space" style="transform:matrix(1.39355,0.0,-0.0,1.39437,291.9,248.9);width:723px;height:216px"><img class="cl-img cl-logo" src="img/home/logo.webp" alt="" width="723" height="216" decoding="async"></a>
         </div>
-        <div class="houses">
-          <svg class="string" viewBox="0 0 100 92" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M74 8C60 20 40 14 22 22M22 22C30 50 44 64 58 70M74 8C80 34 70 52 58 70"/>
-          </svg>
-          <span class="pin" style="left:74%;top:8%" aria-hidden="true"></span>
-          <span class="pin" style="left:22%;top:22%" aria-hidden="true"></span>
-          <span class="pin" style="left:58%;top:70%" aria-hidden="true"></span>
-          <figure class="polaroid hero-snap snap-a">
-            <img id="snap-right" alt="Inside Park Fifth, downtown Los Angeles" width="300" height="300">
-            <figcaption id="snap-right-cap">park fifth / LA</figcaption>
-          </figure>
-          <figure class="polaroid hero-snap snap-b">
-            <img id="snap-left" alt="Inside 3033 Wilshire, Los Angeles" width="300" height="300">
-            <figcaption id="snap-left-cap">3033 wilshire</figcaption>
-          </figure>
-          <figure class="sticker snap-c">
-            <img id="snap-sticker" alt="Inside SMB Hollywood" width="200" height="200">
-          </figure>
-        </div>
-
-        <svg class="doodle stars" viewBox="-60 0 420 200" aria-hidden="true"><g class="ink" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path pathLength="1" style="--d:2.4s" d="M-40 60l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/>
-          <path pathLength="1" style="--d:2.6s" d="M270 20l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
-          <path pathLength="1" style="--d:2.8s" d="M330 128l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>
-        </g></svg>
-        <div class="lyric">
-          <p class="eyebrow">Rooms for people who make things</p>
-          <h1 class="hero-title">Stage<em>hand</em></h1>
-          <a class="hero-cta" href="#/search" id="hero-cta">
-            <svg class="blob" viewBox="0 0 440 170" aria-hidden="true" preserveAspectRatio="none">
-              <path class="blob-shadow" d="M40 86C34 44 118 18 222 16c108-2 192 20 196 66 4 48-82 72-196 72C112 154 46 132 40 98"/>
-              <path class="blob-fill" d="M40 86C34 44 118 18 222 16c108-2 192 20 196 66 4 48-82 72-196 72C112 154 46 132 40 98"/>
-              <path class="blob-shine" d="M92 58c30-22 90-30 150-28"/>
-              <path class="blob-line" d="M40 86C34 44 118 18 222 16c108-2 192 20 196 66 4 48-82 72-196 72C112 154 46 132 40 98c-2-10-14-14-22-6 8-2 12 6 6 12"/>
-            </svg>
-            <span class="hero-cta-text">Find your space <svg class="cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          </a>
-          <p class="hero-sub">Rooms that sound right for your show, and a bed down the street.</p>
-          <p class="hint-record">or tap a record to hear a room</p>
-        </div>
-
-        <!-- bottom left: musical symbols in marker -->
-        <svg class="doodle doodle-notes" viewBox="0 0 340 230" aria-hidden="true">
-          <g class="ink" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <!-- staff -->
-            <path pathLength="1" style="--d:0s" stroke-width="2" d="M8 132c80-6 200-8 324-2"/>
-            <path pathLength="1" style="--d:.1s" stroke-width="2" d="M8 150c80-6 200-8 324-2"/>
-            <path pathLength="1" style="--d:.2s" stroke-width="2" d="M8 168c80-6 200-8 324-2"/>
-            <path pathLength="1" style="--d:.3s" stroke-width="2" d="M8 186c80-6 200-8 324-2"/>
-            <path pathLength="1" style="--d:.4s" stroke-width="2" d="M8 204c80-6 200-8 324-2"/>
-            <!-- treble clef -->
-            <path pathLength="1" style="--d:.6s" stroke-width="5" d="M52 222c4 8-6 12-12 8-8-6 0-16 8-12M48 218 40 58c-2-24 22-26 22-4 0 30-42 54-42 100 0 34 44 44 56 18 10-22-14-38-30-24-12 10-4 28 10 24"/>
-            <!-- beamed eighth notes -->
-            <path pathLength="1" style="--d:1s" stroke-width="5" d="M118 150V70M178 140V60"/>
-            <path pathLength="1" style="--d:1.2s" stroke-width="11" d="M118 72l60-12"/>
-            <path pathLength="1" style="--d:1.35s" stroke-width="5" d="M118 150c-2 10-24 14-28 4-4-10 16-16 26-10m-22 6 18-6m-16 10 16-6"/>
-            <path pathLength="1" style="--d:1.45s" stroke-width="5" d="M178 140c-2 10-24 14-28 4-4-10 16-16 26-10m-22 6 18-6m-16 10 16-6"/>
-            <!-- a single eighth with a flag -->
-            <path pathLength="1" style="--d:1.6s" stroke-width="5" d="M248 158V78c10 12 26 18 28 40"/>
-            <path pathLength="1" style="--d:1.75s" stroke-width="5" d="M248 158c-2 10-24 14-28 4-4-10 16-16 26-10m-22 6 18-6m-16 10 16-6"/>
-            <!-- fermata -->
-            <path pathLength="1" style="--d:1.9s" stroke-width="5" d="M268 40c10-30 56-30 64 2"/>
-            <path pathLength="1" style="--d:2.1s" stroke-width="7" d="M299 34h1"/>
-          </g>
-        </svg>
-
-        <!-- bottom right: a reel-to-reel movie camera and a clapperboard -->
-        <svg class="doodle doodle-cam" viewBox="0 0 470 250" aria-hidden="true">
-          <g class="ink" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
-            <!-- reels -->
-            <circle pathLength="1" style="--d:.4s" cx="88" cy="58" r="44"/>
-            <circle pathLength="1" style="--d:.55s" cx="88" cy="58" r="7"/>
-            <path pathLength="1" style="--d:.65s" d="M80 32a10 10 0 1 0 1 0M60 70a10 10 0 1 0 1 0M106 72a10 10 0 1 0 1 0"/>
-            <circle pathLength="1" style="--d:.7s" cx="184" cy="58" r="44"/>
-            <circle pathLength="1" style="--d:.85s" cx="184" cy="58" r="7"/>
-            <path pathLength="1" style="--d:.95s" d="M176 32a10 10 0 1 0 1 0M156 70a10 10 0 1 0 1 0M202 72a10 10 0 1 0 1 0"/>
-            <!-- film running into the body -->
-            <path pathLength="1" style="--d:1.05s" d="M50 82 68 112M222 82l-16 30"/>
-            <!-- body, lens, matte box -->
-            <path pathLength="1" style="--d:1.1s" d="M58 112h150c8 0 12 4 12 12v58c0 8-4 12-12 12H58c-8 0-12-4-12-12v-58c0-8 4-12 12-12z"/>
-            <path pathLength="1" style="--d:1.3s" d="M220 136h26v34h-26M246 126l42-18v90l-42-18z"/>
-            <path pathLength="1" style="--d:1.45s" d="M96 136h60M96 152h40M178 140a8 8 0 1 0 1 0"/>
-            <path pathLength="1" style="--d:1.55s" d="M46 152H30m0-8v16"/>
-            <!-- tripod -->
-            <path pathLength="1" style="--d:1.65s" d="M110 194 86 244M134 194v50M158 194l24 50"/>
-            <!-- clapperboard -->
-            <path pathLength="1" style="--d:1.9s" d="M318 126h136v112H318z"/>
-            <path pathLength="1" style="--d:2.05s" d="M318 126h136v24H318M338 126l14 24M370 126l14 24M402 126l14 24M434 126l14 24"/>
-            <path pathLength="1" style="--d:2.2s" d="M318 120 448 84l6 22-130 36z"/>
-            <path pathLength="1" style="--d:2.3s" d="M350 135l-6-22M382 126l-6-22M414 117l-6-22"/>
-            <path pathLength="1" style="--d:2.35s" stroke-width="3" d="M318 178h136M318 206h136M386 150v88M330 166h28M398 166h20M330 194h20M398 194h36M330 222h40"/>
-          </g>
-        </svg>
-
-        <span class="script-note" aria-hidden="true">make a scene.</span>
-
       </div>
     </header>
   </div>
@@ -912,6 +805,7 @@
     </div>
   </footer>
 
+  <script type="module" src="collage.js"></script>
   <script type="module" src="layout.js"></script>
   <script type="module" src="regions.js"></script>
   <script type="module" src="app.js"></script>
