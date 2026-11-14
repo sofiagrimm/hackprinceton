@@ -170,7 +170,7 @@ function breathBuffer(ctx) {
  * with each other, each with their own vibrato and timing, through that voice type's vowel.
  * voiceIndex: 0 bass, 1 tenor, 2 alto, 3 soprano.
  */
-function sing(ctx, dest, hz, start, len, vowel, voiceIndex) {
+export function sing(ctx, dest, hz, start, len, vowel, voiceIndex) {
   const formants = VOWELS[VOWEL_OF[vowel] || "a"][voiceIndex];
   // the vowel: five resonances in parallel, then a gentle top cut
   const bus = ctx.createGain();

@@ -55,7 +55,9 @@ Never invent data the tools did not return."""
 ACOUSTICS_PROMPT = """You are an acoustics analyst. For each venue_id you are given, call analyze_venue with \
 the intended use and audience. Compare the rooms: prefer the room whose occupied RT60 lands inside the target \
 band; a little dry beats very live; check capacity covers the audience. Return the best venue_id, room name, \
-its RT60 (empty and occupied), capacity, and one sentence on why it beats the others."""
+its RT60 (empty and occupied), capacity, and one sentence on why it beats the others. If the best room's \
+reverb is outside the target, or the group has low basses, call plan_room for it and pass on the fix \
+(how many sq ft of curtains or rugs) and any notes that boom."""
 
 STAY_PROMPT = """You are a tour logistics planner. For the venue_id you are given, call site_check to judge \
 parking and load-in from the aerial data, then find_housing with the group size and nights. Return the best \
@@ -118,7 +120,7 @@ class DeepScout:
                  "description": "Compares the scanned rooms at shortlisted venues and picks the one whose "
                                 "estimated reverberation best fits the intended use and audience.",
                  "system_prompt": ACOUSTICS_PROMPT,
-                 "tools": [tools["analyze_venue"]]},
+                 "tools": [tools["analyze_venue"]] + ([tools["plan_room"]] if "plan_room" in tools else [])},
                 {"name": "stay-planner",
                  "description": "Checks parking and load-in from aerial data, finds lodging near a chosen "
                                 "venue, and checks the cost against the group's tour fund.",

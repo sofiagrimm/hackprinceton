@@ -166,9 +166,10 @@ class AcousticEstimate:
     stage_support_db: float | None = None
     singers_verdict: str = ""
     surface_alpha: dict = field(default_factory=dict)
+    uncertainty: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "space_type": self.space_type,
             "space_label": self.space_label,
             "volume_m3": round(self.volume_m3, 1),
@@ -196,7 +197,13 @@ class AcousticEstimate:
             "stage_support_db": None if self.stage_support_db is None else round(self.stage_support_db, 1),
             "singers_verdict": self.singers_verdict,
             "surface_alpha": {k: round(v, 3) for k, v in self.surface_alpha.items()},
+            "rt60_range_s": [self.uncertainty.get("p10"), self.uncertainty.get("p90")] if self.uncertainty else None,
+            "uncertainty": self.uncertainty,
         }
+        from .roomphysics import room_modes, treatment_plan
+        d["modes"] = room_modes(d["dims_m"], self.rt60_empty) if d["dims_m"] and d["assumptions"].get("ceiling") != "open" else None
+        d["treatment"] = treatment_plan(d)
+        return d
 
 
 def classify_space(name: str | None, tags: list[str] | None, property_type: str | None) -> str:
@@ -317,6 +324,7 @@ def estimate(
 
     bands_empty, bands_occ = [], []
     room_constant = 0.0
+    mid_parts = []   # absorption by surface in the 500 Hz and 1 kHz bands, for the uncertainty runs
     for i in range(len(BANDS)):
         bare_floor = max(0.0, 1 - seat_share)
         absorb = (
@@ -327,6 +335,12 @@ def estimate(
             + surface * MISC_ABSORPTION
         )
         people = crowd * PERSON_SABINS_M2[i]
+        if i in (2, 3):
+            mid_parts.append({
+                "floor": floor_m2 * bare_floor * (ABSORPTION[floor_mat][i] * (1 - furnish) + ABSORPTION["mixed_furnishing"][i] * furnish)
+                         + floor_m2 * seat_share * ABSORPTION["seats_occupied"][i],
+                "ceiling": floor_m2 * ABSORPTION[ceil_mat][i], "walls": wall_m2 * ABSORPTION[wall_mat][i],
+                "misc": surface * MISC_ABSORPTION, "people": people})
         bands_empty.append(_eyring(volume, surface, absorb, AIR_M[i]))
         bands_occ.append(_eyring(volume, surface, absorb + people, AIR_M[i]))
         if BANDS[i] in (500, 1000):
@@ -395,7 +409,13 @@ def estimate(
         singers_verdict=_singers_verdict(st1, rt_occ, hi) if st1 is not None else
             "Outdoors the singers get almost nothing back from the room, so stand close together.",
         surface_alpha=alphas,
+        uncertainty={} if open_air else _uncertainty(volume, surface, mid_parts, (lo, hi), not geom.height_ft or geom.height_ft < 6),
     )
+
+
+def _uncertainty(volume, surface, parts, target, height_assumed):
+    from .roomphysics import rt_uncertainty
+    return rt_uncertainty(volume, surface, parts, target, height_assumed)
 
 
 def stage_support(dims: dict, alpha: dict, max_order: int = 10) -> float:

@@ -3,11 +3,23 @@
 import assert from "node:assert/strict";
 import { measureDecay } from "../frontend/playroom.js";
 
-function syntheticClap(rt, sr = 48000, noise = 0.003, at = 0.8, seconds = 5) {
+// Seeded generator so every run hears the same "room" (mulberry32).
+function rng(seed) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function syntheticClap(rt, sr = 48000, noise = 0.003, at = 0.8, seconds = 5, seed = 1) {
+  const rand = rng(seed);
   const x = new Float32Array(sr * seconds);
   for (let i = 0; i < x.length; i++) {
     const t = i / sr - at;
-    x[i] = (Math.random() * 2 - 1) * (noise + (t >= 0 ? 0.9 * Math.exp((-6.91 * t) / rt) : 0));
+    // Background noise and the room's decay are independent, so they add in energy, not amplitude.
+    x[i] = (rand() * 2 - 1) * noise + (t >= 0 ? (rand() * 2 - 1) * 0.9 * Math.exp((-6.91 * t) / rt) : 0);
   }
   return x;
 }

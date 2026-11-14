@@ -27,7 +27,7 @@ def feature_schemas() -> list[dict]:
 
 def _feature_modules():
     mods = []
-    for name in ("tour", "pipeline", "regions", "film"):
+    for name in ("tour", "pipeline", "regions", "film", "roomphysics"):
         try:
             mods.append(__import__(f"app.{name}", fromlist=["TOOLS"]))
         except Exception:  # a feature that isn't merged (or fails to import) just isn't offered
