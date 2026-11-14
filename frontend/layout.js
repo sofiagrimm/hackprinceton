@@ -137,7 +137,9 @@ function blobTransform() {
 function zoomIn() {
   if (state.zooming || document.body.dataset.view !== "home") return;
   state.cameFromHome = true;
-  if (reduced()) { crossFade(() => { go("#/search"); focusBrief(); }); return; }
+  // The collage's name is artwork, not a button shape: fade to the search page instead of
+  // growing a coloured box out of it (that flashed the name cherry red).
+  if (reduced() || $("hero-cta")?.classList.contains("cl-hit")) { crossFade(() => { go("#/search"); focusBrief(); }); return; }
   state.zooming = true;
   const v = veil();
   // Starts as the button itself (same cherry), fills the screen, then turns the search page's olive.

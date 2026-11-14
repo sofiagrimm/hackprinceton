@@ -1169,7 +1169,7 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .collage .cl-staff { opacity: 0.92; }
 /* The name is the way in: it lifts a little and glows when you point at it. */
 #hero-cta .cl-logo { transition: transform .25s ease, filter .25s ease; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35)); }
-#hero-cta:hover .cl-logo, #hero-cta:focus-visible .cl-logo { transform: translateY(-3px) rotate(-1deg); filter: drop-shadow(0 0 18px rgba(255, 214, 224, 0.55)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4)); }
+/* No glow or lift on the name: it stays exactly as designed. */
 #hero-cta:focus-visible { outline: none; }
 /* The record: only the disc itself is clickable, and it breathes while a chord plays. */
 .cl-record-hit { border-radius: 50%; }
@@ -1335,3 +1335,11 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 /* search results on a light pastel blush */
 .view[data-view="results"] { background: #f7e4e6; }
 .view[data-view="results"] .rs-why { background: #dfe6cf; }
+
+/* "find your space" under the lower staff, in the cream letterpress serif of the design */
+.collage .find-space { left: 290px; top: 702px; width: 900px; text-align: center; text-decoration: none;
+  font-family: "IM Fell English", "Iowan Old Style", Georgia, serif; font-size: 58px; letter-spacing: 0.06em; line-height: 1;
+  color: #f3e7d8; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 0 1px rgba(243, 231, 216, 0.6); }
+.collage .find-space span { font-family: "IM Fell English SC", "IM Fell English", Georgia, serif; }
+.collage .find-space:hover { color: #fff6ea; }
+.collage .find-space:focus-visible { outline: 2px solid #f3d27a; outline-offset: 8px; }
