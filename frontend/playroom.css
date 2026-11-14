@@ -1,0 +1,59 @@
+/* Play the room: the wave view, seat audio, two verdicts and the clap meter. Lives inside #sound (dark frame). */
+
+.playroom-head { margin-top: var(--s7); }
+.playroom-head .note { max-width: 62ch; }
+.playroom { margin-top: var(--s5); }
+
+.pr-stage { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; background: #240c10;
+  box-shadow: 0 0 0 1px rgba(243, 236, 225, 0.12), 0 24px 60px rgba(0, 0, 0, 0.45); }
+.pr-field, .pr-overlay { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.pr-overlay { cursor: crosshair; }
+.pr-hud { position: absolute; left: var(--s4); top: var(--s3); display: flex; gap: var(--s4); align-items: baseline; pointer-events: none;
+  font-family: var(--type); font-size: var(--fs-xs); letter-spacing: 0.06em; color: var(--on-dark); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+.pr-slow { color: var(--on-dark-2); }
+.pr-hint { position: absolute; right: var(--s4); top: var(--s3); pointer-events: none; font-family: var(--script); font-size: var(--fs-lg); color: #f0c9a8; }
+
+.pr-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s5); align-items: center; margin-top: var(--s5); }
+.pr-controls .play { width: clamp(84px, 9vw, 112px); }
+.pr-controls .play .tri { border-left-width: 16px; border-top-width: 10px; border-bottom-width: 10px; margin-left: 4px; }
+.pr-controls .play.on { animation: pr-spin 1.8s linear infinite; }
+@keyframes pr-spin { to { transform: rotate(360deg); } }
+.pr-seat-line { margin: 0; font-size: var(--fs-md); color: var(--on-dark); }
+.pr-seat .note { margin: var(--s1) 0 0; }
+.pr-buttons { display: flex; gap: var(--s5); }
+
+.pr-compare { display: flex; flex-wrap: wrap; gap: var(--s3) var(--s4); align-items: center; margin-top: var(--s5); padding-top: var(--s4);
+  border-top: 1px solid rgba(243, 236, 225, 0.15); }
+.pr-compare-label { font-family: var(--type); font-size: var(--fs-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--on-dark-2); }
+.pr-other { max-width: 100%; padding: 7px 10px; border-radius: var(--radius); border: 1.5px solid rgba(243, 236, 225, 0.5);
+  background: transparent; color: var(--on-dark); font: inherit; font-size: var(--fs-sm); }
+.pr-other option { color: var(--ink); }
+
+.pr-verdicts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5); margin-top: var(--s6); }
+.pr-card { padding: var(--s5); border: 1.5px solid rgba(243, 236, 225, 0.22); border-radius: var(--radius); min-width: 0; }
+.pr-card .eyebrow { margin-bottom: var(--s2); }
+.pr-big { margin: 0 0 var(--s2); font-family: var(--serif); font-size: var(--fs-xl); color: var(--on-dark); }
+.pr-card p:last-child { margin: 0; color: var(--on-dark-2); }
+
+.pr-measure { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s6); align-items: start; margin-top: var(--s7); }
+.pr-measure .sub-head { margin-top: 0; }
+.pr-listen { margin-top: var(--s4); }
+.pr-measure-out { min-height: 3em; color: var(--on-dark); }
+.pr-decay { width: 100%; height: 220px; display: block; }
+.pr-model { margin-top: var(--s3); color: var(--on-dark-2); }
+.pr-model summary { cursor: pointer; color: #f0c9a8; }
+.pr-model-form { display: flex; flex-wrap: wrap; gap: var(--s3) var(--s4); margin-top: var(--s3); font-size: var(--fs-sm); }
+.pr-model-form input, .pr-model-form select { width: 5.5em; padding: 5px 8px; border-radius: var(--radius); border: 1.5px solid rgba(243, 236, 225, 0.4);
+  background: transparent; color: var(--on-dark); font: inherit; }
+.pr-model-form select { width: auto; }
+.pr-model-form option { color: var(--ink); }
+.pr-model-out { color: var(--on-dark); }
+
+@media (max-width: 760px) {
+  .pr-controls { grid-template-columns: auto minmax(0, 1fr); }
+  .pr-buttons { grid-column: 1 / -1; }
+  .pr-verdicts, .pr-measure { grid-template-columns: minmax(0, 1fr); }
+  .pr-hint { display: none; }
+  .pr-hud { flex-direction: column; gap: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .pr-controls .play.on { animation: none; } }

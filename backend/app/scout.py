@@ -336,7 +336,7 @@ def draft_outreach(venue_id: int, group_name: str = "", event_date: str = "",
     space = f"the {space.lower()}" if space_name else space
     who = group_name or f"a {group_size}-person a cappella group"
     when = f" on {event_date}" if event_date else ""
-    lodging = (f" We would also like to book about {-(-group_size // 2)} rooms for {nights} night(s)."
+    lodging = (f" We would also like to book about {-(-group_size // 2)} rooms for {nights} night{"" if nights == 1 else "s"}."
                if venue.get("hotel") else "")
     greeting = f"Hi {contact['name'].split()[0]}," if contact and contact.get("name") and contact["name"] != "Sales & Events Team" else "Hello,"
     body = (

@@ -163,6 +163,9 @@ class AcousticEstimate:
     room_constant_m2: float = 0.0
     notes: list[str] = field(default_factory=list)
     assumptions: dict = field(default_factory=dict)
+    stage_support_db: float | None = None
+    singers_verdict: str = ""
+    surface_alpha: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -190,6 +193,9 @@ class AcousticEstimate:
             "verdict": self.verdict,
             "notes": self.notes,
             "assumptions": self.assumptions,
+            "stage_support_db": None if self.stage_support_db is None else round(self.stage_support_db, 1),
+            "singers_verdict": self.singers_verdict,
+            "surface_alpha": {k: round(v, 3) for k, v in self.surface_alpha.items()},
         }
 
 
@@ -338,6 +344,15 @@ def estimate(
     drr = (1 / (4 * math.pi * distance ** 2)) / (4 / max(room_constant, 1e-6))
     sti = sti_from_rt(rt_occ, drr)
 
+    # Mid-band (500 Hz to 1 kHz) absorption of each surface, for stage support and the wave view.
+    mid = lambda m: (ABSORPTION[m][2] + ABSORPTION[m][3]) / 2
+    floor_alpha = (1 - seat_share) * (mid(floor_mat) * (1 - furnish) + mid("mixed_furnishing") * furnish) \
+        + min(seat_share, 1) * mid("seats_occupied")
+    alphas = {"floor": min(floor_alpha + MISC_ABSORPTION, 0.95), "ceiling": min(mid(ceil_mat) + MISC_ABSORPTION, 0.99),
+              "walls": min(mid(wall_mat) + MISC_ABSORPTION, 0.95)}
+    dims = {"length": length_ft * FT, "width": width_ft * FT, "height": height * FT}
+    st1 = None if open_air else stage_support(dims, alphas)
+
     lo, hi, use_label = USES.get(use, USES["a_cappella_performance"])
     score = _score(rt_occ, lo, hi)
     if use in SPEECH_USES and sti < 0.55:
@@ -369,14 +384,76 @@ def estimate(
         c80_db=c80,
         d50=d50,
         sti=sti,
-        dims_m={"length": length_ft * FT, "width": width_ft * FT, "height": height * FT},
+        dims_m=dims,
         surface_m2=surface,
         room_constant_m2=room_constant,
         notes=notes,
         assumptions={"floor": floor_mat, "ceiling": ceil_mat, "walls": wall_mat,
                      "furnishing_share": round(furnish, 2), "height_ft": round(height, 1),
                      "from_scan_description": sorted(found)},
+        stage_support_db=st1,
+        singers_verdict=_singers_verdict(st1, rt_occ, hi) if st1 is not None else
+            "Outdoors the singers get almost nothing back from the room, so stand close together.",
+        surface_alpha=alphas,
     )
+
+
+def stage_support(dims: dict, alpha: dict, max_order: int = 10) -> float:
+    """Gade's stage support ST1 (ISO 3382-1 annex C), estimated with image sources.
+
+    ST1 = 10 log10( E(20..100 ms) / E(0..10 ms) ), measured 1 m from a source on stage.
+    Gade developed it with orchestras to describe how well players hear each other; it is
+    the standard stage measure. We place the singers 1.5 m from the back wall of a shoebox
+    with the room's own dimensions, mirror the source in the six surfaces up to 10th order,
+    and weight each image by the energy each surface reflects (1 - alpha).
+    """
+    L, W, H = max(dims["length"], 2.0), max(dims["width"], 2.0), max(dims["height"], 2.0)
+    src = (min(1.5, L / 3), W / 2, 1.5)
+    rec = (src[0] + 1.0, W / 2, 1.5)
+    r_wall, r_floor, r_ceil = 1 - alpha["walls"], 1 - alpha["floor"], 1 - alpha["ceiling"]
+    early = late = 0.0
+    n = max_order
+    for i in range(-n, n + 1):
+        x = i * L + (src[0] if i % 2 == 0 else L - src[0])
+        hx = abs(i)
+        for j in range(-n, n + 1):
+            if hx + abs(j) > n:
+                continue
+            y = j * W + (src[1] if j % 2 == 0 else W - src[1])
+            refl_xy = r_wall ** (hx + abs(j))
+            for k in range(-n, n + 1):
+                if hx + abs(j) + abs(k) > n:
+                    continue
+                z = k * H + (src[2] if k % 2 == 0 else H - src[2])
+                # Images below z=0 come off the floor first; count floor and ceiling hits separately.
+                floors = (abs(k) + (1 if k < 0 else 0)) // 2 if k else 0
+                ceils = abs(k) - floors
+                d = math.dist((x, y, z), rec)
+                t = d / 343.0
+                if t > 0.1:
+                    continue
+                e = refl_xy * (r_floor ** floors) * (r_ceil ** ceils) / (d * d)
+                if t <= 0.010:
+                    early += e
+                elif t >= 0.020:
+                    late += e
+    return 10 * math.log10(max(late, 1e-9) / max(early, 1e-9))
+
+
+def _singers_verdict(st1: float, rt: float, hi: float) -> str:
+    # Thresholds are set against the same model run on the three reference halls (about -19 to -21 dB),
+    # since a plain shoebox model reads a few dB lower than a measured stage with its own enclosure.
+    if st1 < -24:
+        line = "On stage the singers get little back from the room, so the parts can feel far apart. Stand in a tight arc."
+    elif st1 < -16:
+        line = "On stage the singers should hear each other about as well as in the great concert halls."
+    elif st1 < -9:
+        line = "The room sends a lot back to the stage. Easy to tune, but sing a notch softer than you think."
+    else:
+        line = "The walls are close and loud on stage. Tuning is easy, but the blend can feel crowded."
+    if rt > hi:
+        line += " Singers often enjoy a room this live more than the audience does."
+    return line
 
 
 def _score(rt: float, lo: float, hi: float) -> int:

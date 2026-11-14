@@ -366,8 +366,11 @@ async function renderShelf() {
 function why(v) {
   const a = v.best_space.acoustics;
   const [lo, hi] = a.target_s || [0, 0];
-  const fit = a.rt60_occupied_s < lo ? "a touch dry" : a.rt60_occupied_s > hi ? "on the live side" : "right in the sweet spot";
-  return `${a.verdict} With your audience in, it rings for ${a.rt60_occupied_s} seconds, ${fit} for ${state.search.use_label || "your show"}.`;
+  // Say something the verdict on the venue page doesn't: fit for this crowd, and clarity.
+  const fit = a.rt60_occupied_s < lo ? "a little dry" : a.rt60_occupied_s > hi ? "a little live" : `inside the ${lo} to ${hi}s range we aim for`;
+  const room = a.capacity_seated >= (state.search.audience || 0) ? `seats ${a.capacity_seated}, so ${state.search.audience} fit` : `seats only ${a.capacity_seated}`;
+  const clear = a.c80_db == null ? "" : a.c80_db > 3 ? " Each part stays distinct." : a.c80_db < -2 ? " The parts blend into one sound." : " Clear, with some warmth.";
+  return `With ${state.search.audience} people in, it rings for ${a.rt60_occupied_s} seconds, ${fit}. It ${room}.${clear}`;
 }
 
 function renderResults(r) {
@@ -379,7 +382,7 @@ function renderResults(r) {
     ? `${n} rooms in ${esc(r.metro)} <span class="script">that sing back.</span>`
     : "Nothing fit yet.";
   $("rs-sub").textContent = n
-    ? `We listened to ${r.venues_scanned.toLocaleString()} scanned buildings and ranked them by how they'd sound with ${r.audience} people in.`
+    ? `Out of ${r.venues_scanned.toLocaleString()} scanned buildings, ranked by how they'd sound with ${r.audience} people in.`
     : "Try a smaller audience or another date.";
   if (!n) { $("rs-list").innerHTML = ""; return; }
 
@@ -452,7 +455,7 @@ function renderDetail(v, i) {
   const s = v.best_space, a = s.acoustics;
   $("rs-detail").innerHTML = `
     <div class="rs-info">
-      <p class="rs-tag">${String(i + 1).padStart(2, "0")} / ${i === 0 ? "Our pick" : esc(a.space_label || "Also worth a listen")}</p>
+      <p class="rs-tag">${i === 0 ? "Our pick" : esc(a.space_label || "Another option")}</p>
       <h2 class="rs-name"><a href="#/venue/${v.venue_id}">${esc(v.name)}</a></h2>
       <p class="rs-addr">${esc(v.address)}</p>
       <p class="rs-room">${esc(s.space_name)}, ${s.area_sqft.toLocaleString()} sq ft${s.height_ft ? `, ${s.height_ft} ft ceiling` : ""}.</p>

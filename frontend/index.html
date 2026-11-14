@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="pipeline.css">
   <link rel="stylesheet" href="regions.css">
   <link rel="stylesheet" href="film.css">
+  <link rel="stylesheet" href="playroom.css">
 </head>
 <body data-view="home">
   <a class="skip" href="#main">Skip to content</a>
@@ -77,7 +78,7 @@
               <span>start here</span>
             </span>
           </a>
-          <p class="hero-sub">Rooms that sound right for your show, beds nearby, and who to write to.</p>
+          <p class="hero-sub">Rooms that sound right for your show, and a bed down the street.</p>
           <p class="hint-record">or tap a record to hear a room</p>
         </div>
 
@@ -148,8 +149,8 @@
       <div class="wrap wide">
         <div class="search-head">
           <div>
-            <p class="eyebrow">01 / Curated for creators</p>
-            <h1 class="display" id="search-title">Your next great idea needs the <span class="script">right room.</span></h1>
+            <p class="eyebrow">Search</p>
+            <h1 class="display" id="search-title">Tell us about the show. <span class="script">We'll find the room.</span></h1>
           </div>
           <p class="search-aside">Search like you talk. Tell us who's performing, when, how many people are coming, how many nights and your budget. We find rooms that can handle it.</p>
         </div>
@@ -190,9 +191,9 @@
           <span class="ransom "><span class="sr-only">tracklist</span><span aria-hidden="true"><i>t</i><i>r</i><i>a</i><i>c</i><i>k</i><i>l</i><i>i</i><i>s</i><i>t</i></span></span>
           <h2 class="display" id="sideb-title">Taking it on the road?</h2>
           <ul class="side-b-list">
-            <li><a href="#/tour">Plan the whole tour</a><b class="leader" aria-hidden="true"></b><em>tour</em><span>Every stop, the drive between, one total and a vote for the group.</span></li>
-            <li><a href="#/bookings">Keep every ask moving</a><b class="leader" aria-hidden="true"></b><em>bookings</em><span>Who you've written to, who owes you a reply, and two rooms side by side.</span></li>
-            <li><a href="#/film">Shooting instead?</a><b class="leader" aria-hidden="true"></b><em>film</em><span>Quiet rooms for dialogue, base camp for the trucks, light for each shoot day.</span></li>
+            <li><a href="#/tour">Plan the whole tour</a><b class="leader" aria-hidden="true"></b><em>tour</em><span>A room for each stop and the drive between them, added up.</span></li>
+            <li><a href="#/bookings">Keep every ask moving</a><b class="leader" aria-hidden="true"></b><em>bookings</em><span>Track which venues have answered.</span></li>
+            <li><a href="#/film">Shooting instead?</a><b class="leader" aria-hidden="true"></b><em>film</em><span>Rooms quiet enough to record dialogue in.</span></li>
             <li><a href="#/cities">Somewhere new</a><b class="leader" aria-hidden="true"></b><em>cities</em><span>Nine more cities, estimated from the outside of each building.</span></li>
           </ul>
         </div>
@@ -209,7 +210,7 @@
     <section class="page results-page" aria-labelledby="rs-title">
       <div class="wrap wide">
         <p class="crumbs"><a href="#/search" class="back">New search</a></p>
-        <p class="eyebrow">01 / What we found</p>
+        <p class="eyebrow">Results</p>
         <h1 class="page-title" id="rs-title">Scouting.</h1>
         <p class="page-sub" id="rs-sub"></p>
 
@@ -292,7 +293,7 @@
       <div class="wrap wide">
         <div class="sound-top">
           <div class="sound-head">
-            <p class="eyebrow">02 / Hear it</p>
+            <p class="eyebrow">Sound</p>
             <h2 class="display">Hear it before you <span class="script">book it.</span></h2>
             <p class="lede" id="d-verdict"></p>
           </div>
@@ -307,6 +308,11 @@
             <p class="links"><button type="button" class="link" id="clap">Clap</button><button type="button" class="link" id="mic">Sing into the room</button></p>
           </div>
         </div>
+        <div class="playroom-head">
+          <h3 class="sub-head">Play the room</h3>
+          <p class="note">The room from above, at its real size. Press play and watch the chord leave the singers, hit the walls and fade at this room's reverb. Click a seat to hear it from there.</p>
+        </div>
+        <div id="playroom" class="playroom" hidden></div>
         <canvas id="scope" height="80" aria-hidden="true"></canvas>
         <div class="rt" id="d-rtchart"></div>
 
@@ -337,8 +343,8 @@
     <section class="frame light-frame" id="light" hidden>
       <div class="wrap wide location">
         <div class="loc-copy">
-          <p class="eyebrow">03 / See it before you book it</p>
-          <h2 class="display">Scout the room. <span class="script">Skip the guesswork.</span></h2>
+          <p class="eyebrow">Light</p>
+          <h2 class="display">See the room <span class="script">at showtime.</span></h2>
           <p class="loc-lede">Pick a room, then drag through the day. The light follows the real sun over this building on your date.</p>
           <h3 class="mini-head">Rooms with a 360 photo</h3>
           <div class="room-picker" id="room-picker"></div>
@@ -370,7 +376,7 @@
 
     <section class="frame walk" id="walk" hidden>
       <div class="wrap wide">
-        <p class="eyebrow">04 / Walk it</p>
+        <p class="eyebrow">Inside</p>
         <h2 class="display">Step inside.</h2>
         <p class="lede-dark" id="walk-sub">The full 3D scan, room by room.</p>
         <div class="viewer-frame tour-frame">
@@ -387,7 +393,7 @@
     <div class="logistics">
       <div class="wrap wide logistics-grid">
         <section class="stay" id="stay" hidden>
-          <p class="eyebrow">05 / Stay</p>
+          <p class="eyebrow">Stay</p>
           <h2 class="display">Sleep close.</h2>
           <ul class="rows" id="d-housing"></ul>
           <p class="note" id="d-housing-note"></p>
@@ -400,7 +406,7 @@
 
     <section class="frame reach" id="reach" hidden>
       <div class="wrap">
-        <p class="eyebrow">06 / Make the ask</p>
+        <p class="eyebrow">Booking</p>
         <h2 class="display">Write to them.</h2>
         <div class="jcard">
           <div class="jcard-spine" aria-hidden="true"><span>Side A</span><span>The ask</span></div>
@@ -487,7 +493,7 @@
       <div class="wrap">
         <p class="eyebrow">Bookings</p>
         <h1 class="page-title" id="pl-title">Keep every ask <span class="script">moving.</span></h1>
-        <p class="page-sub">Every venue you've written to, where it stands, and what to send next. Add a venue from its page in Concerts.</p>
+        <p class="page-sub">Venues you've written to and where each one stands. Add one from its page in Concerts.</p>
         <div id="pl-board"></div>
       </div>
       <div class="pl-compare band" id="pl-compare" hidden>

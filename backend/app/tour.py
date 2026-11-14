@@ -388,7 +388,7 @@ def collect_tour_dues(tour_id: str) -> dict:
         when = _nice_date(s["date"])
         bill(s["venue"]["name"], f"Venue deposit (50%), {when}", s["costs"]["venue_fee"] * 0.5)
         if s.get("lodging"):
-            bill(s["lodging"]["name"], f"Lodging hold, {s['nights']} night(s)", s["costs"]["lodging"])
+            bill(s["lodging"]["name"], f"Lodging hold, {s['nights']} night{'' if s['nights'] == 1 else 's'}", s["costs"]["lodging"])
     for leg in plan["legs"]:
         bill("Airline" if leg["fly"] else "Van rental", f"{leg['from_city']} to {leg['to_city']}", leg["cost"])
 

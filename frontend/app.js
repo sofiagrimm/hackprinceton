@@ -5,6 +5,7 @@ import { createVinylHero } from "./vinyl.js";
 import { loadTour, sdkUsable } from "./tour.js";
 import { drawRoomMap } from "./roommap.js";
 import { createRoomViewer } from "./roomview.js";
+import { createPlayRoom } from "./playroom.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -197,7 +198,7 @@ function detail(text) {
 
 function handleEvent(ev) {
   switch (ev.type) {
-    case "agent": $("agent-name").textContent = `Planned by ${AGENT_LABEL[ev.name] || ev.name}.`; break;
+    case "agent": $("agent-name").textContent = `Planned by the ${(AGENT_LABEL[ev.name] || ev.name).replace(/^Built-in/, "built-in")}.`; break;
     case "plan": step("done", "Plan", esc(ev.text)); break;
     case "delegate": step("live", `Ask the ${ev.agent}`, esc(ev.text)); break;
     case "file": step("done", "Write the report", esc(ev.path)); break;
@@ -363,6 +364,24 @@ function renderAcoustics() {
   renderBands(a);
   if (a.dims_m) $("d-mapnote").textContent = drawRoomMap($("roommap"), a);
   applyRoomSound();
+  loadPlayRoom();
+}
+
+// "Play the room": the current room first, then the venue's other rooms and the other picks to compare with.
+let playRoom = null;
+function loadPlayRoom() {
+  const a = currentAcoustics();
+  if (!a?.dims_m || !$("playroom")) return;
+  playRoom ||= createPlayRoom($("playroom"));
+  const v = state.venue;
+  const list = [{ label: state.roomOverride?.label || cleanSpace(currentSpace()?.space_name, v.name) || v.name, acoustics: a }];
+  (v.spaces || []).forEach((s, i) => {
+    if (i !== state.spaceIndex && s.acoustics?.dims_m) list.push({ label: cleanSpace(s.space_name, v.name), acoustics: s.acoustics });
+  });
+  (state.search?.results || []).forEach((r) => {
+    if (r.venue_id !== v.venue_id && r.best_space?.acoustics?.dims_m) list.push({ label: r.name, acoustics: r.best_space.acoustics });
+  });
+  playRoom.load(list.slice(0, 12), state.crowd);
 }
 
 const FINISH = {
@@ -432,6 +451,7 @@ function wireListen() {
       state.crowd = b.dataset.crowd;
       document.querySelectorAll("[data-crowd]").forEach((x) => x.classList.toggle("on", x === b));
       applyRoomSound();
+      loadPlayRoom();
     };
   });
   $("play-choir").onclick = async () => {
