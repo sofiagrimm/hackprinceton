@@ -24,6 +24,8 @@ const TITLES = {
   bookings: "Bookings · Backstage Spaces", cities: "New cities · Backstage Spaces",
 };
 const ZOOM_MS = 600;
+const CHERRY = "#8e1424"; // the button
+const OLIVE = "#4a5140"; // the search page
 
 const state = { search: null, venueId: null, scouting: false, zooming: false, cameFromHome: false };
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -106,10 +108,12 @@ function zoomIn() {
   if (reduced()) { crossFade(() => { go("#/search"); focusBrief(); }); return; }
   state.zooming = true;
   const v = veil();
+  // Starts as the button itself (same cherry), fills the screen, then turns the search page's olive.
   const grow = v.animate([
-    { transform: blobTransform(), opacity: 0.9, borderRadius: "48%" },
-    { transform: "none", opacity: 1, borderRadius: "0%" },
-  ], { duration: ZOOM_MS, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" });
+    { transform: blobTransform(), borderRadius: "48%", backgroundColor: CHERRY },
+    { transform: "none", borderRadius: "0%", backgroundColor: CHERRY, offset: 0.62 },
+    { transform: "none", borderRadius: "0%", backgroundColor: OLIVE },
+  ], { duration: ZOOM_MS + 250, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" });
   grow.onfinish = () => {
     go("#/search");
     focusBrief();
@@ -127,9 +131,11 @@ function zoomOut() {
   const v = veil();
   requestAnimationFrame(() => {
     v.animate([
-      { transform: "none", opacity: 1, borderRadius: "0%" },
-      { transform: blobTransform(), opacity: 0, borderRadius: "48%" },
-    ], { duration: ZOOM_MS, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" }).onfinish = () => {
+      { transform: "none", borderRadius: "0%", backgroundColor: OLIVE, opacity: 1 },
+      { transform: "none", borderRadius: "0%", backgroundColor: CHERRY, opacity: 1, offset: 0.35 },
+      { transform: blobTransform(), borderRadius: "48%", backgroundColor: CHERRY, opacity: 1, offset: 0.95 },
+      { transform: blobTransform(), borderRadius: "48%", backgroundColor: CHERRY, opacity: 0 },
+    ], { duration: ZOOM_MS + 250, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" }).onfinish = () => {
       v.remove();
       state.zooming = false;
     };
