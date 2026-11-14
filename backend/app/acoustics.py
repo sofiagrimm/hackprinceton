@@ -76,7 +76,7 @@ NAME_HINTS: list[tuple[tuple[str, ...], str]] = [
     (("rooftop", "roof deck", "sky deck", "terrace", "pool", "courtyard", "outdoor", "patio", "garden"), "rooftop"),
     (("clubhouse", "club room", "clubroom", "lounge", "game room", "resident", "amenity",
       "sky lounge", "social", "rec room", "community room", "leasing"), "clubhouse"),
-    (("fitness", "gym", "yoga", "studio", "spin", "dance"), "fitness"),
+    (("fitness", "gym", "yoga", "dance studio", "spin", "dance"), "fitness"),
     (("warehouse", "industrial", "loading", "shop", "dock"), "warehouse"),
 ]
 

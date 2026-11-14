@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encore Scout</title>
+  <meta name="description" content="Find spaces that sound right, somewhere to stay, and the people to call - for touring performers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">◐</span>
+      <div>
+        <h1>Encore Scout</h1>
+        <p class="tag">Rooms that sound right. Somewhere to stay. Who to call.</p>
+      </div>
+    </div>
+    <div class="status" id="status">Loading data…</div>
+  </header>
+
+  <main>
+    <section class="brief card">
+      <label for="brief" class="eyebrow">The brief</label>
+      <textarea id="brief" rows="3">Our 14-singer a cappella group is touring LA on March 14. We want to perform for about 80 guests and stay 2 nights, ideally in the same building.</textarea>
+      <div class="brief-row">
+        <div class="chips" id="examples"></div>
+        <button id="go" class="primary">Scout it</button>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="card agent">
+        <div class="eyebrow">Agent <span id="agent-name" class="pill"></span></div>
+        <ol id="timeline" class="timeline"><li class="muted">Steps appear here as the agent plans, searches, measures and drafts.</li></ol>
+        <div id="report" class="report"></div>
+      </aside>
+
+      <section class="results">
+        <div class="eyebrow" id="results-title">Ranked spaces</div>
+        <div id="cards" class="cards"><p class="muted">Run a brief to rank Matterport-scanned rooms across Los Angeles and Houston.</p></div>
+      </section>
+    </section>
+
+    <section id="detail" class="detail" hidden>
+      <div class="detail-head">
+        <div>
+          <div class="eyebrow" id="d-meta"></div>
+          <h2 id="d-name"></h2>
+          <p id="d-address" class="muted"></p>
+        </div>
+        <button id="d-close" class="ghost" aria-label="Close">✕</button>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="eyebrow">Inside · Matterport</div>
+          <div class="space-tabs" id="d-spaces"></div>
+          <div class="tour"><iframe id="d-tour" title="Matterport 3D tour" allow="xr-spatial-tracking; fullscreen" allowfullscreen></iframe></div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">Hear the room</div>
+          <div id="d-acoustics"></div>
+          <div class="rt-chart" id="d-rtchart"></div>
+          <div class="listen">
+            <div class="seg" role="group" aria-label="Audience">
+              <button data-crowd="empty">Empty room</button>
+              <button data-crowd="full" class="on">Full house</button>
+            </div>
+            <div class="buttons">
+              <button id="play-choir" class="primary">▶ Play our chord here</button>
+              <button id="clap">👏 Clap</button>
+              <button id="mic">🎤 Sing into the room</button>
+            </div>
+            <p class="hint">Headphones recommended for the mic, to avoid feedback.</p>
+            <canvas id="scope" height="60"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">Outside · Vexcel aerial + sun</div>
+          <div class="aerial">
+            <img id="d-aerial" alt="Aerial view of the venue">
+            <canvas id="d-shadow"></canvas>
+          </div>
+          <div class="sun-controls">
+            <input type="date" id="sun-date">
+            <input type="range" id="sun-time" min="300" max="1260" step="5" value="840">
+            <span id="sun-clock"></span>
+          </div>
+          <div id="sun-facts" class="facts"></div>
+          <div id="d-site" class="facts"></div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">Stay · Lodging for the group</div>
+          <div id="d-housing"></div>
+          <div class="eyebrow" style="margin-top:16px">Reach out</div>
+          <div id="d-email"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Data: CoStar (Houston &amp; Los Angeles extract), Matterport digital twins, Vexcel aerial imagery - for HackPrinceton use only.
+    Acoustics are physics estimates from scan geometry; rates are CoStar averages, not quotes.
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

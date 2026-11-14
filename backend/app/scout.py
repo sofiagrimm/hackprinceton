@@ -9,6 +9,13 @@ from __future__ import annotations
 from . import data, matterport, vexcel
 from .acoustics import USES, RoomGeometry, classify_space, estimate
 
+import re
+
+# Scans of individual apartment units or hotel rooms ("Studio E1A - 1109",
+# "1BR, 1BA - 695SF", "2 Queen") are lodging, not stages.
+UNIT_NAME = re.compile(r"\b(studio|\d\s*br|\d\s*bd|bedroom|\d\s*bed|king|queen|suite|unit|apt|plan|model|"
+                       r"penthouse|townhome|floor ?plan|[a-z]\d[a-z]?\b|\d{3,4}\s*sf)", re.I)
+
 PERFORMABLE = {"theater", "ballroom", "lobby", "chapel", "clubhouse", "rooftop",
                "fitness", "warehouse", "unfinished", "office", "generic", "residential_living"}
 # Spaces that read as a venue a group would actually book, best first.
@@ -33,6 +40,9 @@ def _spaces_for_venue(venue: dict, use: str, audience: int | None, allow_fetch: 
         room = max(rooms, key=lambda r: r["area"])
         kind = classify_space(model.get("name"), room.get("tags"), venue["property_type"])
         if kind not in PERFORMABLE:
+            continue
+        if kind not in ("ballroom", "theater", "chapel", "lobby", "clubhouse", "rooftop") \
+                and UNIT_NAME.search(model.get("name") or ""):
             continue
         est = estimate(RoomGeometry(room["area"], room.get("height"), room.get("width"), room.get("depth")),
                        kind, use=use, audience=audience)
