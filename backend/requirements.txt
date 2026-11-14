@@ -7,3 +7,5 @@ deepagents>=0.7
 langchain-anthropic>=0.3
 langchain-openai>=0.3
 cryptography>=42
+numpy>=1.26
+Pillow>=10
