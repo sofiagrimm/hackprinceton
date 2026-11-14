@@ -1407,3 +1407,11 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .prop-thumbs.filmstrip button { width: 100%; height: 100%; padding: 0; background: none; box-shadow: none; }
 .prop-thumbs.filmstrip button:hover { transform: none; filter: brightness(1.08); }
 .prop-thumbs.filmstrip img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; background: #efe3d6; }
+
+/* property page: overview and stay/budget sit close, with a small rule between */
+.view[data-view="property"] .frame.pick { padding-bottom: var(--s6); }
+.view[data-view="property"] .logistics { padding-top: 0; }
+.view[data-view="property"] .logistics-grid { border-top: 1px solid var(--line-strong); padding-top: var(--s6); }
+.view[data-view="property"] .logistics-grid .display { margin-top: 0; }
+.view[data-view="property"] .logistics-grid { border-top: 0; position: relative; }
+.view[data-view="property"] .logistics-grid::before { content: ""; position: absolute; top: 0; left: var(--gutter); right: var(--gutter); border-top: 1px solid var(--line-strong); }
