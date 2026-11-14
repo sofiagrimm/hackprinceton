@@ -256,6 +256,9 @@ def _compare_one(venue_id: int, use: str, audience: int, group_size: int, nights
     off = None
     if rt is not None:
         off = 0.0 if target[0] <= rt <= target[1] else round(min(abs(rt - target[0]), abs(rt - target[1])), 2)
+    room_name = (best or {}).get("space_name") or ""
+    if room_name.lower().startswith(venue["name"].lower()):
+        room_name = room_name[len(venue["name"]):].lstrip(" -:") or room_name
     return {
         "venue_id": venue["id"],
         "name": venue["name"],
@@ -265,7 +268,7 @@ def _compare_one(venue_id: int, use: str, audience: int, group_size: int, nights
         "is_hotel": bool(venue.get("hotel")),
         "parking_spaces": venue.get("parking_spaces"),
         "room": best and {
-            "name": best["space_name"],
+            "name": room_name,
             "model_id": best.get("model_id"),
             "area_sqft": best["area_sqft"],
             "height_ft": best.get("height_ft"),

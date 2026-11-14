@@ -51,7 +51,10 @@ def _street(address: str) -> str:
     """'3033 Wilshire Blvd, Los Angeles' -> 'Wilshire Boulevard'; '3600 W 6th St' -> '6th Street'."""
     first = (address or "").split(",")[0]
     words = [w for w in first.split() if not w.isdigit() and w.lower().rstrip(".") not in ("n", "s", "e", "w")]
-    words = [SUFFIX.get(w.lower().rstrip("."), w) for w in words]
+    if words:  # only the last word is a suffix; a leading "St" is Saint
+        words[-1] = SUFFIX.get(words[-1].lower().rstrip("."), words[-1])
+        words = ["Saint" if w.lower().rstrip(".") == "st" and i < len(words) - 1 else w
+                 for i, w in enumerate(words)]
     return " ".join(words) or first
 
 

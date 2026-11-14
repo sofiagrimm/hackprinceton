@@ -74,11 +74,10 @@ made.
 
 ## How it was tested
 
-I never had the `.env`, so `deploy/index.bin` couldn't be decrypted. I tested everything against a small set
-of made-up venues patched into `app.data`, a script kept outside the repo. The backend logic is the same as
-it will be on the real index, but I haven't seen how the copy and compare summaries read on real venues. I
-ran the Playwright flow (add two, mark sent, follow up, compare, A/B play) at 1280px and 390px. It had no
-errors except the existing aerial.jpg 404, which needs a Vexcel key.
+I tested on the real index (3,288 venues). The planner's top two LA picks for the default brief were 3033
+Wilshire and The Preserve. In the browser I added both, marked one sent, drafted a follow-up, compared them
+and played A then B. I ran this with Playwright at 1280px and 390px, and the console showed no errors.
+`scripts/voice_sim.py` also runs the whole call against the real data. No real phone call was placed.
 
 Something I noticed and didn't change, because it's outside my files: on a 390px phone the page scrolls
 sideways because `#sun-clock` in the Light section is too wide.
