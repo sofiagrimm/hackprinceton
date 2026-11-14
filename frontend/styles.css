@@ -1547,7 +1547,7 @@ body[data-view="home"] .collage { height: 100vh; height: 100svh; }
 body { background: #3a1517 url("img/home/paper.jpg") center top / 1600px auto repeat; color: var(--ink); }
 :focus-visible { outline-color: var(--focus); }
 /* cream cards keep dark ink */
-.polaroid, .polaroid figcaption, .card, .stub, .cassette-label, .ticket, .liner, .rs-price, .tp-receipt { color: #2a1012; }
+.polaroid, .polaroid figcaption, .card, .stub, .cassette-label, .ticket, .tp-receipt { color: #2a1012; }
 .polaroid { background: #f6efe6; }
 /* links and quiet buttons read on wine */
 .link, .link-dark, .pl-link, .tp-vote, .try button, .room-picker button, .rooms button { color: #f0c9a8; }
@@ -1598,3 +1598,10 @@ select option { background: #2c0d10; color: var(--ink); }
 .lab-meter dt { color: #6b4a44; }
 
 .results-page .rs-em { color: #e8a3b0; }
+/* results on the wine paper too; the "why it fits" note stays a cream card */
+.view[data-view="results"] { background: transparent; }
+.view[data-view="results"] .rs-why, .rs-why { background: #f1e6d8; color: #2a1012; }
+.rs-why h3 { color: #8e1424; }
+.rs-price, .rs-price b { color: var(--ink); }
+.rs-why p { color: #2a1012; }
+.rs-tag { color: #e8a3b0; }
