@@ -16,12 +16,12 @@ import { detectCity } from "./regions.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "explore", "book", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "walk3d", "book", "tour", "film", "bookings", "cities"];
+const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", walk3d: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
-  explore: "Explore in 3D · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
+  explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
 const CHERRY = "#8e1424"; // the button
@@ -54,8 +54,8 @@ function go(hash) {
 /** Work out the view from the address bar. */
 function route() {
   const h = location.hash;
-  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book))?/);
-  if (m && m[2]) { showNextPage(Number(m[1]), m[2] === "3d" ? "explore" : "book"); return; }
+  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk))?/);
+  if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d" }[m[2]]); return; }
   if (m) { show("property"); openVenue(Number(m[1])); return; }
   if (h.startsWith("#/") || !h) {
     const name = h.slice(2) || "home";
@@ -65,6 +65,7 @@ function route() {
   // A plain anchor (#sound, #tour-plan): show the view that holds it, leave the scroll to the browser.
   const el = h.length > 1 && document.getElementById(h.slice(1));
   const holder = el?.closest("[data-view]");
+  if (holder?.dataset.view === "walk3d" && state.venueId) { go(`#/venue/${state.venueId}/walk`); return; }
   if (holder?.dataset.view === "explore") {
     const key = EXPLORE.find((k) => $(k).contains(el));
     if (holder.dataset.view !== document.body.dataset.view) show("explore", { keepScroll: true });
@@ -81,7 +82,7 @@ function firstView() {
   const q = new URLSearchParams(location.search);
   if (q.get("tour")) return show("tour");
   if (q.get("film")) return show("film");
-  if (q.get("venue") && /^#\/venue\/\d+\/(3d|book)/.test(location.hash)) {
+  if (q.get("venue") && /^#\/venue\/\d+\/(3d|book|walk)/.test(location.hash)) {
     state.venueId = Number(q.get("venue"));
     return route();
   }
@@ -548,18 +549,19 @@ async function showNextPage(id, which) {
   show(which);
   const v = await venueFor(id);
   document.querySelectorAll(`.view[data-view="${which}"] .venue-name`).forEach((el) => { el.textContent = v?.name || "this venue"; });
-  if (v && which !== "property") document.title = `${which === "explore" ? "Explore" : "Book"} ${v.name} · Stagehand`;
+  if (v) document.title = `${{ explore: "Explore", book: "Book", walk3d: "Walk through" }[which]} ${v.name} · Stagehand`;
   const back = `#/venue/${id}`;
   ["ex-back", "bk-back"].forEach((b) => { $(b).href = back; });
   const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
   $("bk-ask").href = back; $("bk-ask").onclick = jump("reach");
   if (which === "book") startBooking(id, v);
   if (which === "explore") startExplore(id);
+  if (which === "walk3d") startWalk(id);
 }
 
 // ------------------------------------------------------------------ explore: acoustics, lighting, 3D walkthrough
 
-const EXPLORE = ["sound", "light", "walk"];
+const EXPLORE = ["sound", "light"];
 
 /** The evaluations are app.js's sections, so the venue must be open in app.js first. */
 function ensureVenue(id, hash) {
@@ -576,8 +578,45 @@ function startExplore(id) {
   EXPLORE.forEach((k) => $(k).classList.add("ex-off"));
   document.querySelectorAll(".ex-choice").forEach((b) => {
     b.setAttribute("aria-pressed", "false");
-    b.onclick = () => selectExplore(b.dataset.ex);
+    b.onclick = () => (b.dataset.ex === "walk" ? go(`#/venue/${id}/walk`) : selectExplore(b.dataset.ex));
   });
+}
+
+// ------------------------------------------------------------------ the 3D walkthrough page
+
+/** Wait until app.js has this venue open (it loads asynchronously), then run fn. */
+function whenVenueOpen(id, fn, tries = 60) {
+  const v = venueInfo[id];
+  const ready = !$("pick").hidden && $("d-name").textContent && state.venueId === id;
+  if (ready) { fn(); return; }
+  if (tries > 0) setTimeout(() => whenVenueOpen(id, fn, tries - 1), 250);
+}
+
+function startWalk(id) {
+  $("wk-back").href = `#/venue/${id}/3d`;
+  ensureVenue(id, `#/venue/${id}/walk`);
+  whenVenueOpen(id, () => {
+    // One button per scanned space, mirroring app.js's own room buttons, which switch the model.
+    const spaces = [...document.querySelectorAll("#d-spaces button")];
+    const on = () => document.querySelector("#d-spaces button.on")?.dataset.i;
+    const draw = () => {
+      $("walk-switch").innerHTML = spaces.length > 1
+        ? spaces.map((b) => `<button type="button" data-i="${b.dataset.i}" aria-pressed="${b.dataset.i === on()}">${esc(b.textContent)}</button>`).join("")
+        : `<span class="note">One scanned space: ${esc($("d-name").textContent)}</span>`;
+      $("walk-switch").querySelectorAll("button").forEach((btn) => (btn.onclick = () => {
+        spaces.find((b) => b.dataset.i === btn.dataset.i)?.click();
+        draw();
+        openModel();
+      }));
+    };
+    draw();
+    openModel();
+  });
+}
+
+/** Load the 3D model straight away instead of waiting for a click on the poster. */
+function openModel() {
+  if (!$("tour-poster").hidden) $("tour-poster").click();
 }
 
 function selectExplore(key, scroll = true) {

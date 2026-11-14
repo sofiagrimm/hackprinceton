@@ -290,10 +290,6 @@ input[type=range] { accent-color: var(--wine); }
 .blob-line { transition: transform .2s ease-out; }
 .cta-arrow { width: 0.8em; height: 0.8em; vertical-align: -0.08em; margin-left: 0.2em; animation: nudge 1.4s ease-in-out infinite; }
 @keyframes nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
-/* a drawn arrow pointing at the button, so it reads as the way in */
-.cta-hint { position: absolute; right: -150px; bottom: -6px; width: 120px; color: var(--magenta); pointer-events: none; }
-.cta-hint svg { display: block; width: 100%; transform: scaleY(-1) rotate(6deg); }
-.cta-hint span { position: absolute; right: -10px; bottom: -24px; font-family: var(--script); font-size: 24px; transform: rotate(-4deg); white-space: nowrap; }
 .hero-cta:hover .blob-fill, .hero-cta:hover .blob-line, .hero-cta:hover .blob-shine { transform: translate(0, -4px); }
 .hero-cta:hover .blob-fill { fill: #a51a2c; }
 .hero-cta:hover .blob-shadow { transform: translate(0, 12px); }
@@ -619,6 +615,29 @@ body::after {
   .ex-choices li:nth-child(2) .ex-choice { margin-left: 0; }
 }
 
+/* ---------------------------------------------------------------- 3D WALKTHROUGH */
+body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
+.walk-page { padding: var(--s5) var(--gutter) var(--s6); max-width: 1600px; margin: 0 auto; }
+.walk-top { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s6); flex-wrap: wrap; margin-bottom: var(--s5); }
+.walk-head .crumbs { margin-bottom: var(--s3); }
+.walk-title { font-size: clamp(34px, 4.4vw, 60px); }
+.walk-title .script { font-size: 0.95em; color: var(--cherry); }
+.walk-sub { color: var(--ink-2); margin-top: var(--s2); }
+.walk-rooms .mini-head { margin: 0 0 var(--s2); }
+.walk-switch { display: flex; flex-wrap: wrap; gap: var(--s2); max-width: 640px; }
+.walk-switch button { font: 500 var(--fs-sm)/1 var(--body); padding: 10px 14px; border: 1.5px solid var(--ink); border-radius: 999px; background: var(--card); }
+.walk-switch button:hover { background: var(--blush); }
+.walk-switch button[aria-pressed="true"] { background: var(--cherry); border-color: var(--cherry); color: var(--paper); }
+.walk-frame { box-shadow: 12px 12px 0 var(--sage); }
+.walk-frame .tour { aspect-ratio: auto; height: calc(100vh - var(--nav-h) - 230px); height: calc(100svh - var(--nav-h) - 230px); min-height: 380px; max-height: none; }
+.walk-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s2) var(--s6); margin-top: var(--s5); }
+.walk-foot .walk-status { margin: 0; font-size: var(--fs-md); }
+.walk-tips { color: var(--ink-2); font-size: var(--fs-sm); max-width: 560px; }
+@media (max-width: 760px) {
+  .walk-frame .tour { height: 62vh; min-height: 320px; }
+  .walk-frame { box-shadow: 6px 6px 0 var(--sage); }
+}
+
 /* ---------------------------------------------------------------- BOOKING */
 .book-pick { min-height: calc(100vh - var(--nav-h)); }
 .book-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s7); }
@@ -919,7 +938,6 @@ body::after {
   .hero-stage { padding: 150px var(--s4) 150px; }
   .hero-title { font-size: clamp(44px, 14vw, 64px); }
   .hero-cta { width: min(300px, 78vw); }
-  .cta-hint { display: none; }
   .hero-sub { font-size: var(--fs-sm); max-width: 300px; }
   .houses { top: 10px; right: 6px; width: 150px; }
   .snap-a, .snap-b { padding: 6px 6px 0; }
