@@ -179,6 +179,8 @@ to stay and perform in the same building. State your plan in one or two sentence
 audience or stay_and_perform) and search again rather than settling.
 3. Call analyze_venue on the 2-3 most promising venues to compare their scanned rooms. Prefer rooms whose \
 occupied RT60 lands in the target band; a room that is a little dry is better than one that is very live.
+If the top pick's reverb is outside the target, call plan_room for it: it says how much curtain or rug fixes it
+and which notes the empty room makes boom. Pass that on in one sentence.
 4. Call site_check on your top pick to look at parking and the building from the air.
 5. Call find_housing for the top pick with the group size and nights.
 6. Call tour_budget for the top pick to check the group's fund; if it is over budget, consider a cheaper \

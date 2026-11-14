@@ -23,7 +23,7 @@
 //
 // 4. Compare two rooms with your own voice, with a crossfade between them.
 
-import { RoomSound, bandpass } from "./audio.js";
+import { RoomSound, bandpass, sing } from "./audio.js";
 import { barronC80 } from "./roommap.js";
 
 const C = 343;
@@ -316,7 +316,12 @@ function decayFromBand(y, sr, preNoise) {
   for (let iter = 0; iter < 5; iter++) {
     const stop = db.findIndex((v, i) => i > 0 && v < noiseDb + 10);
     const end = stop > 2 ? stop : Math.floor(env.length / 2);
-    const fit = regress(db, 0, end, dt);
+    // Fit the slope on the energy with the background noise taken out; noise left in
+    // flattens the tail and makes the room seem to ring longer than it does.
+    const nz = 10 ** (noiseDb / 10) * e0;
+    const dbn = env.map((e) => 10 * Math.log10(Math.max(e - nz, 1e-20) / e0));
+    const start = Math.max(0, dbn.findIndex((v) => v <= -3));
+    const fit = regress(dbn, start, end, dt);
     if (fit.slope >= 0) break;
     slope = fit.slope;
     cross = clamp(Math.floor((noiseDb - fit.b) / slope / dt), 3, env.length - 1);
@@ -359,6 +364,7 @@ function regress(arr, a, b, dt) {
 const TEMPLATE = `
   <div class="pr-stage">
     <canvas class="pr-field" aria-label="Sound spreading through the room, seen from above"></canvas>
+    <canvas class="pr-modemap" aria-hidden="true"></canvas>
     <canvas class="pr-overlay" aria-hidden="true"></canvas>
     <div class="pr-hud">
       <span class="pr-clock">Press play</span>
@@ -375,6 +381,7 @@ const TEMPLATE = `
     <div class="pr-buttons">
       <button type="button" class="link pr-clap">Clap</button>
       <button type="button" class="link pr-mic">Sing into the room</button>
+      <label class="link pr-upload">Play your own recording<input type="file" accept="audio/*" class="sr-only"></label>
     </div>
   </div>
   <div class="pr-compare" hidden>
@@ -391,11 +398,32 @@ const TEMPLATE = `
       <p class="eyebrow">For your audience</p>
       <p class="pr-big pr-aud-num"></p>
       <p class="pr-aud"></p>
+      <div class="pr-range" hidden>
+        <div class="pr-range-bar"><span class="pr-range-target"></span><span class="pr-range-band"></span><span class="pr-range-mid"></span></div>
+        <p class="pr-range-text"></p>
+      </div>
     </div>
     <div class="pr-card">
       <p class="eyebrow">For your singers</p>
       <p class="pr-big pr-sing-num"></p>
       <p class="pr-sing"></p>
+    </div>
+  </div>
+  <div class="pr-verdicts pr-extras">
+    <div class="pr-card pr-fix">
+      <p class="eyebrow">Fix the room</p>
+      <p class="pr-big pr-fix-num"></p>
+      <p class="pr-fix-text"></p>
+      <div class="seg pr-fix-seg" role="group" aria-label="Hear the room as it is or with the fix" hidden>
+        <button type="button" data-fix="0" class="on">As it is</button>
+        <button type="button" data-fix="1">With the fix</button>
+      </div>
+    </div>
+    <div class="pr-card pr-modes">
+      <p class="eyebrow">Notes that boom</p>
+      <p class="pr-modes-text"></p>
+      <div class="pr-notes"></div>
+      <p class="note pr-mode-where"></p>
     </div>
   </div>
   <div class="pr-measure">
@@ -442,13 +470,19 @@ export function createPlayRoom(root) {
   let running = false, visible = true, rafId = 0;
   let measured = null;
   let validation = null;
+  let fixOn = false;
+  let modeSel = null;
+  let upload = null;
   const irCache = new Map();
 
   fetch("/api/validation").then((r) => r.json()).then((v) => { validation = v; renderVerdicts(); }).catch(() => {});
 
   const room = () => rooms[slotRoom[active]]?.acoustics;
-  const bandsOf = (a) => (crowd === "full" ? a.rt60_bands_occupied_s : a.rt60_bands_empty_s);
-  const rtOf = (a) => (crowd === "full" ? a.rt60_occupied_s : a.rt60_empty_s);
+  // The fix is planned for the full house, so "with the fix" uses the treated full-house bands.
+  const fixOf = (a) => a.treatment?.status === "too_live" && a.treatment.options?.[0]?.enough ? a.treatment.options[0] : null;
+  const fixed = (a) => fixOn && crowd === "full" && fixOf(a);
+  const bandsOf = (a) => (fixed(a) ? fixOf(a).bands_after_s : crowd === "full" ? a.rt60_bands_occupied_s : a.rt60_bands_empty_s);
+  const rtOf = (a) => (fixed(a) ? fixOf(a).rt60_after_s : crowd === "full" ? a.rt60_occupied_s : a.rt60_empty_s);
   const seatM = (a) => [clamp(seatFrac[0] * a.dims_m.length, 0.5, a.dims_m.length - 0.5), clamp(seatFrac[1] * a.dims_m.width, 0.5, a.dims_m.width - 0.5)];
 
   // ---------------------------------------------------------------- layout
@@ -460,7 +494,8 @@ export function createPlayRoom(root) {
     const aspect = clamp(a.dims_m.width / a.dims_m.length, 0.32, 0.9);
     const h = Math.round(w * aspect);
     const dpr = Math.min(devicePixelRatio || 1, 2);
-    [fieldCanvas, overlay].forEach((c) => { c.width = w * dpr; c.height = h * dpr; c.style.height = `${h}px`; });
+    [fieldCanvas, overlay, $(root, ".pr-modemap")].forEach((c) => { c.width = w * dpr; c.height = h * dpr; c.style.height = `${h}px`; });
+    drawMode();
     root.querySelector(".pr-stage").style.height = `${h}px`;
     drawOverlay();
   }
@@ -598,7 +633,7 @@ export function createPlayRoom(root) {
     const a = rooms[slotRoom[slot]]?.acoustics;
     if (!a?.dims_m) return null;
     const seat = seatM(a).map((v) => +v.toFixed(1));
-    const key = `${slotRoom[slot]}|${crowd}|${seat}`;
+    const key = `${slotRoom[slot]}|${crowd}|${fixOn}|${seat}`;
     sound._ensure();
     if (!irCache.has(key)) irCache.set(key, makeSeatImpulse(bandsOf(a), a.dims_m, seat, sound.ctx.sampleRate));
     return irCache.get(key);
@@ -652,7 +687,88 @@ export function createPlayRoom(root) {
   }
 
   function renderAll() {
-    renderSeat(); renderVerdicts(); renderCompare(); drawOverlay();
+    renderSeat(); renderVerdicts(); renderCompare(); renderExtras(); drawOverlay();
+  }
+
+  // ---------------------------------------------------------------- range, fix, booming notes
+
+  function renderRange(a) {
+    const box = $(root, ".pr-range"), u = a.uncertainty;
+    box.hidden = !u?.p10 || crowd !== "full" || fixed(a);
+    if (box.hidden) return;
+    const [lo, hi] = a.target_s;
+    const max = Math.max(u.p90, hi) * 1.15, pct = (v) => `${(100 * v) / max}%`;
+    const t = $(root, ".pr-range-target"), band = $(root, ".pr-range-band"), mid = $(root, ".pr-range-mid");
+    t.style.left = pct(lo); t.style.width = `calc(${pct(hi)} - ${pct(lo)})`;
+    band.style.left = pct(u.p10); band.style.width = `calc(${pct(u.p90)} - ${pct(u.p10)})`;
+    mid.style.left = pct(u.p50);
+    const chance = Math.round(u.in_target * 10);
+    $(root, ".pr-range-text").textContent = `We don't know every finish, so we ran the model ${u.samples} times with them varied. `
+      + `Most runs land between ${u.p10} and ${u.p90} s; ${chance === 10 ? "all" : chance === 0 ? "none" : `${chance} in 10`} land inside the ${lo} to ${hi} s target (the green band).`;
+  }
+
+  function renderExtras() {
+    const a = room();
+    if (!a) return;
+    renderRange(a);
+    // Fix the room
+    const t = a.treatment, fix = fixOf(a);
+    $(root, ".pr-fix-num").textContent = !t ? "" : t.status === "in_range" ? "Nothing to fix"
+      : fix ? `${fix.area_sqft.toLocaleString()} sq ft of ${fix.label}` : t.status === "too_dry" ? "Too dry to fix with curtains" : "Hard to fix";
+    $(root, ".pr-fix-text").textContent = t?.summary || "";
+    $(root, ".pr-fix-seg").hidden = !fix;
+    root.querySelectorAll("[data-fix]").forEach((b) => b.classList.toggle("on", Number(b.dataset.fix) === (fixOn ? 1 : 0)));
+    // Notes that boom
+    const m = a.modes;
+    $(root, ".pr-modes-text").textContent = m?.summary || "Open air: the room has no resonances to speak of.";
+    $(root, ".pr-notes").innerHTML = (m?.booming_notes || []).map((b, i) =>
+      `<button type="button" class="pr-note${modeSel === i ? " on" : ""}" data-note="${i}">${b.note}<small>${Math.round(b.hz)} Hz${b.parts.length ? `, ${b.parts.join(", ")}` : ""}</small></button>`).join("");
+    root.querySelectorAll("[data-note]").forEach((el) => (el.onclick = () => playNote(Number(el.dataset.note))));
+    if (modeSel == null) $(root, ".pr-mode-where").textContent = m?.booming_notes?.length ? "Press a note to hear it in this room and see where it's loudest." : "";
+  }
+
+  /** Where a standing wave is loud: |cos(nx pi x / L) cos(ny pi y / W)| over the floor plan. */
+  function drawMode() {
+    const cv = $(root, ".pr-modemap"), g = cv.getContext("2d");
+    g.clearRect(0, 0, cv.width, cv.height);
+    const a = room(), b = a?.modes?.booming_notes?.[modeSel];
+    if (!b) return;
+    const [nx, ny] = b.shape, cols = 160, rows = Math.max(24, Math.round(cols * cv.height / cv.width));
+    const img = new ImageData(cols, rows);
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const v = Math.abs(Math.cos((nx * Math.PI * (i + 0.5)) / cols) * Math.cos((ny * Math.PI * (j + 0.5)) / rows)) ** 2;
+      const o = (j * cols + i) * 4;
+      img.data[o] = 243; img.data[o + 1] = 210; img.data[o + 2] = 122; img.data[o + 3] = Math.round(158 * v);
+    }
+    const tmp = document.createElement("canvas");
+    tmp.width = cols; tmp.height = rows;
+    tmp.getContext("2d").putImageData(img, 0, 0);
+    g.imageSmoothingEnabled = true;
+    g.drawImage(tmp, 0, 0, cv.width, cv.height);
+  }
+
+  function whereLoud(b) {
+    const [nx, ny, nz] = b.shape;
+    if (nx && !ny) return nx === 1 ? "loudest at the front and back walls, quiet in the middle"
+      : `loudest in ${nx + 1} stripes running across the room, counting the front and back walls, and quiet in between`;
+    if (ny && !nx) return ny === 1 ? "loudest along the two side walls, quiet down the middle"
+      : `loudest in ${ny + 1} stripes running the length of the room, counting both side walls, and quiet in between`;
+    if (!nx && !ny && nz) return "the same everywhere on the floor; it bounces between floor and ceiling";
+    return "loudest in the corners and in a grid of spots across the room";
+  }
+
+  async function playNote(i) {
+    const a = room(), b = a?.modes?.booming_notes?.[i];
+    if (!b) return;
+    modeSel = i;
+    field.clear(); paint();
+    drawMode(); renderExtras();
+    $(root, ".pr-mode-where").textContent = `${b.note} at ${b.hz} Hz is ${whereLoud(b)} (the gold areas). You'll hear it, then the note a whole step up, for comparison.`;
+    sound._ensure(); await sound.ctx.resume();
+    await refreshImpulses(); sound.choose(active);
+    const t = sound.ctx.currentTime + 0.05;
+    sound.voices.push(sing(sound.ctx, sound.input, b.hz, t, 1.6, "oh", 0));
+    sound.voices.push(sing(sound.ctx, sound.input, b.hz * 2 ** (2 / 12), t + 2.1, 1.6, "oh", 0));
   }
 
   // ---------------------------------------------------------------- events
@@ -675,6 +791,7 @@ export function createPlayRoom(root) {
     await refreshImpulses();
     sound.choose(active);
     field.clear();
+    modeSel = null; drawMode(); renderExtras();
     const seconds = await sound.playChoir();
     for (let i = 0; i < 5; i++) setTimeout(() => pulse(i === 4 ? 1.2 : 1), i * 1100 + 50);
     $(root, ".pr-play").classList.add("on");
@@ -735,6 +852,57 @@ export function createPlayRoom(root) {
       loadField(); renderAll(); refreshImpulses();
     };
   });
+
+  root.querySelectorAll("[data-fix]").forEach((b) => {
+    b.onclick = () => {
+      fixOn = b.dataset.fix === "1";
+      loadField(); renderAll(); refreshImpulses();
+    };
+  });
+
+  // Your own recording, played from the seat you picked, in room A or B.
+  $(root, ".pr-upload input").onchange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const label = $(root, ".pr-upload");
+    try {
+      sound._ensure(); await sound.ctx.resume();
+      const buf = await sound.ctx.decodeAudioData(await file.arrayBuffer());
+      await refreshImpulses(); sound.choose(active);
+      if (upload) { try { upload.stop(); } catch (_) { /* done */ } }
+      upload = sound.ctx.createBufferSource();
+      upload.buffer = buf;
+      const g = sound.ctx.createGain(); g.gain.value = 0.9;
+      upload.connect(g).connect(sound.input);
+      watchOnsets(g);
+      upload.start();
+      label.firstChild.textContent = `Playing ${file.name.slice(0, 28)}. `;
+      upload.onended = () => { label.firstChild.textContent = "Play your own recording"; stopOnsets(); };
+      field.clear(); pulse(1);
+    } catch (err) {
+      label.firstChild.textContent = "That file didn't play. Try an mp3 or wav. ";
+    }
+    e.target.value = "";
+  };
+
+  let onsetTimer = 0;
+  function stopOnsets() { clearInterval(onsetTimer); }
+  function watchOnsets(node) {
+    stopOnsets();
+    const an = sound.ctx.createAnalyser();
+    an.fftSize = 512;
+    node.connect(an);
+    const buf = new Float32Array(an.fftSize);
+    let last = 0, lastPulse = 0;
+    onsetTimer = setInterval(() => {
+      an.getFloatTimeDomainData(buf);
+      let e = 0; for (const v of buf) e += v * v;
+      const rms = Math.sqrt(e / buf.length);
+      const now = performance.now();
+      if (rms > 0.03 && rms > last * 1.8 && now - lastPulse > 220) { pulse(clamp(rms * 8, 0.4, 1.5)); lastPulse = now; }
+      last = last * 0.7 + rms * 0.3;
+    }, 30);
+  }
 
   // ---------------------------------------------------------------- clap meter
 
@@ -851,7 +1019,7 @@ export function createPlayRoom(root) {
       rooms = list.filter((r) => r.acoustics?.dims_m);
       crowd = crowdMode;
       if (!rooms.length) return;
-      if (!same) { irCache.clear(); active = 0; sound.ctx && sound.choose(0); }
+      if (!same) { irCache.clear(); active = 0; fixOn = false; modeSel = null; sound.ctx && sound.choose(0); }
       slotRoom = [0, Math.min(1, rooms.length - 1)];
       root.hidden = false;
       loadField(); renderAll(); refreshImpulses();
