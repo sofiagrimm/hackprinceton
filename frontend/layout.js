@@ -1077,6 +1077,26 @@ function renderAcCards() {
     </article>`).join("");
   renderMics(a);
   updateStand();
+  updateAcPhoto();
+}
+
+/** The picture of whichever room is chosen under "Which room". */
+async function updateAcPhoto() {
+  const sp = await standSpace();
+  const id = state.venueId;
+  if (!sp || !id) return;
+  const img = $("ac-photo-img");
+  const key = `${id}/${sp.space_name}`;
+  if (img.dataset.key === key) return;
+  img.dataset.key = key;
+  $("ac-photo-cap").textContent = sp.space_name.toLowerCase();
+  img.alt = sp.space_name;
+  const list = (await rooms(id)).filter((r) => r.model_id === sp.model_id);
+  const ranked = rankRooms(list.length ? list : await rooms(id), sp.model_id);
+  const views = (await Promise.all(ranked.slice(0, 3).map(bestFace))).filter(Boolean).sort((x, y) => y.score - x.score);
+  if (img.dataset.key !== key) return; // the room changed while loading
+  if (views[0]) { img.src = views[0].url; img.style.visibility = ""; }
+  else showPicture(img, id);
 }
 
 // ------------------------------------------------------------------ stand in the room (3D)

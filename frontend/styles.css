@@ -1460,3 +1460,13 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .rs-slider { padding-bottom: 0; }
 .rs-controls { margin-top: calc(4.4% + var(--s4)); }
 @media (max-width: 760px) { .rs-controls { margin-top: calc(8% + var(--s3)); } }
+
+/* acoustics page: the chosen room's picture beside "Which room" */
+.ac-head { flex-wrap: nowrap; align-items: flex-start; }
+.ac-head > div:first-child { flex: 1 1 auto; }
+.ac-photo { flex: none; width: clamp(200px, 22vw, 300px); --tilt: 3deg; margin-top: var(--s2); }
+.ac-photo img { aspect-ratio: 4 / 3; }
+@media (max-width: 760px) { .ac-head { flex-wrap: wrap; } .ac-photo { width: 220px; } }
+.ac-head { flex-wrap: wrap; justify-content: flex-start; align-items: flex-start; gap: var(--s5) var(--s8); }
+.ac-head > div:first-child { flex: 1 1 100%; }
+.ac-photo { margin-top: 0; }
