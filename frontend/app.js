@@ -84,8 +84,11 @@ async function boot() {
     setTimeout(() => $("brief").focus(), 500);
   };
 
-  try { hero = createVinylHero($("hero3d")); } catch (err) { console.warn("Hero unavailable", err); }
-  $("hero3d").addEventListener("click", onRecordTap);
+  if ($("hero3d")) {
+    try { hero = createVinylHero($("hero3d")); } catch (err) { console.warn("Hero unavailable", err); }
+    $("hero3d").addEventListener("click", onRecordTap);
+  }
+  $("hero-record")?.addEventListener("click", playHeroRecord);
   try { state.config = await (await fetch("/api/config")).json(); } catch { /* offline */ }
   wireScoutMode();
   loadValidation();
@@ -144,6 +147,18 @@ function wireStage() {
       hero?.setScroll(Math.min(1, window.scrollY / Math.max(window.innerHeight, 1)));
     });
   }, { passive: true });
+}
+
+// The record in the opening collage: tap to hear a chord in a real scanned room, tap again to stop.
+async function playHeroRecord() {
+  const rec = $("hero-record");
+  if (Date.now() < recordPlayingUntil) { sound.stopChoir(); recordPlayingUntil = 0; rec.classList.remove("playing"); return; }
+  if (!state.venue) await openVenue(DEFAULT_VENUE);
+  applyRoomSound();
+  const seconds = await sound.playChoir();
+  recordPlayingUntil = Date.now() + seconds * 1000;
+  rec.classList.add("playing");
+  setTimeout(() => { if (Date.now() >= recordPlayingUntil - 50) rec.classList.remove("playing"); }, seconds * 1000);
 }
 
 async function onRecordTap(e) {
