@@ -27,7 +27,7 @@ class ScoutRequest(BaseModel):
 @app.get("/api/config")
 def config() -> dict:
     return {
-        "agent": "claude" if ANTHROPIC_API_KEY else "planner",
+        "agent": make_scout().name,
         "matterport_sdk_key": MATTERPORT_SDK_KEY,
         "venues": len(data.venues()),
         "housing": len(data.housing()),

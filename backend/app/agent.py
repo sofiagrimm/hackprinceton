@@ -297,6 +297,13 @@ class ClaudeScout:
 
 
 def make_scout(prefer: str | None = None):
-    if prefer != "planner" and ANTHROPIC_API_KEY:
+    """Deep Agents if SCOUT_LLM is set, else Claude directly if a key is set, else our planner."""
+    import os
+    if prefer == "planner":
+        return PlannerScout()
+    if os.environ.get("SCOUT_LLM"):
+        from .deep_scout import DeepScout
+        return DeepScout()
+    if ANTHROPIC_API_KEY:
         return ClaudeScout()
     return PlannerScout()

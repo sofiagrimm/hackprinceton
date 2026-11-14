@@ -39,7 +39,7 @@ async function boot() {
   $("d-close").onclick = () => { $("detail").hidden = true; sound.stopChoir(); };
   try {
     state.config = await (await fetch("/api/config")).json();
-    $("status").textContent = `${state.config.venues.toLocaleString()} scanned buildings · ${state.config.housing.toLocaleString()} apartment communities · agent: ${state.config.agent === "claude" ? "Claude" : "built-in planner"}`;
+    $("status").textContent = `${state.config.venues.toLocaleString()} scanned buildings · ${state.config.housing.toLocaleString()} apartment communities · agent: ${AGENT_LABEL[state.config.agent] || state.config.agent}`;
   } catch {
     $("status").textContent = "API not reachable";
   }
@@ -81,6 +81,8 @@ async function runScout() {
   $("go").disabled = false;
 }
 
+const AGENT_LABEL = { claude: "Claude", deepagents: "Deep Agents", planner: "built-in planner" };
+
 const TOOL_LABEL = {
   search_venues: "Searching scanned spaces",
   analyze_venue: "Measuring rooms",
@@ -101,7 +103,13 @@ function step(cls, html) {
 function handleEvent(ev) {
   switch (ev.type) {
     case "agent":
-      $("agent-name").textContent = ev.name === "claude" ? "Claude" : "built-in planner";
+      $("agent-name").textContent = AGENT_LABEL[ev.name] || ev.name;
+      break;
+    case "delegate":
+      step("plan", `<span class="k">Delegating to ${esc(ev.agent)}</span> <span class="muted">${esc(ev.text)}</span>`);
+      break;
+    case "file":
+      step("plan", `<span class="k">Writing</span> <span class="muted">${esc(ev.path)}</span>`);
       break;
     case "plan":
       step("plan", `<span class="k">Plan</span> ${esc(ev.text)}`);
