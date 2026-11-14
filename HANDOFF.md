@@ -49,3 +49,14 @@ Nothing in `agent.py` is wired to it yet. To let Claude call it, add `tour.TOOL_
    and a flight to Houston. The total and the budget gap appear at the bottom.
 3. Click "Vote for this room" and type a name. Then open the "Share with the group" link in another tab. It shows
    the same plan with the vote counted.
+
+## Known gaps
+- "Collect dues" has not been run against Nessie yet. Try it once before the demo, then run
+  `python scripts/reset_tour_fund.py` so the fund starts at $2,500 again.
+- `plan_tour` is not wired into `agent.py` yet (see Agent tool above).
+- Shared plans live in `data/cache/tours/`, which is not kept across a hosted redeploy. Links work locally
+  and until the next deploy.
+- The demo brief comes out over budget: about $10,761 against $6,000 on the real data, mostly the flight and
+  five LA nights. Raise the budget in the brief to about $11,000 if you want it to land under.
+- LA to Houston shows about 1,708 road miles, not the real ~1,550, because of the straight line x 1.25 rule.
+  Short city drives are timed at 55 mph, so they read fast.
