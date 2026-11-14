@@ -1337,7 +1337,7 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .view[data-view="results"] .rs-why { background: #dfe6cf; }
 
 /* "find your space" under the lower staff, in the cream letterpress serif of the design */
-.collage .find-space { left: 290px; top: 534px; width: 900px; text-align: center; text-decoration: none;
+.collage .find-space { left: 290px; top: 516px; width: 900px; text-align: center; text-decoration: none;
   font-family: "IM Fell English", "Iowan Old Style", Georgia, serif; font-size: 58px; letter-spacing: 0.06em; line-height: 1;
   color: #f3e7d8; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 0 1px rgba(243, 231, 216, 0.6); }
 .collage .find-space span { font-family: "IM Fell English SC", "IM Fell English", Georgia, serif; }
@@ -1393,3 +1393,17 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 .ac-try #ac-now { margin-top: var(--s2); }
 .view[data-view="acoustics"] .frame.black.sound { padding-top: var(--s7); }
 .view[data-view="acoustics"] .sound-top { gap: var(--s4); }
+
+/* Property page: the extra pictures sit in the frames of a film strip, under the main photo.
+   Frame positions are measured from img/filmstrip.webp (1865 x 513); the strip lies on top. */
+.prop-gallery { grid-template-columns: minmax(0, 1fr); }
+.prop-thumbs.filmstrip { position: relative; display: block; aspect-ratio: 1865 / 513; margin: var(--s4) 0 0; }
+.prop-thumbs.filmstrip::after { content: ""; position: absolute; inset: 0; background: url("img/filmstrip.webp") center / 100% 100% no-repeat; pointer-events: none; }
+.prop-thumbs.filmstrip li { position: absolute; transform: none; background: #efe3d6; }
+.prop-thumbs.filmstrip li:nth-child(1) { left: 4.18%; top: 22.03%; width: 21.72%; height: 58.09%; }
+.prop-thumbs.filmstrip li:nth-child(2) { left: 27.67%; top: 21.83%; width: 21.66%; height: 58.09%; }
+.prop-thumbs.filmstrip li:nth-child(3) { left: 51.1%; top: 21.64%; width: 21.72%; height: 58.28%; }
+.prop-thumbs.filmstrip li:nth-child(4) { left: 74.58%; top: 21.64%; width: 21.72%; height: 58.09%; }
+.prop-thumbs.filmstrip button { width: 100%; height: 100%; padding: 0; background: none; box-shadow: none; }
+.prop-thumbs.filmstrip button:hover { transform: none; filter: brightness(1.08); }
+.prop-thumbs.filmstrip img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; background: #efe3d6; }

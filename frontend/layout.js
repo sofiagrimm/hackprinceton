@@ -611,8 +611,9 @@ async function renderThumbs(id) {
   const urls = await pictureList(id);
   if (state.venueId !== id && state.venueId != null) return;
   $("explore-pic").style.backgroundImage = urls[0] ? `url("${urls[0]}")` : "";
-  $("prop-thumbs").innerHTML = urls.slice(1, 4).map((u, i) =>
-    `<li style="--tilt:${[-4, 3, -2, 5][i]}deg"><button type="button" aria-label="Show picture ${i + 2}"><img src="${esc(u)}" alt="" loading="lazy"></button></li>`).join("");
+  // Four frames of the film strip (img/filmstrip.webp lies over them).
+  $("prop-thumbs").innerHTML = urls.slice(1, 5).map((u, i) =>
+    `<li><button type="button" aria-label="Show picture ${i + 2}"><img src="${esc(u)}" alt="" loading="lazy"></button></li>`).join("");
   $("prop-thumbs").querySelectorAll("li").forEach((li) => {
     const img = li.querySelector("img");
     img.onerror = () => li.remove(); // that picture doesn't exist for this building
