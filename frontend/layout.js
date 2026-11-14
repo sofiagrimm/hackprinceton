@@ -1055,7 +1055,100 @@ function renderAcCards() {
     <article class="ac-card" style="--tilt:${[-1, 0.8, -0.6, 1.2][i]}deg">
       <h3>${c.k}</h3><p class="ac-big">${c.big}</p>${c.m}<p class="ac-text">${c.t}</p>
     </article>`).join("");
+  renderMics(a);
 }
+
+// ------------------------------------------------------------------ mic recommendations
+
+/** What the brief says about the people making sound: how many voices, solos, beatbox, a shoot. */
+function readNeeds() {
+  const text = state.brief || $("brief")?.value || "";
+  const num = (re) => Number((text.match(re) || [])[1]) || 0;
+  return {
+    intent: briefIntent(),
+    voices: num(/(\d+)[- ]?(?:voice|singers?|members|performers|vocalists)/i),
+    choir: /\bchoir|choral|chorus\b/i.test(text),
+    solo: /\bsolo(?:ist|s)?\b/i.test(text),
+    beatbox: /\bbeat ?box|vocal percussion|vp\b/i.test(text),
+    acappella: /a ?cappella|acapella/i.test(text),
+    crew: num(/(\d+)\s*(?:crew|people on set)/i),
+    audience: num(/(\d+)\s*(?:guests|people|audience|seats)/i) || readAcoustics().guests || 60,
+  };
+}
+
+function micCard(title, kind, lines, tag) {
+  return `<article class="ac-mic"><p class="ac-mic-kind">${kind}</p><h3>${title}</h3>
+    <ul>${lines.filter(Boolean).map((l) => `<li>${l}</li>`).join("")}</ul>${tag ? `<p class="ac-mic-tag">${tag}</p>` : ""}</article>`;
+}
+
+function renderMics(a) {
+  const n = readNeeds();
+  const [lo, hi] = a.target || [1.2, 2];
+  const live = a.full > hi, dry = a.full < lo;
+  const big = n.voices >= 16 || n.choir;
+  const cards = [];
+  let why = [];
+
+  if (n.intent !== "film") {
+    const voices = n.voices || (n.choir ? 30 : 12);
+    why.push(n.voices ? `${n.voices} voices` : n.choir ? "a choir" : "a vocal group");
+    if (n.audience) why.push(`${n.audience} guests`);
+    why.push(`${a.full}s of echo with them in`);
+    // does the room need amplification at all?
+    const needsPA = n.audience > 180 || (a.sti != null && a.sti < 0.45) || dry;
+    if (big) {
+      const pairs = Math.max(1, Math.ceil(voices / 12));
+      cards.push(micCard(`${pairs === 1 ? "A stereo pair" : `${pairs} choir mics`} over the group`, "For the whole choir",
+        [`Small-diaphragm condensers, cardioid, about 1 m above and in front of the front row, angled at the back row.`,
+         pairs > 1 ? `One for roughly every 10 to 12 singers, spread across the width so every section is covered.` : `An XY or ORTF pair picks up the blend and the width of the group.`,
+         `Add two room mics further back (a spaced pair, or one surround/ambisonic mic) to capture the hall around the choir for a recording.`],
+        live ? "Live room: keep the pair closer than usual so the echo doesn't wash it out." : dry ? "Dry room: the room mics add the warmth the space lacks." : ""));
+    } else {
+      const parts = n.acappella ? "one per part" : "one per singer";
+      cards.push(micCard(`Handheld vocal mics, ${parts}`, "For the group",
+        [`Cardioid dynamic handhelds (the classic stage vocal mic): forgiving, hard to make feed back, fine for blending.`,
+         n.acappella ? `With ${voices} singers, ${Math.min(voices, 6)} to 8 mics shared by section is plenty; the bass and lead get their own.` : `Singers who stand close together can share one mic per pair.`,
+         live ? `This room rings, so a supercardioid pattern keeps more of the echo out.` : ""], ""));
+    }
+    if (n.solo || !big) {
+      cards.push(micCard("A solo mic out front", "For solos",
+        [`A handheld condenser or a dynamic on a stand, set downstage centre so soloists step up to it.`,
+         `Give it its own fader so the solo can sit above the group.`,
+         dry ? `A condenser suits this dry room: it catches more of the voice's detail.` : `A dynamic is safer in a live room: it hears less of the echo.`]));
+    }
+    if (n.beatbox || n.acappella) {
+      cards.push(micCard("A dynamic mic for vocal percussion", "For beatboxing",
+        [`A dynamic with a tight pattern, held close; it takes the plosives without distorting.`,
+         `Give it some low end in the mix so the kick sits under the chords.`]));
+    }
+    cards.push(micCard(needsPA ? "You'll want a small PA" : "You may not need a PA at all", "Sound system",
+      [needsPA
+        ? `${n.audience > 180 ? `With ${n.audience} guests` : dry ? "In a room this dry" : "With words this hard to follow"}, unaided voices won't carry to the back. Two speakers on stands, slightly ahead of the singers.`
+        : `${n.audience} guests in a room with ${a.full}s of echo can hear unamplified voices well. Mic it only to record or for spoken intros.`,
+       live ? `Keep the speakers low and aimed at the audience, not the walls, or the echo will blur the sound.` : ""]));
+  }
+
+  if (n.intent !== "sound") {
+    const dialogueOk = (a.empty ?? a.full) <= 0.6;
+    why.push(dialogueOk ? "quiet enough for dialogue" : `${a.empty ?? a.full}s of echo empty, live for dialogue`);
+    cards.push(micCard("A boom mic over every take", "For a film set",
+      [dialogueOk
+        ? `A shotgun mic on a boom pole just out of frame; this room is dead enough that it will sound clean.`
+        : `Indoors in a room this live, use a hypercardioid on the boom rather than a long shotgun: it hears less of the reflections off the walls.`,
+       `Bring sound blankets${dialogueOk ? " for any hard surfaces near the actors" : ": hang them out of shot, opposite the actors, to deaden the room"}.`,
+       n.crew ? `With a ${n.crew}-person crew, plan a boom operator and a sound mixer at minimum.` : ""]));
+    cards.push(micCard("Lavaliers for wide shots", "For a film set",
+      [`Wireless lav mics on each speaking actor for shots too wide for the boom.`,
+       `Record them on separate tracks with the boom so the editor can choose.`,
+       !dialogueOk ? `In this room the lavs will often sound cleaner than the boom.` : ""]));
+    cards.push(micCard("A room tone mic", "For a film set",
+      [`Record a minute of the empty room with the boom at the end of each setup; the editor uses it to smooth cuts.`]));
+  }
+
+  $("ac-mic-why").textContent = `Picked for ${why.join(", ")}.`;
+  $("ac-mics").innerHTML = cards.join("");
+}
+
 
 function playStatus(what) {
   const room = document.querySelector("#d-spaces button.on")?.textContent || $("d-name").textContent;
