@@ -486,7 +486,7 @@ function renderResults(r) {
   $("last-results").hidden = false;
   const n = r.results.length;
   $("rs-title").innerHTML = n
-    ? `<span class="rs-line">${n} rooms in ${esc(r.metro)}.</span> <em class="rs-em">Ranked by how they'd sound.</em>`
+    ? `${n} rooms in ${esc(r.metro)}.`
     : "Nothing fit yet.";
   $("rs-sub").textContent = n
     ? `Out of ${r.venues_scanned.toLocaleString()} scanned buildings, each heard with ${r.audience} people in.`
