@@ -457,7 +457,8 @@ body::after {
 .back:hover { color: var(--wine); }
 .results-page .page-title .script { font-size: 0.9em; }
 .results-layout { margin-top: var(--s7); }
-.rs-aside { margin-top: var(--s8); max-width: 560px; }
+/* the agent's step-by-step plan stays in the page for app.js but isn't shown */
+.rs-aside { display: none; }
 .rs-wait { font-family: var(--script); font-size: 28px; color: var(--wine); padding: var(--s7) 0; }
 
 /* the slider: the current room big, the next ones smaller to its right */

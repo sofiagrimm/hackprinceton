@@ -205,6 +205,7 @@ function onBriefSubmit() {
   if (detectCity(brief)) { go("#/cities"); return; }
   state.search = null;
   state.scouting = true;
+  state.brief = brief;
   $("rs-title").textContent = "Scouting.";
   $("rs-sub").textContent = `“${brief}”`;
   $("rs-list").innerHTML = `<p class="rs-wait">Listening to every scanned room that could fit you. This takes a few seconds.</p>`;
@@ -394,7 +395,18 @@ async function renderShelf() {
 
 // ------------------------------------------------------------------ results page
 
-function why(v) {
+// What the brief is for, from its own words: a shoot, a show, or it doesn't say (then both).
+const FILM_WORDS = /\b(film|filming|shoot|shooting|movie|video|crew|scene|commercial|music video|photo ?shoot|documentary|dialogue|cast)\b/i;
+const SOUND_WORDS = /\b(sing|singers?|singing|choir|choral|a ?cappella|acapella|concert|recital|band|music(?!\s+video)|perform|performance|show|gig|rehears\w*|record(?:ing)?|vocal\w*|orchestra|quartet|trio|jazz|voices?)\b/i;
+
+function briefIntent() {
+  const text = state.brief || $("brief")?.value || "";
+  const film = FILM_WORDS.test(text) || state.search?.use === "film_dialogue";
+  const sound = SOUND_WORDS.test(text.replace(FILM_WORDS, " "));
+  return film && !sound ? "film" : sound && !film ? "sound" : "both";
+}
+
+function whySound(v) {
   const a = v.best_space.acoustics;
   const [lo, hi] = a.target_s || [0, 0];
   // Say something the verdict on the venue page doesn't: fit for this crowd, and clarity.
@@ -402,6 +414,28 @@ function why(v) {
   const room = a.capacity_seated >= (state.search.audience || 0) ? `seats ${a.capacity_seated}, so ${state.search.audience} fit` : `seats only ${a.capacity_seated}`;
   const clear = a.c80_db == null ? "" : a.c80_db > 3 ? " Each part stays distinct." : a.c80_db < -2 ? " The parts blend into one sound." : " Clear, with some warmth.";
   return `With ${state.search.audience} people in, it rings for ${a.rt60_occupied_s} seconds, ${fit}. It ${room}.${clear}`;
+}
+
+function whyFilm(v) {
+  const s = v.best_space, a = s.acoustics;
+  const rt = a.rt60_empty_s ?? a.rt60_occupied_s;
+  const sound = rt <= 0.6
+    ? `It rings for ${rt} seconds empty, quiet enough to record clean dialogue.`
+    : rt <= 0.9
+      ? `It rings for ${rt} seconds empty, a touch live for dialogue; a few sound blankets will fix it.`
+      : `At ${rt} seconds of echo it's live for dialogue, so plan on blankets or keep it for scenes without lines.`;
+  const space = `${s.area_sqft.toLocaleString()} sq ft${s.height_ft ? ` with a ${s.height_ft} ft ceiling` : ""} gives the crew room to work${s.height_ft >= 12 ? " and the lights room to fly" : s.height_ft ? ", though lights will sit low" : ""}.`;
+  const park = v.parking_spaces ? ` ${v.parking_spaces} parking spaces on record for trucks and crew cars.` : "";
+  return `${sound} ${space}${park}`;
+}
+
+function whyHTML(v) {
+  const intent = briefIntent();
+  if (intent === "film") return `<h3 class="script">Why it works for your shoot</h3><p>${esc(whyFilm(v))}</p>`;
+  if (intent === "sound") return `<h3 class="script">Why it fits your show</h3><p>${esc(whySound(v))}</p>`;
+  return `<h3 class="script">Why it works for you</h3>
+    <p><b>For a show.</b> ${esc(whySound(v))}</p>
+    <p><b>For a shoot.</b> ${esc(whyFilm(v))}</p>`;
 }
 
 function renderResults(r) {
@@ -498,7 +532,7 @@ function renderDetail(v, i) {
     </div>
     <div class="rs-price"><b>$${feeEstimate(v).toLocaleString()}</b><span>an evening, our guess</span>
       <a class="btn" href="#/venue/${v.venue_id}">See the room</a></div>
-    <div class="rs-why"><h3 class="script">Why it fits your show</h3><p>${esc(why(v))}</p></div>`;
+    <div class="rs-why">${whyHTML(v)}</div>`;
 }
 
 // ------------------------------------------------------------------ property page
