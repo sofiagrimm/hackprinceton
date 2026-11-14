@@ -52,12 +52,36 @@ handles the brief itself and `app.js` never sees it. Otherwise the brief goes th
 `regions.js` also hides the main result sections, including the Matterport tour, and shows its own section. It adds
 a "Bay Area" example under the brief box and a city picker in the section.
 
+## Status
+
+- Done and pushed: backend, agent tools, routes, front end and geofence.
+- Checked with the real `.env`: the index decrypts (`/api/config` shows 3,288 venues). Real Vexcel calls through the
+  geofence return footprints in Sacramento and Pensacola. SF points make no Vexcel call at all. An LA brief still goes
+  to the main scout.
+- Checked in Chromium with a small hand-made SF fixture (since deleted): the demo brief routes to the regions
+  section, the Matterport tour stays hidden, and the console is clean.
+- **Not done: the real OpenStreetMap data.** `data/index/regions.json` doesn't exist yet, so region search returns
+  "No region data yet" until someone runs the build script. From the cloud container, `overpass-api.de` reset every
+  connection. Mirrors are allowlisted on the `hackprinceton` environment, but the script only tries the main server.
+  Running it on a laptop is the quickest fix.
+- Vexcel returned no roof height for the buildings we tried. In that case the code uses the OSM height tag, or a
+  typical height for the building type.
+
 ## Keys and network
 
-- Overpass: `overpass-api.de` must be reachable to run `build_regions.py`. No key is needed. It's now on the
-  `hackprinceton` environment's allowlist. From this cloud container the server kept resetting the connection, so
-  run the script from a laptop if that keeps happening.
+- Overpass: free, no key. The script needs `overpass-api.de` to be reachable. Public mirrors you can try if it's
+  down: `overpass.private.coffee`, `overpass.kumi.systems`, `maps.mail.ru/osm/tools/overpass`. To use one, change
+  `OVERPASS` at the top of `scripts/build_regions.py`.
 - Vexcel: `VEXCEL_API_KEY` in `.env`, the same as before. Without it, everything falls back to OSM.
+
+## To finish (about 5 minutes)
+
+```bash
+python scripts/build_regions.py
+```
+
+It takes a minute or two per city. Then copy `data/index/regions.json` to the machine that runs the server. It's
+git-ignored, like the rest of `data/`.
 
 ## Demo in 20 seconds
 
