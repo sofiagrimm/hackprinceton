@@ -31,12 +31,16 @@ from pydantic import BaseModel
 
 from . import vexcel
 from .acoustics import USES, RoomGeometry, estimate
-from .config import INDEX_DIR, VEXCEL_API_KEY
+from .config import INDEX_DIR, ROOT, VEXCEL_API_KEY
 from .geofence import covered
 from .region_cities import ALIASES, CITIES, VEXCEL_GAPS, find_in_text, resolve
 
 ESTIMATED_NOTE = "Estimated, no interior scan"
-REGIONS_FILE = INDEX_DIR / "regions.json"
+# OpenStreetMap data is ODbL, so a built copy can live in git at deploy/regions.json
+# (Railway reads that one); a fresh local build in data/index wins.
+_LOCAL_REGIONS = INDEX_DIR / "regions.json"
+_SHIPPED_REGIONS = ROOT / "deploy" / "regions.json"
+REGIONS_FILE = _LOCAL_REGIONS
 FT = 0.3048
 SQFT_PER_M2 = 10.7639
 
@@ -71,6 +75,8 @@ _cache: dict = {}
 
 
 def _load() -> dict:
+    global REGIONS_FILE
+    REGIONS_FILE = _LOCAL_REGIONS if _LOCAL_REGIONS.exists() else _SHIPPED_REGIONS
     if not REGIONS_FILE.exists():
         return {"venues": [], "hotels": [], "missing": True}
     mtime = REGIONS_FILE.stat().st_mtime
