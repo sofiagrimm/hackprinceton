@@ -1483,3 +1483,7 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 
 /* venue pages: no section links across the top, just the way back */
 .prop-nav .subnav-links { display: none !important; }
+
+/* The opening page is the collage alone: no tab bar, and the collage fills the whole screen. */
+body[data-view="home"] .masthead { display: none; }
+body[data-view="home"] .collage { height: 100vh; height: 100svh; }
