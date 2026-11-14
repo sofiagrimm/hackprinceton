@@ -629,7 +629,7 @@ function resetTour() {
   $("d-tour-link").hidden = !model;
   const smart = sdkUsable(state.config?.matterport_sdk_key);
   $("walk-sub").textContent = smart
-    ? "Walk the building. Every room you enter changes the sound above."
+    ? "Walk the building. Every room you enter changes its sound on the Acoustics page."
     : "The full 3D scan, room by room.";
   $("walk-status").innerHTML = "";
 }

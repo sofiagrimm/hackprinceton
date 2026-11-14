@@ -358,6 +358,20 @@ input[type=range] { accent-color: var(--wine); }
 .last-results { margin-top: var(--s5); font-size: var(--fs-sm); }
 .last-results a { color: var(--on-dark); }
 
+/* search page: the brief on the left, the shelf of rooms on the right */
+.search-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); align-items: start; }
+.search-main .display { font-size: clamp(40px, 5vw, 76px); line-height: 0.98; }
+.search-main .cassette { max-width: 640px; }
+.search-shelf { min-width: 0; padding-top: clamp(24px, 6vw, 96px); }
+.search-shelf .featured-head { margin-top: 0; padding-top: 0; border-top: 0; }
+.search-shelf .featured {
+  grid-auto-columns: min(250px, 72%); gap: var(--s5); padding: var(--s6) var(--s2) var(--s5) var(--s2); margin: 0 calc(-1 * var(--s2));
+}
+@media (max-width: 1000px) {
+  .search-layout { grid-template-columns: 1fr; }
+  .search-shelf { padding-top: 0; }
+}
+
 /* the shelf of real rooms: slides sideways */
 .featured-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s4); margin-top: var(--s8); padding-top: var(--s5); border-top: 1px solid rgba(243, 236, 225, 0.3); }
 .featured-title { font-size: var(--fs-xl); color: var(--on-dark); }

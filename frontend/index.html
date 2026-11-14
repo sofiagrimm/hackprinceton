@@ -161,14 +161,9 @@
     <section class="band olive search-band" id="search" aria-labelledby="search-title">
       <svg class="doodle search-note" viewBox="0 0 64 80" aria-hidden="true"><path d="M22 62V14l34-8v46" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round"/><circle cx="14" cy="64" r="9" fill="currentColor"/><circle cx="48" cy="56" r="9" fill="currentColor"/></svg>
       <svg class="doodle search-cam" viewBox="0 0 120 84" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 26c0-4 3-7 7-7h16l6-9h24l6 9h34c4 0 7 3 7 7v42c0 4-3 7-7 7H17c-4 0-7-3-7-7z"/><circle cx="58" cy="47" r="19"/><circle cx="58" cy="47" r="9"/><path d="M88 32h14M20 31h10"/></g></svg>
-      <div class="wrap wide">
-        <div class="search-head">
-          <div>
-            <h1 class="display" id="search-title">Tell us about the show. <span class="script">We'll find the room.</span></h1>
-          </div>
-          <p class="search-aside">Search like you talk. Tell us who's performing, when, how many people are coming, how many nights and your budget. We find rooms that can handle it.</p>
-        </div>
-
+      <div class="wrap wide search-layout">
+        <div class="search-main">
+          <h1 class="display" id="search-title">Tell us about the show. <span class="script">We'll find the room.</span></h1>
         <form class="cassette" id="ask" aria-label="Your tour stop">
           <div class="cassette-body">
             <div class="cassette-label">
@@ -186,16 +181,18 @@
         </form>
         <p class="try" id="examples">Try </p>
         <p class="last-results" id="last-results" hidden><a href="#/results">Back to your last results</a></p>
-
-        <div class="featured-head">
-          <h2 class="featured-title">Rooms on the shelf</h2>
-          <div class="featured-arrows">
+        </div>
+        <aside class="search-shelf" aria-labelledby="shelf-title">
+          <div class="featured-head">
+            <h2 class="featured-title" id="shelf-title">Rooms on the shelf</h2>
+            <div class="featured-arrows">
             <button type="button" class="arrow" id="feat-prev" aria-label="Earlier rooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             <button type="button" class="arrow" id="feat-next" aria-label="More rooms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
           </div>
-        </div>
+          <ul class="featured" id="featured" aria-label="Scanned rooms you can book"></ul>
+        </aside>
       </div>
-      <ul class="featured" id="featured" aria-label="Scanned rooms you can book"></ul>
     </section>
 
     <section class="band wine side-b" aria-labelledby="sideb-title">
