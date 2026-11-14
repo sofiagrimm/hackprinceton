@@ -479,7 +479,7 @@ function renderResults(r) {
   $("last-results").hidden = false;
   const n = r.results.length;
   $("rs-title").innerHTML = n
-    ? `${n} rooms in ${esc(r.metro)} <span class="script">that sing back.</span>`
+    ? `${n} rooms in ${esc(r.metro)}.`
     : "Nothing fit yet.";
   $("rs-sub").textContent = n
     ? `Out of ${r.venues_scanned.toLocaleString()} scanned buildings, ranked by how they'd sound with ${r.audience} people in.`
