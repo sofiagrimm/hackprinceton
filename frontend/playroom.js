@@ -785,7 +785,17 @@ export function createPlayRoom(root) {
     renderSeat(); drawOverlay(); refreshImpulses();
   });
 
+  let playTimers = [];
+  const stopPlaying = () => {
+    playTimers.forEach(clearTimeout); playTimers = [];
+    sound.stopChoir();
+    const btn = $(root, ".pr-play");
+    btn.classList.remove("on");
+    btn.setAttribute("aria-label", "Play a four-part chord from your seat");
+  };
   $(root, ".pr-play").onclick = async () => {
+    // the same button pauses: a second press while the chord rings stops it
+    if ($(root, ".pr-play").classList.contains("on")) { stopPlaying(); return; }
     sound._ensure();
     await sound.ctx.resume();
     await refreshImpulses();
@@ -793,9 +803,11 @@ export function createPlayRoom(root) {
     field.clear();
     modeSel = null; drawMode(); renderExtras();
     const seconds = await sound.playChoir();
-    for (let i = 0; i < 5; i++) setTimeout(() => pulse(i === 4 ? 1.2 : 1), i * 1100 + 50);
+    playTimers.forEach(clearTimeout);
+    playTimers = Array.from({ length: 5 }, (_, i) => setTimeout(() => pulse(i === 4 ? 1.2 : 1), i * 1100 + 50));
     $(root, ".pr-play").classList.add("on");
-    setTimeout(() => $(root, ".pr-play").classList.remove("on"), seconds * 1000);
+    $(root, ".pr-play").setAttribute("aria-label", "Stop the chord");
+    playTimers.push(setTimeout(stopPlaying, seconds * 1000));
   };
 
   $(root, ".pr-clap").onclick = async () => {

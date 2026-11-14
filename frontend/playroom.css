@@ -95,3 +95,6 @@
 .pr-stage { max-width: min(100%, 600px, calc((100vh - 420px) * 1.45)); }
 .pr-hud { font-size: 11px; gap: var(--s3); right: var(--s4); flex-wrap: wrap; }
 .pr-hint { top: auto; bottom: var(--s2); font-size: var(--fs-md); }
+
+/* while the chord plays, the record shows a pause sign */
+.pr-play.on .tri { width: 14px; height: 18px; margin-left: 0; border: 0; background: linear-gradient(90deg, var(--wine) 0 35%, transparent 35% 65%, var(--wine) 65%); }
