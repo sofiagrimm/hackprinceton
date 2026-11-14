@@ -13,7 +13,7 @@
 // "scout:results" event and opens a venue by pressing that venue's card in #cards.
 
 import { detectCity } from "./regions.js";
-import { createLightLab, fixturesFor, KINDS, EYE } from "./lightlab.js";
+import { createLightLab, fixturesFor, KINDS, EYE, stageMeter, kelvinHex, kelvinOf, ev100, shutterFor, isoFor, C_INCIDENT } from "./lightlab.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -651,6 +651,48 @@ function labLights() {
   $("lab-list").querySelectorAll("button").forEach((b) => (b.onclick = () => { lab.placed.splice(Number(b.dataset.i), 1); labLights(); }));
   $("lab-undo").disabled = $("lab-clear").disabled = !lab.placed.length;
   if (all.length > 32) $("lab-count").textContent += " (only the first 32 bulbs light up)";
+  renderMeter();
+}
+
+// ------------------------------------------------------------------ the light meter
+
+const SHUTTERS = [1 / 8000, 1 / 4000, 1 / 2000, 1 / 1000, 1 / 500, 1 / 250, 1 / 125, 1 / 60, 1 / 50, 1 / 30, 1 / 15, 1 / 8, 1 / 4, 1 / 2, 1];
+const fmtShutter = (t) => {
+  const s = SHUTTERS.reduce((a, b) => (Math.abs(Math.log(b / t)) < Math.abs(Math.log(a / t)) ? b : a));
+  return s >= 1 ? `${s} s` : `1/${Math.round(1 / s)} s`;
+};
+
+function renderMeter() {
+  if (!lab.viewer || !$("lab-meter")) return;
+  const all = lab.placed.flatMap((x) => x.fixtures);
+  const m = stageMeter(all, lab.viewer.room(), Number($("lab-ambient").value), lab.meterAt);
+  const lux = Math.max(m.lux, 0.5);
+  const iso48 = isoFor(lux);
+  const rows = [
+    ["On the singers", `${Math.round(lux).toLocaleString()} lux`],
+    ["Reading music", lux >= 300 ? "Bright enough (300 lux or more)" : "Too dim for sheet music; add stand lights"],
+    ["Camera at ISO 800, f/2.8", `${fmtShutter(shutterFor(lux))}`],
+    ["24 fps at 1/48 s, f/2.8", iso48 > 25600 ? "Too dark to film" : `ISO ${Math.max(50, Math.round(iso48 / 10) * 10).toLocaleString()}`],
+    ["Exposure value", `EV ${ev100(lux).toFixed(1)} at ISO 100`],
+  ];
+  const warn = [];
+  if (m.mixed) warn.push(`These lights run from ${m.warm} K to ${m.cool} K. On camera the warm ones will look orange next to the cool ones; gel them to match or pick one colour temperature.`);
+  const warmK = [...new Set(all.filter((f) => f.kelvin && f.kelvin < 4000).map((f) => f.kelvin))].sort((a, b) => a - b);
+  if (lab.windowM2 > 2 && warmK.length) warn.push(`This room has about ${Math.round(lab.windowM2)} m² of windows. Before sunset they add 5600 K daylight, so the ${warmK.join(" K and ")} K fixtures will look orange next to it on camera. Gel them to daylight or shoot after dark.`);
+  $("lab-meter").innerHTML = `
+    <p class="mini-head">Light meter</p>
+    <dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+    ${warn.map((w) => `<p class="lab-warn">${esc(w)}</p>`).join("")}
+    <p class="note">Measured on the singers' faces at 1.5 m high, ${lab.meterAt ? "where you put the meter" : "1.2 m out from the far wall (choose Light meter and click the floor to move it)"}, facing the middle of the room. Each fixture's lumens and beam, inverse square and cosine. House lights at full add about 250 lux. Exposure uses an incident meter's constant, C = ${C_INCIDENT}.</p>`;
+}
+
+function showLumens() {
+  const k = KINDS[lab.kind];
+  if (!k || !$("lab-lm")) { if ($("lab-lm")) $("lab-lm").textContent = ""; return; }
+  const lm = Math.round(k.lm * Number($("lab-power").value));
+  const kel = kelvinOf($("lab-color").value);
+  $("lab-lm").textContent = `${lm.toLocaleString()} lm${lab.kind === "string" ? " a bulb" : ""}, ${kel ? `${kel} K white` : "a coloured light"}`;
+  if (kel) { $("lab-k").value = kel; $("lab-k-val").textContent = `${kel} K`; }
 }
 
 /** Remove the light nearest to where you clicked in the room (within about 12 degrees). */
@@ -671,13 +713,17 @@ function eraseNear(hit) {
 
 function placeLight(kind, hit, color, power) {
   const k = KINDS[kind];
-  const fixtures = fixturesFor(kind, hit, lab.viewer.room(), color || $("lab-color").value, (power ?? Number($("lab-power").value)) * k.power);
-  lab.placed.push({ kind, color: color || $("lab-color").value, fixtures, at: hit.p });
+  const mult = power ?? Number($("lab-power").value);
+  const col = color || $("lab-color").value;
+  const fixtures = fixturesFor(kind, hit, lab.viewer.room(), col, mult * k.power);
+  const kelvin = kelvinOf(col);
+  fixtures.forEach((f) => { f.lm = k.lm * mult; f.kelvin = kelvin; });
+  lab.placed.push({ kind, color: col, fixtures, at: hit.p });
   labLights();
 }
 
 const PRESETS = {
-  concert: { ambient: 0.1, lights: [["spot", [-0.3, -0.12, -1], "#fff1d6"], ["spot", [0.3, -0.12, -1], "#fff1d6"], ["wash", [0, 0.25, 1], "#ffb36b", 0.7], ["uplight", [0, 0.1, -1], "#ff8a3d", 0.8]] },
+  concert: { ambient: 0.1, lights: [["spot", [-0.1, -0.12, -1], "#fff1d6"], ["spot", [0.1, -0.12, -1], "#fff1d6"], ["wash", [0, 0.25, 1], "#ffb36b", 0.7], ["uplight", [0, 0.1, -1], "#ff8a3d", 0.8]] },
   candle: { ambient: 0.08, lights: [["string", [-0.35, 0.25, -1], "#ffcf7a"], ["string", [0.35, 0.25, -1], "#ffcf7a"], ["string", [-1, 0.25, -0.8], "#ffcf7a"], ["string", [1, 0.25, -0.8], "#ffcf7a"], ["wash", [0, -0.35, -1], "#ff9a4d", 0.7]] },
   gala: { ambient: 0.16, lights: [["uplight", [-1, -0.1, -0.9], "#ff3d8b"], ["uplight", [1, -0.1, -0.9], "#5a7bff"], ["uplight", [-0.3, -0.1, -1], "#d9a441"], ["uplight", [0.3, -0.1, -1], "#d9a441"], ["string", [0, 0.3, -1], "#ffe2a8"], ["spot", [0, -0.2, -1], "#fff1d6", 0.8]] },
 };
@@ -702,6 +748,11 @@ async function loadLabRoom(r) {
   $("lab-empty").textContent = "Loading the room…";
   $("lab-room-name").textContent = (r.room || r.scan).replace(/^.* - /, "");
   labLights();
+  lab.windowM2 = 0;
+  lab.meterAt = null;
+  fetch(`/api/daylight/windows?${new URLSearchParams({ model_id: r.model_id, pano_id: r.pano_id, area_sqft: r.area_sqft || "" })}`)
+    .then((x) => (x.ok ? x.json() : null)).then((w) => { if (w && lab.current === r) { lab.windowM2 = w.window_m2; renderMeter(); } })
+    .catch(() => {});
   try {
     await lab.viewer.load(r.model_id, r.pano_id, r.area_sqft);
     $("lab-empty").hidden = true;
@@ -716,14 +767,23 @@ async function startLighting(id) {
   if (ensureVenue(id, `#/venue/${id}/light`)) return;
   if (!lab.viewer) {
     lab.viewer = createLightLab($("lab-view"));
-    lab.viewer.onPick((hit) => (lab.kind === "erase" ? eraseNear(hit) : placeLight(lab.kind, hit)));
-    $("lab-ambient").oninput = (e) => lab.viewer.setAmbient(Number(e.target.value));
+    lab.viewer.onPick((hit) => {
+      if (lab.kind === "erase") return eraseNear(hit);
+      if (lab.kind === "meter") { lab.meterAt = hit.p.clone(); return renderMeter(); }
+      return placeLight(lab.kind, hit);
+    });
+    $("lab-ambient").oninput = (e) => { lab.viewer.setAmbient(Number(e.target.value)); renderMeter(); };
     $("lab-kinds").querySelectorAll("button").forEach((b) => (b.onclick = () => {
       lab.kind = b.dataset.kind;
       $("lab-view").classList.toggle("erasing", lab.kind === "erase");
-      if (KINDS[lab.kind]) $("lab-color").value = KINDS[lab.kind].color;
+      if (KINDS[lab.kind]) $("lab-color").value = KINDS[lab.kind].kelvin ? kelvinHex(KINDS[lab.kind].kelvin) : KINDS[lab.kind].color;
       $("lab-kinds").querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+      showLumens();
     }));
+    $("lab-k").oninput = (e) => { $("lab-color").value = kelvinHex(Number(e.target.value)); showLumens(); };
+    $("lab-color").addEventListener("input", showLumens);
+    $("lab-power").addEventListener("input", showLumens);
+    showLumens();
     $("lab-presets").querySelectorAll("button").forEach((b) => (b.onclick = () => applyPreset(b.dataset.preset)));
     $("lab-undo").onclick = () => { lab.placed.pop(); labLights(); };
     $("lab-clear").onclick = () => { lab.placed = []; labLights(); };

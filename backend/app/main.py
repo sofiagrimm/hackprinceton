@@ -168,6 +168,8 @@ from .regions import router as regions_router  # noqa: E402
 app.include_router(regions_router)
 from .film import router as film_router  # noqa: E402
 app.include_router(film_router)
+from .daylight import router as daylight_router  # noqa: E402
+app.include_router(daylight_router)
 
 
 @app.get("/")

@@ -1,0 +1,40 @@
+/* Daylight in this room (inside the Light section) and the lighting lab's light meter. */
+
+.daylight { margin-top: var(--s7); padding-top: var(--s6); border-top: 1px solid var(--line); }
+.dl-head .sub-head { margin-top: 0; }
+.dl-lede { max-width: 62ch; }
+.dl-grid { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); gap: var(--s6); align-items: start; margin-top: var(--s5); }
+.dl-mapwrap { min-width: 0; }
+.dl-map { display: block; max-width: 100%; border-radius: var(--radius); background: #e9e0d2; }
+.dl-legend { margin-top: var(--s3); font-size: var(--fs-xs); color: var(--ink-2); }
+.dl-bar { display: block; height: 10px; border-radius: 2px; }
+.dl-ticks { display: flex; justify-content: space-between; margin-top: 4px; }
+.dl-now { margin: var(--s3) 0 0; font-size: var(--fs-sm); color: var(--ink); min-height: 2.6em; }
+.dl-side { min-width: 0; }
+.dl-verdicts { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--s3); }
+.dl-verdicts li { padding-left: var(--s4); border-left: 3px solid var(--cherry); font-size: var(--fs-md); line-height: 1.45; }
+.dl-turn { margin-top: var(--s5); }
+.dl-facing { margin: var(--s2) 0; font-size: var(--fs-sm); }
+.dl-turn-btns { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); margin: 0; }
+.dl-turn-btns .link { color: var(--cherry); }
+.dl-neighbours { margin-top: var(--s4); }
+.dl-assume { margin-top: var(--s3); font-size: var(--fs-sm); color: var(--ink-2); }
+.dl-assume summary { cursor: pointer; color: var(--cherry); }
+.dl-assume ul { margin: var(--s2) 0 0; padding-left: 1.1em; }
+
+/* Lighting lab: colour temperature and the light meter */
+.lab-kinds button[data-kind="meter"] svg { width: 18px; height: 18px; flex: none; }
+.lab-tune .lab-k { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--s3); font-size: var(--fs-sm); }
+.lab-tune .lab-k input { flex: 1; }
+.lab-tune .lab-lm { grid-column: 1 / -1; margin: 0; font-size: var(--fs-xs); color: var(--ink-2); }
+.lab-meter { margin-top: var(--s4); padding: var(--s4); border: 1.5px solid var(--line-strong); border-radius: var(--radius); background: var(--card); }
+.lab-meter .mini-head { margin: 0 0 var(--s2); }
+.lab-meter dl { display: grid; grid-template-columns: auto 1fr; gap: 4px var(--s4); margin: 0; font-size: var(--fs-sm); }
+.lab-meter dt { color: var(--ink-2); }
+.lab-meter dd { margin: 0; font-weight: 600; }
+.lab-warn { margin: var(--s3) 0 0; padding: var(--s2) var(--s3); border-left: 3px solid var(--brass); background: rgba(217, 164, 65, 0.12); font-size: var(--fs-sm); }
+.lab-meter .note { margin: var(--s3) 0 0; }
+
+@media (max-width: 860px) {
+  .dl-grid { grid-template-columns: minmax(0, 1fr); }
+}

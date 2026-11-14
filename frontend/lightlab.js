@@ -69,12 +69,99 @@ const FRAG = `
 
 const FACE_ORDER = [2, 4, 0, 5, 1, 3];
 
+// lm: lumens per fixture (per bulb for string lights) at brightness 1; kelvin: default white.
 export const KINDS = {
-  wash: { label: "Warm wash", color: "#ffb36b", power: 2.2, size: 1.4 },
-  spot: { label: "Spotlight", color: "#fff1d6", power: 6, size: 1, cone: 0.92 },
-  string: { label: "String lights", color: "#ffcf7a", power: 1.2, size: 0.7 },
-  uplight: { label: "Colour uplight", color: "#ff3d8b", power: 6, size: 1.2, cone: 0.35 },
+  wash: { label: "Warm wash", color: "#ffb36b", power: 2.2, size: 1.4, lm: 4000, kelvin: 2700 },
+  spot: { label: "Spotlight", color: "#fff1d6", power: 6, size: 1, cone: 0.92, lm: 6000, kelvin: 3200 },
+  string: { label: "String lights", color: "#ffcf7a", power: 1.2, size: 0.7, lm: 150, kelvin: 2200 },
+  uplight: { label: "Colour uplight", color: "#ff3d8b", power: 6, size: 1.2, cone: 0.35, lm: 1500, kelvin: null },
 };
+
+// ------------------------------------------------------------------ photometry
+// The same formulas as backend/app/photometry.py (tested there).
+
+/** Colour temperature to sRGB, Tanner Helland's fit to the Planckian locus. */
+export function kelvinRgb(k) {
+  const t = Math.max(1000, Math.min(40000, k)) / 100;
+  let r, g, b;
+  if (t <= 66) {
+    r = 255;
+    g = 99.4708025861 * Math.log(t) - 161.1195681661;
+    b = t <= 19 ? 0 : 138.5177312231 * Math.log(t - 10) - 305.0447927307;
+  } else {
+    r = 329.698727446 * (t - 60) ** -0.1332047592;
+    g = 288.1221695283 * (t - 60) ** -0.0755148492;
+    b = 255;
+  }
+  return [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))));
+}
+export const kelvinHex = (k) => "#" + kelvinRgb(k).map((v) => v.toString(16).padStart(2, "0")).join("");
+
+/** The colour temperature a colour is closest to, or null when it's a real colour (a gel, an LED). */
+export function kelvinOf(hex) {
+  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  let best = null, bestD = 1e9;
+  for (let k = 1500; k <= 10000; k += 100) {
+    const p = kelvinRgb(k);
+    const d = Math.hypot(p[0] - c[0], p[1] - c[1], p[2] - c[2]);
+    if (d < bestD) { bestD = d; best = k; }
+  }
+  return bestD < 34 ? best : null;
+}
+
+/** Candela: lumens over 4 pi for a bare bulb, over the cone 2 pi (1 - cos half-angle) for a spot. */
+export function intensityCd(lm, cone) {
+  return cone ? lm / (2 * Math.PI * (1 - cone)) : lm / (4 * Math.PI);
+}
+
+export const C_INCIDENT = 250; // incident-meter calibration constant (flat disc, ISO 2720)
+export const ev100 = (lux) => Math.log2(Math.max(lux, 1e-6) * 100 / C_INCIDENT);
+export const shutterFor = (lux, iso = 800, f = 2.8) => (f * f) / 2 ** (ev100(lux) + Math.log2(iso / 100));
+export const isoFor = (lux, t = 1 / 48, f = 2.8) => 100 * 2 ** (Math.log2((f * f) / t) - ev100(lux));
+
+/** Where the meter reads: face height (1.5 m) above a floor point, facing the middle of the room. */
+export function meterPoint(room, at = null) {
+  const x = at ? Math.max(-room.x + 0.3, Math.min(room.x - 0.3, at.x)) : 0;
+  const z = at ? Math.max(-room.z + 0.3, Math.min(room.z - 0.3, at.z)) : -room.z + 1.2;
+  const S = new THREE.Vector3(x, 1.5, z);
+  const face = new THREE.Vector3(-x, 0, -z);
+  if (face.lengthSq() < 0.01) face.set(0, 0, 1);
+  return { S, face: face.normalize() };
+}
+
+/**
+ * Light on the singers' faces at the meter point (by default 1.2 m out from the far wall).
+ * Each fixture: inverse square, Lambert cosine on the face, and the beam edge for spots.
+ * lights: [{ pos, dir, cone, lm, kelvin }]; room: Vector3 (half width, height, half depth).
+ */
+export function stageMeter(lights, room, ambient, at = null) {
+  const { S, face } = meterPoint(room, at);
+  let total = 0;
+  const parts = [];
+  for (const l of lights) {
+    const L = l.pos.clone().sub(S);
+    const d = Math.max(L.length(), 0.3);
+    const dir = L.clone().divideScalar(d);
+    let I = intensityCd(l.lm || 0, l.dir ? l.cone : 0);
+    if (l.dir) {
+      const along = -dir.dot(l.dir.clone().normalize());
+      const t = Math.max(0, Math.min(1, (along - l.cone) / 0.06));
+      I *= t * t * (3 - 2 * t);
+    }
+    const e = (I * Math.max(0, face.dot(dir))) / (d * d);
+    total += e;
+    parts.push({ e, kelvin: l.kelvin });
+  }
+  const house = 250 * ambient; // house lights at full: about 250 lux on the singers
+  total += house;
+  const whites = parts.filter((p) => p.kelvin && p.e > total * 0.08);
+  const ks = whites.map((p) => p.kelvin);
+  return {
+    lux: total, house,
+    warm: Math.min(...ks, Infinity), cool: Math.max(...ks, -Infinity),
+    mixed: ks.length > 1 && Math.max(...ks) - Math.min(...ks) >= 1500,
+  };
+}
 
 export function createLightLab(container) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
