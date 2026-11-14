@@ -110,7 +110,7 @@ p { margin: 0; }
 .band { padding: var(--section) 0; }
 .band.olive { background: var(--olive); color: var(--on-dark); }
 .band.wine { background: var(--wine); color: var(--on-dark); }
-.band.olive h2, .band.wine h2, .band.olive h3, .band.wine h3 { color: var(--on-dark); }
+.band.olive h1, .band.wine h1, .band.olive h2, .band.wine h2, .band.olive h3, .band.wine h3 { color: var(--on-dark); }
 .band.olive .eyebrow, .band.wine .eyebrow { color: var(--on-dark-2); }
 .band.olive .script { color: #e9dcc0; }
 .band.wine .script { color: #f0c9a8; }
@@ -133,7 +133,7 @@ body[data-view="cities"] .view[data-view="cities"] { display: block; }
   background: var(--paper-2); border-bottom: 2px solid var(--ink);
 }
 .logo {
-  align-self: center; flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  align-self: center; flex: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%;
   background: var(--ink); color: var(--paper); text-decoration: none; font-family: var(--serif); font-weight: 700; font-size: 17px; letter-spacing: -0.02em;
 }
 .logo span { color: var(--blush); font-style: italic; }
@@ -305,7 +305,7 @@ input[type=range] { accent-color: var(--wine); }
 .snap-b { left: 0; top: 16%; width: 52%; --tilt: -7deg; }
 .snap-c { position: absolute; right: 22%; bottom: 0; width: 34%; margin: 0; transform: rotate(10deg); }
 .sticker img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border: 6px solid #fff; border-radius: 22px; box-shadow: var(--shadow-photo); }
-.script-note { position: absolute; z-index: 2; right: clamp(16px, 5vw, 80px); top: calc(clamp(16px, 4vh, 48px) + clamp(220px, 26vw, 380px) * 0.92 + 10px); font-family: var(--script); font-size: clamp(22px, 2.2vw, 30px); color: var(--cherry); transform: rotate(-6deg); white-space: nowrap; }
+.script-note { position: absolute; z-index: 2; right: clamp(16px, 5vw, 80px); top: calc(clamp(16px, 4vh, 48px) + clamp(220px, 26vw, 380px) * 0.92 + 44px); font-family: var(--script); font-size: clamp(22px, 2.2vw, 30px); color: var(--cherry); transform: rotate(-6deg); white-space: nowrap; }
 
 /* bottom: marker drawings that draw themselves in once */
 .doodle { position: absolute; pointer-events: none; }
@@ -320,7 +320,7 @@ input[type=range] { accent-color: var(--wine); }
 .search-head .display { font-size: clamp(40px, 5.6vw, 84px); line-height: 0.98; }
 .search-aside { color: var(--on-dark-2); font-size: var(--fs-sm); max-width: 360px; }
 .search-note { width: 54px; right: 6%; top: 9%; color: var(--blush); transform: rotate(12deg); }
-.search-cam { width: 92px; right: 14%; top: 22%; color: var(--brass); transform: rotate(-10deg); }
+.search-cam { width: 92px; right: 13%; top: 6%; color: var(--brass); transform: rotate(-10deg); }
 
 /* the cassette: the brief is written on its label */
 .cassette { margin-top: var(--s7); max-width: 680px; transform: rotate(-1.5deg); }
