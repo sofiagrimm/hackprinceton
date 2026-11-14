@@ -1293,3 +1293,45 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 @media (max-width: 760px) {
   .search-band #search-title { font-size: clamp(24px, 7.4vw, 34px); }
 }
+
+/* ---------------------------------------------------------------- results as a roll of film */
+.rs-slider { --film: #1b1815; --hole: #e9ddd0; }
+.rs-track {
+  position: relative; align-items: center; gap: 14px; padding: 34px 18px; overflow: hidden;
+  background:
+    radial-gradient(ellipse 5px 7px at 50% 50%, var(--hole) 90%, transparent 100%) 0 10px / 26px 14px repeat-x,
+    radial-gradient(ellipse 5px 7px at 50% 50%, var(--hole) 90%, transparent 100%) 0 calc(100% - 10px) / 26px 14px repeat-x,
+    var(--film);
+  border-radius: 4px; box-shadow: 0 16px 30px rgba(40, 20, 10, 0.3); transform: rotate(-0.6deg);
+}
+.rs-track::before, .rs-track::after {
+  position: absolute; left: 22px; font-family: var(--type); font-size: 10px; letter-spacing: 0.24em; color: #d9a441; opacity: 0.85; pointer-events: none;
+}
+.rs-track::before { content: "STAGEHAND 400  \25B6  SAFETY FILM"; top: 18px; }
+.rs-track::after { content: "\25B6 1A    \25B6 2A    \25B6 3A    \25B6 4A    \25B6 5A    \25B6 6A    \25B6 7A"; bottom: 16px; }
+.rs-slide, .rs-slide.on { width: clamp(180px, 31%, 360px); flex: 0 0 auto; }
+.rs-slide.past { width: 0; margin-right: -14px; }
+.rs-shot, .rs-slide:not(.on) .rs-shot {
+  aspect-ratio: 3 / 2; border: 0; border-radius: 2px; box-shadow: none; opacity: 1;
+  outline: 3px solid #0e0c0a; outline-offset: 0;
+}
+.rs-slide:not(.on) .rs-shot img { filter: sepia(0.35) brightness(0.7) contrast(1.05); transition: filter .4s; }
+.rs-slide:not(.on) .rs-shot:hover img { filter: sepia(0.1) brightness(0.92); }
+.rs-slide.on .rs-shot { box-shadow: 0 0 0 3px #d9a441; }
+.rs-shot .rs-num { top: auto; bottom: 8px; left: 8px; background: none; color: #d9a441; font-size: 12px; padding: 0; text-shadow: 0 1px 2px #000; }
+.rs-shot-name, .rs-slide.on .rs-shot-name { display: block; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,0.75)); color: #f3ece1; padding: 18px 10px 8px 34px; font-size: 12px; }
+@media (max-width: 760px) {
+  .rs-track { padding: 30px 12px; transform: none; }
+  .rs-slide, .rs-slide.on { width: 64%; }
+  .rs-track::after { display: none; }
+}
+.rs-track { padding: 44px 18px; }
+.rs-track::before { top: 25px; }
+.rs-track::after { bottom: 23px; }
+.rs-slide.on .rs-shot { box-shadow: 0 0 0 3px #d9a441, 0 0 22px rgba(217, 164, 65, 0.35); }
+.rs-slide:not(.on) .rs-shot img { filter: sepia(0.45) brightness(0.62) contrast(1.05); }
+@media (max-width: 760px) { .rs-track { padding: 40px 12px; } .rs-track::before { top: 22px; font-size: 9px; } }
+
+/* search results on a light pastel blush */
+.view[data-view="results"] { background: #f7e4e6; }
+.view[data-view="results"] .rs-why { background: #dfe6cf; }
