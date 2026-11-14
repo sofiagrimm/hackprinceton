@@ -13,15 +13,16 @@
 // "scout:results" event and opens a venue by pressing that venue's card in #cards.
 
 import { detectCity } from "./regions.js";
+import { createLightLab, fixturesFor, KINDS } from "./lightlab.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "walk3d", "book", "tour", "film", "bookings", "cities"];
-const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", walk3d: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "tour", "film", "bookings", "cities"];
+const TAB_OF = { home: "concerts", search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", lighting: "concerts", walk3d: "concerts", book: "concerts", tour: "tour", film: "film", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", film: "Film mode · Stagehand",
-  explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", acoustics: "Acoustics · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
+  explore: "Explore in 3D · Stagehand", walk3d: "3D walkthrough · Stagehand", acoustics: "Acoustics · Stagehand", lighting: "Lighting · Stagehand", book: "Book · Stagehand", bookings: "Bookings · Stagehand", cities: "New cities · Stagehand",
 };
 const ZOOM_MS = 600;
 const CHERRY = "#8e1424"; // the button
@@ -47,15 +48,19 @@ function show(view, { keepScroll = false } = {}) {
 }
 
 function go(hash) {
-  if (location.hash !== hash) history.pushState(null, "", hash);
+  // Keep ?venue= only while you're still on that venue's pages; otherwise drop it so a refresh doesn't bring it back.
+  const v = addressVenue();
+  const keep = v && hash.startsWith(`#/venue/${v}`);
+  const url = location.pathname + (keep ? location.search : "") + hash;
+  if (location.pathname + location.search + location.hash !== url) history.pushState(null, "", url);
   route();
 }
 
 /** Work out the view from the address bar. */
 function route() {
   const h = location.hash;
-  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk|sound))?/);
-  if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d", sound: "acoustics" }[m[2]]); return; }
+  const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk|sound|light))?/);
+  if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d", sound: "acoustics", light: "lighting" }[m[2]]); return; }
   if (m) { show("property"); openVenue(Number(m[1])); return; }
   if (h.startsWith("#/") || !h) {
     const name = h.slice(2) || "home";
@@ -66,6 +71,11 @@ function route() {
   const el = h.length > 1 && document.getElementById(h.slice(1));
   const holder = el?.closest("[data-view]");
   if (holder?.dataset.view === "walk3d" && state.venueId) { go(`#/venue/${state.venueId}/walk`); return; }
+  if (holder?.dataset.view === "lighting" && state.venueId) {
+    if (document.body.dataset.view !== "lighting") go(`#/venue/${state.venueId}/light`);
+    requestAnimationFrame(() => el.scrollIntoView());
+    return;
+  }
   if (holder?.dataset.view === "acoustics" && state.venueId) {
     if (document.body.dataset.view !== "acoustics") go(`#/venue/${state.venueId}/sound`);
     requestAnimationFrame(() => el.scrollIntoView());
@@ -85,20 +95,22 @@ function route() {
 
 function firstView() {
   const q = new URLSearchParams(location.search);
+  const venue = Number(q.get("venue"));
+  if (venue) state.venueId = venue; // app.js opens it from the address
+  // The #/ route says which page you were on, so a refresh lands there.
+  if (location.hash.startsWith("#/")) return route();
   if (q.get("tour")) return show("tour");
   if (q.get("film")) return show("film");
-  if (q.get("venue") && /^#\/venue\/\d+\/(3d|book|walk|sound)/.test(location.hash)) {
-    state.venueId = Number(q.get("venue"));
-    return route();
-  }
-  if (q.get("venue")) {
-    state.venueId = Number(q.get("venue"));
-    setPhoto(state.venueId);
+  if (venue) {
+    setPhoto(venue);
     return show("property", { keepScroll: true });
   }
   if (location.hash) return route();
   show("home");
 }
+
+/** The ?venue= app.js is opening from the address, if any. */
+const addressVenue = () => Number(new URLSearchParams(location.search).get("venue")) || null;
 
 // ------------------------------------------------------------------ the zoom
 
@@ -174,17 +186,7 @@ function leaveSearch() {
 
 function wireZoom() {
   $("hero-cta").addEventListener("click", (e) => { e.preventDefault(); zoomIn(); });
-  // Scrolling, swiping or paging down on the opening page also opens the search.
-  const onHome = () => document.body.dataset.view === "home";
-  window.addEventListener("wheel", (e) => { if (onHome() && e.deltaY > 12) zoomIn(); }, { passive: true });
-  let touchY = null;
-  window.addEventListener("touchstart", (e) => { touchY = onHome() ? e.touches[0].clientY : null; }, { passive: true });
-  window.addEventListener("touchmove", (e) => {
-    if (touchY != null && touchY - e.touches[0].clientY > 50) { touchY = null; zoomIn(); }
-  }, { passive: true });
   window.addEventListener("keydown", (e) => {
-    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
-    if (onHome() && !typing && ["ArrowDown", "PageDown", " "].includes(e.key)) { e.preventDefault(); zoomIn(); }
     if (e.key === "Escape" && document.body.dataset.view === "search") { e.preventDefault(); leaveSearch(); }
   });
 }
@@ -279,7 +281,9 @@ function photoScore(img) {
   const sRG = Math.sqrt(Math.max(0, rg2 / n - (rg / n) ** 2)), sYB = Math.sqrt(Math.max(0, yb2 / n - (yb / n) ** 2));
   const colour = Math.hypot(sRG, sYB) + 0.3 * Math.hypot(rg / n, yb / n);
   const exposure = mean < 55 ? (55 - mean) * 1.5 : mean > 215 ? (mean - 215) * 1.5 : 0;
-  return colour + std * 0.6 + (edges / (N * (N - 1))) * 2 - exposure;
+  // mostly white and colourless: bathrooms, corridors, blank walls
+  const clinical = mean > 165 && colour < 26 ? 25 : 0;
+  return colour + std * 0.6 + (edges / (N * (N - 1))) * 2 - exposure - clinical;
 }
 
 const faceCache = {};
@@ -304,13 +308,15 @@ function pictureList(id) {
     const info = venueInfo[id] || {};
     const ranked = rankRooms(await rooms(id), info.model);
     // Look at the three most promising rooms and lead with the best-looking view among them.
-    const views = (await Promise.all(ranked.slice(0, 3).map(bestFace))).filter(Boolean);
+    // the biggest, showiest rooms get a head start over a merely colourful photo
+    const views = (await Promise.all(ranked.slice(0, 4).map(bestFace)))
+      .map((v, i) => v && { ...v, score: v.score + [14, 8, 3, 0][i] }).filter(Boolean);
     const inside = views.sort((a, b) => b.score - a.score).map((v) => v.url);
     return [
       ...inside.slice(0, 1),
       info.photo,
-      `/api/film/${id}/oblique/s.jpg`,
       ...inside.slice(1),
+      `/api/film/${id}/oblique/s.jpg`,
       `/api/film/${id}/oblique/n.jpg`,
       `/api/film/${id}/oblique/e.jpg`,
     ].filter(Boolean);
@@ -490,12 +496,12 @@ function renderDetail(v, i) {
 
 function openVenue(id) {
   setPhoto(id);
-  if (state.venueId === id && !$("pick").hidden) return;
+  if (state.venueId === id && (!$("pick").hidden || addressVenue() === id)) return;
   state.venueId = id;
   const card = document.querySelector(`#cards .card[data-id="${id}"]`);
   if (card) { card.click(); return; }
   // No card for it (the shelf, a shared link, a reload): let app.js open it from the address.
-  location.href = `/?venue=${id}`;
+  location.href = `/?venue=${id}#/venue/${id}`;
 }
 
 function setPhoto(id) {
@@ -554,7 +560,7 @@ async function showNextPage(id, which) {
   show(which);
   const v = await venueFor(id);
   document.querySelectorAll(`.view[data-view="${which}"] .venue-name`).forEach((el) => { el.textContent = v?.name || "this venue"; });
-  if (v) document.title = `${{ explore: "Explore", book: "Book", walk3d: "Walk through", acoustics: "How it sounds:" }[which]} ${v.name} · Stagehand`;
+  if (v) document.title = `${{ explore: "Explore", book: "Book", walk3d: "Walk through", acoustics: "How it sounds:", lighting: "Light" }[which]} ${v.name} · Stagehand`;
   const back = `#/venue/${id}`;
   ["ex-back", "bk-back"].forEach((b) => { $(b).href = back; });
   const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
@@ -563,15 +569,16 @@ async function showNextPage(id, which) {
   if (which === "explore") startExplore(id);
   if (which === "walk3d") startWalk(id);
   if (which === "acoustics") startAcoustics(id);
+  if (which === "lighting") startLighting(id);
 }
 
 // ------------------------------------------------------------------ explore: acoustics, lighting, 3D walkthrough
 
-const EXPLORE = ["light"];
+const EXPLORE = [];
 
 /** The evaluations are app.js's sections, so the venue must be open in app.js first. */
 function ensureVenue(id, hash) {
-  if (state.venueId === id && !$("pick").hidden) return;
+  if (state.venueId === id && (!$("pick").hidden || addressVenue() === id)) return;
   state.venueId = id;
   const card = document.querySelector(`#cards .card[data-id="${id}"]`);
   if (card) { state.quietCard = true; card.click(); state.quietCard = false; return; }
@@ -584,9 +591,92 @@ function startExplore(id) {
   EXPLORE.forEach((k) => $(k).classList.add("ex-off"));
   document.querySelectorAll(".ex-choice").forEach((b) => {
     b.setAttribute("aria-pressed", "false");
-    b.onclick = () => (b.dataset.ex === "walk" ? go(`#/venue/${id}/walk`)
-      : b.dataset.ex === "sound" ? go(`#/venue/${id}/sound`) : selectExplore(b.dataset.ex));
+    b.onclick = () => go(`#/venue/${id}/${{ walk: "walk", sound: "sound", light: "light" }[b.dataset.ex]}`);
   });
+}
+
+// ------------------------------------------------------------------ the lighting lab
+
+const lab = { viewer: null, id: null, kind: "wash", placed: [], rooms: [] };
+
+function labLights() {
+  const all = lab.placed.flatMap((x) => x.fixtures);
+  lab.viewer.setLights(all);
+  $("lab-count").textContent = `${lab.placed.length} light${lab.placed.length === 1 ? "" : "s"}`;
+  $("lab-list").innerHTML = lab.placed.map((x, i) =>
+    `<li><span class="sw" style="--c:${x.color}"></span>${esc(KINDS[x.kind].label)}<button type="button" data-i="${i}" aria-label="Remove ${esc(KINDS[x.kind].label)} ${i + 1}">Remove</button></li>`).join("");
+  $("lab-list").querySelectorAll("button").forEach((b) => (b.onclick = () => { lab.placed.splice(Number(b.dataset.i), 1); labLights(); }));
+  if (all.length > 32) $("lab-count").textContent += " (only the first 32 bulbs light up)";
+}
+
+function placeLight(kind, hit, color, power) {
+  const k = KINDS[kind];
+  const fixtures = fixturesFor(kind, hit, lab.viewer.room(), color || $("lab-color").value, (power ?? Number($("lab-power").value)) * k.power);
+  lab.placed.push({ kind, color: color || $("lab-color").value, fixtures });
+  labLights();
+}
+
+const PRESETS = {
+  concert: { ambient: 0.1, lights: [["spot", [-0.3, -0.12, -1], "#fff1d6"], ["spot", [0.3, -0.12, -1], "#fff1d6"], ["wash", [0, 0.25, 1], "#ffb36b", 0.7], ["uplight", [0, 0.1, -1], "#ff8a3d", 0.8]] },
+  candle: { ambient: 0.08, lights: [["string", [-0.35, 0.25, -1], "#ffcf7a"], ["string", [0.35, 0.25, -1], "#ffcf7a"], ["string", [-1, 0.25, -0.8], "#ffcf7a"], ["string", [1, 0.25, -0.8], "#ffcf7a"], ["wash", [0, -0.35, -1], "#ff9a4d", 0.7]] },
+  gala: { ambient: 0.16, lights: [["uplight", [-1, -0.1, -0.9], "#ff3d8b"], ["uplight", [1, -0.1, -0.9], "#5a7bff"], ["uplight", [-0.3, -0.1, -1], "#d9a441"], ["uplight", [0.3, -0.1, -1], "#d9a441"], ["string", [0, 0.3, -1], "#ffe2a8"], ["spot", [0, -0.2, -1], "#fff1d6", 0.8]] },
+};
+
+function applyPreset(name) {
+  const pr = PRESETS[name];
+  lab.placed = [];
+  $("lab-ambient").value = pr.ambient;
+  lab.viewer.setAmbient(pr.ambient);
+  pr.lights.forEach(([kind, dir, color, power = 1]) => {
+    const [x, y, z] = dir, len = Math.hypot(x, y, z);
+    const hit = lab.viewer.surfacePoint({ x: x / len, y: y / len, z: z / len, clone() { return { ...this }; } });
+    placeLight(kind, hit, color, power);
+  });
+  lab.viewer.look(0, -0.05);
+}
+
+async function loadLabRoom(r) {
+  $("lab-rooms").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.key === `${r.model_id}/${r.pano_id}`)));
+  $("lab-empty").hidden = false;
+  $("lab-empty").textContent = "Loading the room…";
+  $("lab-room-name").textContent = (r.room || r.scan).replace(/^.* - /, "");
+  labLights();
+  try {
+    await lab.viewer.load(r.model_id, r.pano_id, r.area_sqft);
+    $("lab-empty").hidden = true;
+    labLights();
+  } catch {
+    $("lab-empty").textContent = "That room's photo didn't load. Try another.";
+  }
+}
+
+async function startLighting(id) {
+  $("lab-back").href = `#/venue/${id}/3d`;
+  ensureVenue(id, `#/venue/${id}/light`);
+  if (!lab.viewer) {
+    lab.viewer = createLightLab($("lab-view"));
+    lab.viewer.onPick((hit) => placeLight(lab.kind, hit));
+    $("lab-ambient").oninput = (e) => lab.viewer.setAmbient(Number(e.target.value));
+    $("lab-kinds").querySelectorAll("button").forEach((b) => (b.onclick = () => {
+      lab.kind = b.dataset.kind;
+      $("lab-color").value = KINDS[lab.kind].color;
+      $("lab-kinds").querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+    }));
+    $("lab-presets").querySelectorAll("button").forEach((b) => (b.onclick = () => applyPreset(b.dataset.preset)));
+    $("lab-undo").onclick = () => { lab.placed.pop(); labLights(); };
+    $("lab-clear").onclick = () => { lab.placed = []; labLights(); };
+  }
+  if (lab.id === id) return;
+  lab.id = id;
+  lab.placed = [];
+  const info = venueInfo[id] || {};
+  lab.rooms = rankRooms(await rooms(id), info.model).slice(0, 6);
+  $("lab-rooms").innerHTML = lab.rooms.map((r) =>
+    `<button type="button" data-key="${r.model_id}/${r.pano_id}" aria-pressed="false">${esc((r.room || r.scan).replace(/^.* - /, ""))}${r.area_sqft ? ` <small>${r.area_sqft.toLocaleString()} sq ft</small>` : ""}</button>`).join("");
+  $("lab-rooms").querySelectorAll("button").forEach((b, i) => (b.onclick = () => { lab.placed = []; loadLabRoom(lab.rooms[i]); }));
+  if (!lab.rooms.length) { $("lab-empty").textContent = "No 360 photos for this building."; return; }
+  await loadLabRoom(lab.rooms[0]);
+  applyPreset("concert");
 }
 
 // ------------------------------------------------------------------ the acoustics page
@@ -1005,6 +1095,16 @@ function watchVenueName() {
     if (location.hash !== `#/venue/${id}`) history.pushState(null, "", `#/venue/${id}`);
   });
 }
+
+// ------------------------------------------------------------------ film results open the property page
+
+$("film-list").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-venue]");
+  if (!b) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  go(`#/venue/${b.dataset.venue}`);
+}, true);
 
 // ------------------------------------------------------------------ boot
 
