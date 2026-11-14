@@ -1,0 +1,12 @@
+# Uploaded with `railway up --no-gitignore`, so list here everything that must never leave the laptop.
+.env
+.env.*
+!.env.example
+.git/
+data/kit/
+data/*.zip
+data/cache/
+docs/vendor/
+**/__pycache__/
+node_modules/
+.venv/
