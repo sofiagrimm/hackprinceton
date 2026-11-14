@@ -187,7 +187,7 @@ async function showVenue(card, lodging) {
   $("rg-basis").textContent = [
     `We guessed the ${card.best_space.space_name.toLowerCase()} is about ${card.best_space.area_sqft.toLocaleString()} sq ft with a ${Math.round(card.best_space.height_ft)} ft ceiling.`,
     ...card.best_space.basis,
-    `Finishes assumed for a ${card.kind_label}: ${a.assumptions.floor} floor, ${a.assumptions.walls} walls, ${a.assumptions.ceiling} ceiling.`.replaceAll("_", " "),
+    `Finishes assumed for ${/^[aeiou]/i.test(card.kind_label) ? "an" : "a"} ${card.kind_label}: ${a.assumptions.floor} floor, ${a.assumptions.walls} walls, ${a.assumptions.ceiling} ceiling.`.replaceAll("_", " "),
   ].join(" ");
 
   renderList();
@@ -200,8 +200,12 @@ async function showVenue(card, lodging) {
   $("rg-model-note").textContent = site.vexcel_covered && site.aerial_image_url
     ? "The building from Vexcel's aerial survey."
     : site.vexcel_covered
-      ? "The building outline from OpenStreetMap. Vexcel covers this city but had no footprint here."
-      : `The building outline from OpenStreetMap. Vexcel's imagery doesn't reach ${card.metro}.`;
+      ? (site.footprint_source || "").startsWith("OpenStreetMap")
+        ? "The building outline from OpenStreetMap. Vexcel covers this city but had no footprint here."
+        : "No outline for this building, so this is a typical size for its type. Vexcel covers this city but had no footprint here."
+      : (site.footprint_source || "").startsWith("OpenStreetMap")
+        ? `The building outline from OpenStreetMap. Vexcel's imagery doesn't reach ${card.metro}.`
+        : `No outline for this building, so this is a typical size for its type. Vexcel's imagery doesn't reach ${card.metro}.`;
   draw3d(site, card);
 
   const stay = lodging && lodging.venue_id === card.venue_id ? lodging
