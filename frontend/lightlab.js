@@ -74,7 +74,7 @@ export const KINDS = {
   wash: { label: "Warm wash", color: "#ffb36b", power: 2.2, size: 1.4, lm: 4000, kelvin: 2700 },
   spot: { label: "Spotlight", color: "#fff1d6", power: 6, size: 1, cone: 0.92, lm: 6000, kelvin: 3200 },
   string: { label: "String lights", color: "#ffcf7a", power: 1.2, size: 0.7, lm: 150, kelvin: 2200 },
-  uplight: { label: "Colour uplight", color: "#ff3d8b", power: 6, size: 1.2, cone: 0.35, lm: 1500, kelvin: null },
+  uplight: { label: "Color uplight", color: "#ff3d8b", power: 6, size: 1.2, cone: 0.35, lm: 1500, kelvin: null },
 };
 
 // ------------------------------------------------------------------ photometry

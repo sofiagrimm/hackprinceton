@@ -23,6 +23,8 @@
     <nav class="modes" aria-label="Modes">
       <a href="#/search" data-mode="concerts">browse spaces</a>
       <a href="#/tour" data-mode="tour">tour</a>
+      <a href="#/acoustics" data-mode="acoustics">acoustics</a>
+      <a href="#/lighting" data-mode="lighting">lighting</a>
       <a href="#/bookings" data-mode="bookings">bookings</a>
       <a href="#/saved" data-mode="saved">saved <span class="tab-count" id="saved-count" hidden></span></a>
     </nav>
@@ -296,13 +298,13 @@
               <button type="button" role="radio" data-kind="wash" aria-checked="true"><span class="sw" style="--c:#ffb36b"></span>Warm wash</button>
               <button type="button" role="radio" data-kind="spot" aria-checked="false"><span class="sw" style="--c:#fff1d6"></span>Spotlight</button>
               <button type="button" role="radio" data-kind="string" aria-checked="false"><span class="sw" style="--c:#ffcf7a"></span>String lights</button>
-              <button type="button" role="radio" data-kind="uplight" aria-checked="false"><span class="sw" style="--c:#ff3d8b"></span>Colour uplight</button>
+              <button type="button" role="radio" data-kind="uplight" aria-checked="false"><span class="sw" style="--c:#ff3d8b"></span>Color uplight</button>
               <button type="button" role="radio" data-kind="meter" aria-checked="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13l3-3M9 3h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Light meter</button>
               <button type="button" role="radio" data-kind="move" aria-checked="false" class="lab-move"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Move a light</button>
               <button type="button" role="radio" data-kind="erase" aria-checked="false" class="lab-erase"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Remove a light</button>
             </div>
             <div class="lab-tune">
-              <label for="lab-color">Colour</label><input type="color" id="lab-color" value="#ffb36b">
+              <label for="lab-color">Color</label><input type="color" id="lab-color" value="#ffb36b">
               <label for="lab-power">Brightness</label><input type="range" id="lab-power" min="0.2" max="2" step="0.05" value="1">
               <label class="lab-k" for="lab-k">White <input type="range" id="lab-k" min="1800" max="6500" step="100" value="3000"><span id="lab-k-val">3000 K</span></label>
               <p class="lab-lm" id="lab-lm" aria-live="polite"></p>
@@ -351,7 +353,7 @@
         </div>
       </div>
       <div class="wrap wide">
-        <p class="note">The sun patches and light levels are worked out from the windows in the photo, the sun on your date and the buildings nearby. The colour of the room is a mood preview: warmer at golden hour, lamp-lit after dark.</p>
+        <p class="note">The sun patches and light levels are worked out from the windows in the photo, the sun on your date and the buildings nearby. The color of the room is a mood preview: warmer at golden hour, lamp-lit after dark.</p>
         <div class="daylight" id="daylight" hidden></div>
         <details class="fold" id="outside">
           <summary>From outside: the building from the air, with the same sun</summary>
@@ -648,7 +650,7 @@
   <div class="view" data-view="saved">
     <section class="page saved-page" aria-labelledby="sv-title">
       <div class="wrap wide">
-        <h1 class="page-title" id="sv-title">Your <span class="script">favourites.</span></h1>
+        <h1 class="page-title" id="sv-title">Your <span class="script">favorites.</span></h1>
         <p class="page-sub">Lighting you designed, rooms whose sound you liked, and spaces you want to come back to. Saved in this browser on this device.</p>
 
         <section class="sv-group" aria-labelledby="sv-light-h">

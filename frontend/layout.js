@@ -20,7 +20,7 @@ import { createStandView, seatImpulse, SeatSound } from "./stand3d.js";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "saved", "tour", "bookings", "cities"];
-const TAB_OF = { home: null, search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "concerts", lighting: "concerts", walk3d: "concerts", saved: "saved", book: "concerts", tour: "tour", bookings: "bookings", cities: "cities" };
+const TAB_OF = { home: null, search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "acoustics", lighting: "lighting", walk3d: "concerts", saved: "saved", book: "concerts", tour: "tour", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", 
@@ -64,8 +64,15 @@ function go(hash) {
 function route() {
   const h = location.hash;
   const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk|sound|light))?/);
+  if (m) rememberVenue(Number(m[1]));
   if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d", sound: "acoustics", light: "lighting" }[m[2]]); return; }
   if (m) { show("property"); openVenue(Number(m[1])); return; }
+  // the Acoustics and Lighting tabs open those pages for the venue you last looked at
+  if (h === "#/acoustics" || h === "#/lighting") {
+    const id = state.venueId || addressVenue() || lastVenue() || 6531330;
+    history.replaceState(null, "", `${location.pathname}${location.search}#/venue/${id}/${h === "#/acoustics" ? "sound" : "light"}`);
+    return route();
+  }
   if (h.startsWith("#/") || !h) {
     const name = h.slice(2) || "home";
     show(name === "results" && !state.search && !state.scouting ? "search" : name);
@@ -97,6 +104,9 @@ function route() {
   }
 }
 
+function lastVenue() { try { return Number(localStorage.getItem("stagehand.lastVenue")) || null; } catch { return null; } }
+function rememberVenue(id) { try { if (id) localStorage.setItem("stagehand.lastVenue", String(id)); } catch { /* private window */ } }
+
 function firstView() {
   const q = new URLSearchParams(location.search);
   const venue = Number(q.get("venue"));
@@ -118,7 +128,7 @@ const addressVenue = () => Number(new URLSearchParams(location.search).get("venu
 
 // ------------------------------------------------------------------ the zoom
 
-/** A full-screen sheet the colour of the search page, used for both directions of the zoom. */
+/** A full-screen sheet the color of the search page, used for both directions of the zoom. */
 function veil() {
   const v = document.createElement("div");
   v.className = "zoom-veil";
@@ -194,7 +204,7 @@ function igniteIntoSearch() {
 function zoomOut() {
   if (reduced()) return;
   // The collage's name isn't a button shape, so don't shrink a coloured blob into it:
-  // the page has already switched, so just fade the screen back in from the search page's colour.
+  // the page has already switched, so just fade the screen back in from the search page's color.
   if ($("hero-cta")?.classList.contains("cl-hit")) return; // just show the collage, no animation
   state.zooming = true;
   const v = veil();
@@ -320,11 +330,11 @@ function photoScore(img) {
   for (let y = 0; y < N; y++) for (let x = 1; x < N; x++) edges += Math.abs(L[y * N + x] - L[y * N + x - 1]);
   const n = N * N, mean = sumL / n, std = Math.sqrt(Math.max(0, sumL2 / n - mean * mean));
   const sRG = Math.sqrt(Math.max(0, rg2 / n - (rg / n) ** 2)), sYB = Math.sqrt(Math.max(0, yb2 / n - (yb / n) ** 2));
-  const colour = Math.hypot(sRG, sYB) + 0.3 * Math.hypot(rg / n, yb / n);
+  const color = Math.hypot(sRG, sYB) + 0.3 * Math.hypot(rg / n, yb / n);
   const exposure = mean < 55 ? (55 - mean) * 1.5 : mean > 215 ? (mean - 215) * 1.5 : 0;
   // mostly white and colourless: bathrooms, corridors, blank walls
-  const clinical = mean > 165 && colour < 26 ? 25 : 0;
-  return colour + std * 0.6 + (edges / (N * (N - 1))) * 2 - exposure - clinical;
+  const clinical = mean > 165 && color < 26 ? 25 : 0;
+  return color + std * 0.6 + (edges / (N * (N - 1))) * 2 - exposure - clinical;
 }
 
 const faceCache = {};
@@ -796,7 +806,7 @@ function renderMeter() {
     ["Exposure value", `EV ${ev100(lux).toFixed(1)} at ISO 100`],
   ];
   const warn = [];
-  if (m.mixed) warn.push(`These lights run from ${m.warm} K to ${m.cool} K. On camera the warm ones will look orange next to the cool ones; gel them to match or pick one colour temperature.`);
+  if (m.mixed) warn.push(`These lights run from ${m.warm} K to ${m.cool} K. On camera the warm ones will look orange next to the cool ones; gel them to match or pick one color temperature.`);
   const warmK = [...new Set(all.filter((f) => f.kelvin && f.kelvin < 4000).map((f) => f.kelvin))].sort((a, b) => a - b);
   if (lab.windowM2 > 2 && warmK.length) warn.push(`This room has about ${Math.round(lab.windowM2)} m² of windows. Before sunset they add 5600 K daylight, so the ${warmK.join(" K and ")} K fixtures will look orange next to it on camera. Gel them to daylight or shoot after dark.`);
   $("lab-meter").innerHTML = `
@@ -811,7 +821,7 @@ function showLumens() {
   if (!k || !$("lab-lm")) { if ($("lab-lm")) $("lab-lm").textContent = ""; return; }
   const lm = Math.round(k.lm * Number($("lab-power").value));
   const kel = kelvinOf($("lab-color").value);
-  $("lab-lm").textContent = `${lm.toLocaleString()} lm${lab.kind === "string" ? " a bulb" : ""}, ${kel ? `${kel} K white` : "a coloured light"}`;
+  $("lab-lm").textContent = `${lm.toLocaleString()} lm${lab.kind === "string" ? " a bulb" : ""}, ${kel ? `${kel} K white` : "a colored light"}`;
   if (kel) { $("lab-k").value = kel; $("lab-k-val").textContent = `${kel} K`; }
 }
 
@@ -828,7 +838,7 @@ function lightNear(hit) {
   return best;
 }
 
-/** Move a placed light so it lights a new spot, keeping its kind, colour and brightness. */
+/** Move a placed light so it lights a new spot, keeping its kind, color and brightness. */
 function moveLight(i, hit) {
   const x = lab.placed[i];
   if (!x) return;
@@ -964,10 +974,10 @@ async function startLighting(id) {
   applyPreset("concert");
 }
 
-// ------------------------------------------------------------------ saved favourites (kept in this browser)
+// ------------------------------------------------------------------ saved favorites (kept in this browser)
 
 const SAVED_KEY = "stagehand.saved";
-// what to restore after opening a favourite; kept in session storage so it survives a page load
+// what to restore after opening a favorite; kept in session storage so it survives a page load
 const PENDING_KEY = "stagehand.open";
 function takePending(type) {
   try {
@@ -1002,7 +1012,7 @@ function addSaved(item) {
   list.unshift({ ...item, at: Date.now(), key: `${item.type}-${Date.now()}` });
   if (!storeSaved(list.slice(0, 60))) { toast("Couldn't save: this browser's storage is full or turned off."); return false; }
   updateSavedCount();
-  toast(`Saved to your favourites. <a href="#/saved">See them</a>`);
+  toast(`Saved to your favorites. <a href="#/saved">See them</a>`);
   return true;
 }
 function popButton(btn) {
@@ -1012,7 +1022,7 @@ function popButton(btn) {
 }
 const venueName = (id) => (state.venueId === id && $("d-name").textContent) || state.search?.results?.find((r) => r.venue_id === id)?.name || "This venue";
 
-/** A small picture of the lit room for the favourites page. */
+/** A small picture of the lit room for the favorites page. */
 function labThumb() {
   const src = $("lab-view").querySelector("canvas");
   if (!src) return "";
@@ -1050,7 +1060,7 @@ function wireSaving() {
       $("save-space").setAttribute("aria-pressed", "false");
       $("save-space").querySelector("span").textContent = "Save this space";
       updateSavedCount();
-      toast("Removed from your favourites.");
+      toast("Removed from your favorites.");
       return;
     }
     if (addSaved({ type: "space", venue: id, name: venueName(id), address: $("d-address").textContent })) {
@@ -1364,7 +1374,7 @@ function renderMics(a) {
     }
     if (n.solo || !big) {
       cards.push(micCard("A solo mic out front", "For solos",
-        [`A handheld condenser or a dynamic on a stand, set downstage centre so soloists step up to it.`,
+        [`A handheld condenser or a dynamic on a stand, set downstage center so soloists step up to it.`,
          `Give it its own fader so the solo can sit above the group.`,
          dry ? `A condenser suits this dry room: it catches more of the voice's detail.` : `A dynamic is safer in a live room: it hears less of the echo.`]));
     }
