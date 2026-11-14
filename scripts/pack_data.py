@@ -19,7 +19,7 @@ from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
-FILES = ["venues.json", "housing.json", "models.json"]
+FILES = ["venues.json", "housing.json", "models.json", "descriptions.json"]
 
 
 def main() -> None:

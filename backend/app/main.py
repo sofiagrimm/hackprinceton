@@ -47,6 +47,13 @@ def room_acoustics(area_sqft: float, height_ft: float | None = None, width_ft: f
                     use=use, audience=audience).to_dict()
 
 
+@app.get("/api/validation")
+def validation() -> dict:
+    """The engine run on concert halls with published reverberation times."""
+    from .validation import run
+    return {"halls": run(), "source": "L. Beranek, Concert Halls and Opera Houses, 2nd ed. (2004)"}
+
+
 @app.post("/api/scout")
 def run_scout(req: ScoutRequest) -> StreamingResponse:
     agent = make_scout(req.mode)

@@ -26,34 +26,91 @@ VENUE_PRIORITY = {"ballroom": 1.0, "chapel": 1.0, "theater": 0.95, "clubhouse": 
 
 # --------------------------------------------------------------------------- spaces
 
+OUTDOOR_TAGS = {"outdoor_other", "patio", "balcony", "garden", "pool", "driveway", "garage"}
+TOO_SMALL_TAGS = {"bathroom", "closet", "staircase", "utility", "pantry", "laundry"}
+ROOM_WORDS = {"living": "living area", "dining": "dining area", "kitchen": "kitchen", "lobby": "lobby",
+              "office": "office", "exercise": "gym", "entrance": "entry", "hallway": "hallway",
+              "corridor": "corridor", "game": "game room", "bedroom": "bedroom", "other": "main room",
+              "basement": "basement", "unfurnished": "open room"}
+
+
+def _room_label(model_name: str, tags: list[str], several: bool) -> str:
+    """A short human name for a room: the scan's own name when it describes the space
+    ("Club Lounge"), otherwise what the room is ("Open room", "Living area")."""
+    from .acoustics import NAME_HINTS
+
+    name = (model_name or "").strip()
+    word = next((ROOM_WORDS[t] for t in tags if t in ROOM_WORDS and t != "unfurnished"), None)
+    word = word or ("open room" if "unfurnished" in tags else "main room")
+    describes_space = any(w in name.lower() for words, _ in NAME_HINTS for w in words)
+    if describes_space:
+        # "3033 Wilshire - Lobby" -> "Lobby"
+        return re.split(r"\s+[-–:]\s+", name)[-1].strip() or name
+    looks_like_address = bool(re.match(r"^\d+[\w-]*\s", name)) or not name
+    if looks_like_address:
+        return word.capitalize()
+    if not several:
+        return name
+    return f"{name}, {word}"
+
+
+OUTDOOR_NAME = re.compile(r"\b(pool|patio|terrace|courtyard|garden|roof ?deck|sky ?deck|outdoor|bbq|grill|dog park|cabana)\b", re.I)
+
+
 def _spaces_for_venue(venue: dict, use: str, audience: int | None, allow_fetch: bool = False) -> list[dict]:
-    """Every scanned space in a venue that a group could perform or rehearse in."""
+    """Every indoor scanned room in a venue that a group could perform or rehearse in.
+
+    Each Matterport scan can hold several rooms. We evaluate every indoor room big
+    enough to hold a group (outdoor patios, pools and balconies are left out: they
+    have no reverberation to speak of) and keep the best-sounding room per scan.
+    """
+    from .materials import materials_for_model
+
     spaces = []
     for model_id in venue["matterport_models"]:
         model = matterport.get_model(model_id, allow_fetch=allow_fetch)
         if not model:
             continue
         rooms = [matterport.to_feet(r) for r in model.get("rooms") or []]
-        rooms = [r for r in rooms if r.get("area") and r["area"] >= 250]
-        if not rooms:
+        indoor = [r for r in rooms if r.get("area") and r["area"] >= 250
+                  and not (set(r.get("tags") or []) & OUTDOOR_TAGS)
+                  and not (set(r.get("tags") or []) <= TOO_SMALL_TAGS and r.get("tags"))]
+        if not indoor:
             continue
-        room = max(rooms, key=lambda r: r["area"])
-        kind = classify_space(model.get("name"), room.get("tags"), venue["property_type"])
-        if kind not in PERFORMABLE:
+        name = model.get("name") or ""
+        if OUTDOOR_NAME.search(name) and not re.search(r"\b(interior|indoor|inside)\b", name, re.I):
             continue
-        if kind not in ("ballroom", "theater", "chapel", "lobby", "clubhouse", "rooftop") \
-                and UNIT_NAME.search(model.get("name") or ""):
-            continue
-        est = estimate(RoomGeometry(room["area"], room.get("height"), room.get("width"), room.get("depth")),
-                       kind, use=use, audience=audience)
-        spaces.append({
-            "model_id": model_id,
-            "space_name": model.get("name") or "Scanned space",
-            "area_sqft": round(room["area"]),
-            "height_ft": round(room["height"], 1) if room.get("height") else None,
-            "acoustics": est.to_dict(),
-            "fit": est.score * VENUE_PRIORITY.get(kind, 0.5),
-        })
+        found = materials_for_model(model_id)
+        best = None
+        for room in indoor:
+            kind = classify_space(name, room.get("tags"), venue["property_type"])
+            if kind == "rooftop" and "interior" in name.lower():
+                kind = "clubhouse"
+            if kind not in PERFORMABLE:
+                continue
+            if kind not in ("ballroom", "theater", "chapel", "lobby", "clubhouse", "rooftop") \
+                    and UNIT_NAME.search(name):
+                continue
+            est = estimate(RoomGeometry(room["area"], room.get("height"), room.get("width"), room.get("depth")),
+                           kind, use=use, audience=audience, materials=found.get("surfaces") or None)
+            fit = est.score * VENUE_PRIORITY.get(kind, 0.5)
+            if best is None or fit > best["fit"]:
+                d = est.to_dict()
+                if found.get("evidence"):
+                    d["materials_source"] = "Matterport's description of this scan"
+                    d["materials_evidence"] = found["evidence"]
+                best = {
+                    "model_id": model_id,
+                    "space_name": _room_label(name, room.get("tags") or [], len(indoor) > 1),
+                    "area_sqft": round(room["area"]),
+                    "height_ft": round(room["height"], 1) if room.get("height") else None,
+                    "width_ft": round(room["width"], 1) if room.get("width") else None,
+                    "depth_ft": round(room["depth"], 1) if room.get("depth") else None,
+                    "acoustics": d,
+                    "fit": fit,
+                }
+        if best:
+            spaces.append(best)
     # Hotels report their largest ballroom even when it was not scanned.
     hotel = venue.get("hotel") or {}
     if hotel.get("largest_meeting_sf") and not any(s["acoustics"]["space_type"] == "ballroom" for s in spaces):
@@ -119,8 +176,16 @@ def search_venues(metro: str, audience: int = 60, use: str = "a_cappella_perform
         ranked.append((best["fit"] + bonus, venue, best, len(spaces)))
 
     ranked.sort(key=lambda t: t[0], reverse=True)
+    # The same scan is sometimes attached to neighbouring CoStar properties; show it once.
+    seen_models, unique = set(), []
+    for item in ranked:
+        model_id = item[2].get("model_id")
+        if model_id and model_id in seen_models:
+            continue
+        seen_models.add(model_id)
+        unique.append(item)
     results = []
-    for score, venue, best, n in ranked[:max_results]:
+    for score, venue, best, n in unique[:max_results]:
         card = _venue_card(venue, best)
         card["match_score"] = round(min(score, 100))
         card["scanned_spaces_considered"] = n
