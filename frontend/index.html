@@ -398,6 +398,30 @@
       </div>
     </section>
 
+    <section class="band stand-band" id="stand" aria-labelledby="stand-title">
+      <div class="wrap wide">
+        <h2 class="display" id="stand-title">Stand in <span class="script">the room.</span></h2>
+        <p class="lede">The room in 3D at its real size. Drag the performers around the stage and put yourself anywhere, then play the chord to hear it from exactly where you stand. Headphones help.</p>
+        <div class="stand-grid">
+          <div class="viewer-frame">
+            <div class="vf-bar"><span class="vf-dot" aria-hidden="true"></span><span class="vf-title" id="stand-room">The room</span><span class="vf-tag" id="stand-size">to scale</span></div>
+            <div class="stand-view" id="stand-view" role="application" aria-label="3D model of the room. Drag a person to move them; drag empty space to turn the view."></div>
+          </div>
+          <aside class="stand-side">
+            <button type="button" class="play stand-play" id="stand-play" aria-label="Play the chord from where you stand"><span class="tri"></span></button>
+            <p class="stand-read" id="stand-read" aria-live="polite">Loading the room…</p>
+            <div class="ac-crowd stand-crowd" role="group" aria-label="Audience">
+              <button type="button" data-stand-crowd="empty" aria-pressed="false">Empty room</button>
+              <button type="button" data-stand-crowd="full" aria-pressed="true">Full house</button>
+            </div>
+            <p class="stand-voices"><label for="stand-n">Performers</label><input type="range" id="stand-n" min="1" max="24" value="8"><b id="stand-n-out">8</b></p>
+            <p class="stand-actions"><button type="button" class="lab-act" id="stand-reset">Put everyone back</button></p>
+            <p class="note">Cherry figures are performers, the cream one is you. Drag empty space to turn the view, scroll to zoom. The room is a box at the scanned size, so alcoves and furniture aren't modelled.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
     <section class="frame black sound" id="sound" hidden>
       <div class="wrap wide">
         <div class="sound-top">

@@ -15,6 +15,7 @@
 import { detectCity } from "./regions.js";
 import { createLightLab, fixturesFor, KINDS, EYE, stageMeter, kelvinHex, kelvinOf, ev100, shutterFor, isoFor, C_INCIDENT } from "./lightlab.js";
 import { playGramophone, playShutter } from "./oldtime.js";
+import { createStandView, seatImpulse, SeatSound } from "./stand3d.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1056,6 +1057,98 @@ function renderAcCards() {
       <h3>${c.k}</h3><p class="ac-big">${c.big}</p>${c.m}<p class="ac-text">${c.t}</p>
     </article>`).join("");
   renderMics(a);
+  updateStand();
+}
+
+// ------------------------------------------------------------------ stand in the room (3D)
+
+const stand = { view: null, sound: null, crowd: "full", playing: false, timer: null, key: "", spaces: {} };
+
+async function standSpace() {
+  const id = state.venueId;
+  if (!id) return null;
+  stand.spaces[id] ||= fetch(`/api/venues/${id}?audience=${state.search?.audience || 80}&use=${state.search?.use || "a_cappella_performance"}`)
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const v = await stand.spaces[id];
+  const i = Number(document.querySelector("#d-spaces button.on")?.dataset.i || 0);
+  return v?.spaces?.[i] || v?.best_space || null;
+}
+
+function standRT() {
+  const a = readAcoustics();
+  return (stand.crowd === "empty" ? a.empty : a.full) || a.full || 1.2;
+}
+
+function standReadout() {
+  if (!stand.view) return;
+  const pos = stand.view.positions();
+  const { nearest, critical } = seatImpulse(stand.sound?.ctx || { sampleRate: 8000, createBuffer: (c, n, r) => ({ getChannelData: () => new Float32Array(n) }) }, pos, standRT());
+  const d = nearest.toFixed(1), rc = critical.toFixed(1);
+  $("stand-read").innerHTML = nearest <= critical
+    ? `<b>${d} m</b> from the nearest performer. You're inside the room's ${rc} m clear zone, so you hear the voices more than the echo: every word and line comes through.`
+    : `<b>${d} m</b> from the nearest performer, past the room's ${rc} m clear zone. Here the echo is louder than the voices: rich and blended, but words soften.`;
+}
+
+function standImpulse() {
+  stand.sound ||= new SeatSound();
+  stand.sound._ensure();
+  const { buffer } = seatImpulse(stand.sound.ctx, stand.view.positions(), standRT());
+  stand.sound.useImpulse(buffer);
+}
+
+function stopStand() {
+  clearTimeout(stand.timer);
+  stand.sound?.stopChoir();
+  stand.playing = false;
+  $("stand-play").classList.remove("on");
+  $("stand-play").setAttribute("aria-label", "Play the chord from where you stand");
+}
+
+async function updateStand() {
+  if (!$("stand-view")) return;
+  if (!stand.view) {
+    stand.view = createStandView($("stand-view"), {
+      onMove: (moving) => { standReadout(); if (!moving && stand.sound) standImpulse(); },
+    });
+    $("stand-play").onclick = async () => {
+      if (stand.playing) { stopStand(); return; }
+      standImpulse();
+      await stand.sound.ctx.resume();
+      const secs = await stand.sound.playChoir();
+      stand.playing = true;
+      $("stand-play").classList.add("on");
+      $("stand-play").setAttribute("aria-label", "Stop the chord");
+      stand.timer = setTimeout(stopStand, secs * 1000);
+    };
+    document.querySelectorAll("[data-stand-crowd]").forEach((b) => (b.onclick = () => {
+      stand.crowd = b.dataset.standCrowd;
+      document.querySelectorAll("[data-stand-crowd]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      standReadout();
+      if (stand.sound) standImpulse();
+    }));
+    $("stand-n").oninput = (e) => {
+      $("stand-n-out").textContent = e.target.value;
+      stand.view.setVoices(Number(e.target.value));
+      standReadout();
+      if (stand.sound) standImpulse();
+    };
+    $("stand-reset").onclick = () => { stand.view.reset(); standReadout(); if (stand.sound) standImpulse(); };
+  }
+  const sp = await standSpace();
+  const dims = sp?.acoustics?.dims_m;
+  if (!dims?.length) { $("stand-read").textContent = "This room has no measurements to build from."; return; }
+  const key = `${state.venueId}/${sp.space_name}`;
+  if (key !== stand.key) {
+    stand.key = key;
+    const voices = Math.max(1, Math.min(24, readNeeds().voices || 8));
+    $("stand-n").value = voices; $("stand-n-out").textContent = voices;
+    stand.view.setRoom(dims, voices);
+    $("stand-room").textContent = sp.space_name;
+    $("stand-size").textContent = `${(dims.length * 3.281).toFixed(0)} x ${(dims.width * 3.281).toFixed(0)} ft, ${(dims.height * 3.281).toFixed(0)} ft high`;
+    if (stand.playing) stopStand();
+  }
+  standReadout();
+  if (stand.sound) standImpulse();
 }
 
 // ------------------------------------------------------------------ mic recommendations
