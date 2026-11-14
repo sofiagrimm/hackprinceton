@@ -1172,12 +1172,15 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 #hero-cta:hover .cl-logo, #hero-cta:focus-visible .cl-logo { transform: translateY(-3px) rotate(-1deg); filter: drop-shadow(0 0 18px rgba(255, 214, 224, 0.55)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4)); }
 #hero-cta:focus-visible { outline: none; }
 /* The record: only the disc itself is clickable, and it breathes while a chord plays. */
-.cl-record-hit { clip-path: ellipse(36% 54% at 0% 52%); }
+.cl-record-hit { border-radius: 50%; }
+/* 33 1/3 rpm: one turn every 1.8 seconds, around the centre hole. */
+.cl-record-hit .cl-record { animation: record-spin 1.8s linear infinite; will-change: transform; }
+@keyframes record-spin { to { transform: rotate(360deg); } }
 .cl-record-hit .cl-record { transition: filter .3s ease; }
 .cl-record-hit:hover .cl-record { filter: brightness(1.08) saturate(1.1); }
-.cl-record-hit.playing .cl-record { animation: record-breathe 1.1s ease-in-out infinite; }
+.cl-record-hit.playing .cl-record { filter: brightness(1.12) saturate(1.15); }
 @keyframes record-breathe { 50% { filter: brightness(1.15) saturate(1.2); } }
-@media (prefers-reduced-motion: reduce) { .cl-record-hit.playing .cl-record { animation: none; } #hero-cta .cl-logo { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .cl-record-hit .cl-record { animation: none; } #hero-cta .cl-logo { transition: none; } }
 
 /* ---------------------------------------------------------------- search page in the opening page's style
    Same crumpled maroon paper, cream type, and white cut-out letters like the Stagehand name.
