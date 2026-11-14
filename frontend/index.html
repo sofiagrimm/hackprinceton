@@ -489,22 +489,88 @@
       </div>
     </section>
 
-    <!-- part two: only appears once the dates work -->
+    <!-- part two: the booking itself; only appears once the dates work -->
     <section class="band olive book-next" id="book-next" hidden aria-labelledby="bk-next-title">
+      <div class="wrap wide">
+        <h2 class="display" id="bk-next-title">A few details <span class="script">and it's yours.</span></h2>
+        <div class="book-form-grid">
+          <form class="book-sheet" id="book-form" novalidate>
+            <fieldset>
+              <legend>Info</legend>
+              <div class="field-row">
+                <p class="field"><label for="bf-name">Your name</label><input id="bf-name" name="name" autocomplete="name" required><span class="err" id="bf-name-err"></span></p>
+                <p class="field"><label for="bf-group">Group or company</label><input id="bf-group" name="group" autocomplete="organization" placeholder="The Nassoons"></p>
+              </div>
+              <div class="field-row">
+                <p class="field"><label for="bf-email">Email</label><input id="bf-email" name="email" type="email" autocomplete="email" required><span class="err" id="bf-email-err"></span></p>
+                <p class="field"><label for="bf-phone">Phone</label><input id="bf-phone" name="phone" type="tel" autocomplete="tel" required><span class="err" id="bf-phone-err"></span></p>
+              </div>
+            </fieldset>
+
+            <fieldset class="pay">
+              <legend>Payment info</legend>
+              <div class="pay-grid">
+                <div class="card-art" aria-hidden="true">
+                  <span class="card-chip"></span>
+                  <span class="card-num" id="card-num">•••• •••• •••• ••••</span>
+                  <span class="card-name" id="card-name">YOUR NAME</span>
+                  <span class="card-exp" id="card-exp">MM/YY</span>
+                  <svg class="card-record" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#1d1b16"/><circle cx="20" cy="20" r="13" fill="none" stroke="#4a4440" stroke-width=".8"/><circle cx="20" cy="20" r="6" fill="#e8a3b0"/></svg>
+                </div>
+                <div>
+                  <p class="field"><label for="bf-ccname">Name on card</label><input id="bf-ccname" name="ccname" autocomplete="cc-name" required><span class="err" id="bf-ccname-err"></span></p>
+                  <p class="field"><label for="bf-cc">Card number</label><input id="bf-cc" name="cc" autocomplete="cc-number" inputmode="numeric" maxlength="23" required><span class="err" id="bf-cc-err"></span></p>
+                  <div class="field-row three">
+                    <p class="field"><label for="bf-exp">Expiry</label><input id="bf-exp" name="exp" autocomplete="cc-exp" inputmode="numeric" placeholder="MM/YY" maxlength="5" required><span class="err" id="bf-exp-err"></span></p>
+                    <p class="field"><label for="bf-cvc">CVC</label><input id="bf-cvc" name="cvc" autocomplete="cc-csc" inputmode="numeric" maxlength="4" required><span class="err" id="bf-cvc-err"></span></p>
+                    <p class="field"><label for="bf-zip">ZIP</label><input id="bf-zip" name="zip" autocomplete="postal-code" inputmode="numeric" maxlength="10" required><span class="err" id="bf-zip-err"></span></p>
+                  </div>
+                </div>
+              </div>
+              <p class="note">Payments aren't live yet. Card details are checked here and never leave your browser; nothing is charged.</p>
+            </fieldset>
+
+            <fieldset>
+              <legend>Details / notes</legend>
+              <div class="field-row three">
+                <p class="field"><label for="bf-guests">Guests</label><input id="bf-guests" name="guests" type="number" min="1" max="5000" value="80" required><span class="err" id="bf-guests-err"></span></p>
+                <p class="field"><label for="bf-crew">Performers</label><input id="bf-crew" name="crew" type="number" min="1" max="500" value="14" required><span class="err" id="bf-crew-err"></span></p>
+                <p class="field"><label for="bf-time">Doors open</label><input id="bf-time" name="time" type="time" value="19:00"></p>
+              </div>
+              <p class="field"><label for="bf-notes">Anything the venue should know</label><textarea id="bf-notes" name="notes" rows="4" placeholder="Load-in time, risers, a piano, step-free access, where the group can warm up..."></textarea></p>
+              <p class="check"><input type="checkbox" id="bf-ok" required><label for="bf-ok">I understand this asks the venue to hold these dates. Nothing is final until they confirm the rate.</label></p>
+              <span class="err" id="bf-ok-err"></span>
+            </fieldset>
+
+            <div class="book-submit">
+              <p class="form-status" id="bf-status" aria-live="polite"></p>
+              <button type="submit" class="confirm-btn" id="bf-go">Request booking</button>
+            </div>
+          </form>
+          <aside class="book-aside">
+            <div class="stub book-stub" id="book-stub"></div>
+            <a class="link-dark on-dark" id="bk-change" href="#book-pick">Change the dates</a>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- part three: sent -->
+    <section class="band wine book-done" id="book-done" hidden aria-labelledby="bk-done-title">
       <div class="wrap wide book-next-grid">
         <div>
-          <h2 class="display" id="bk-next-title">Your dates are <span class="script">pencilled in.</span></h2>
+          <h2 class="display" id="bk-done-title">Request sent to <span class="script venue-name"></span></h2>
           <ol class="book-steps">
-            <li><b>We write to the venue</b><span>The email asks for these exact dates and the real rate.</span></li>
-            <li><b>They hold the room</b><span>Most venues answer within two days. Bookings tracks who has.</span></li>
+            <li><b>We write to the venue</b><span>The email asks for your exact dates and the real rate.</span></li>
+            <li><b>They hold the room</b><span>Most venues answer within two days. Bookings shows who has.</span></li>
             <li><b>The tour fund pays the deposit</b><span>Only once the treasurer presses the button.</span></li>
           </ol>
           <p class="next-links">
-            <a class="btn" id="bk-ask" href="#/">Send the ask</a>
-            <a class="link-dark on-dark" id="bk-change" href="#book-pick">Change the dates</a>
+            <a class="btn" href="#/bookings">See it in Bookings</a>
+            <a class="btn" id="bk-ask" href="#/">Read the email</a>
           </p>
         </div>
-        <div class="stub book-stub" id="book-stub"></div>
+        <div class="stub book-stub done-stub" id="done-stub"></div>
       </div>
     </section>
   </div>

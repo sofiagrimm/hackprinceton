@@ -656,6 +656,70 @@ body::after {
 .reveal { animation: rise .6s ease-out both; }
 @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 
+/* the booking form: a sheet of lined paper taped onto the olive */
+.book-next { display: block; }
+.book-form-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s7); margin-top: var(--s7); align-items: start; }
+.book-sheet {
+  position: relative; background: var(--card); color: var(--ink); padding: clamp(24px, 4vw, 48px); border-radius: 4px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28); transform: rotate(-0.4deg);
+  background-image: linear-gradient(90deg, transparent 54px, rgba(142, 20, 36, 0.25) 54px 56px, transparent 56px);
+}
+.book-sheet::before { content: ""; position: absolute; top: -14px; left: 42%; width: 140px; height: 30px; background: var(--tape); transform: rotate(-2deg); }
+.book-sheet fieldset { border: 0; margin: 0; padding: 0 0 var(--s6) 40px; }
+.book-sheet fieldset + fieldset { padding-top: var(--s6); border-top: 1.5px dashed var(--line-strong); }
+.book-sheet legend { float: left; width: 100%; margin: 0 0 var(--s4) -40px; font-family: var(--script); font-size: 34px; line-height: 1; color: var(--cherry); }
+.book-sheet legend + * { clear: both; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--s5); }
+.field-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.field { margin: 0 0 var(--s4); display: flex; flex-direction: column; gap: 4px; }
+.field label { font-family: var(--type); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+.book-sheet input:not([type=checkbox]), .book-sheet textarea {
+  width: 100%; font: 500 var(--fs-md)/1.4 var(--body); color: var(--ink); background: transparent; border: 0; border-bottom: 1.5px solid var(--line-strong);
+  border-radius: 0; padding: 6px 2px; min-height: 0;
+}
+.book-sheet textarea { border: 1.5px solid var(--line-strong); padding: 10px 12px; resize: vertical; background-image: repeating-linear-gradient(transparent 0 25px, rgba(142, 20, 36, 0.14) 25px 26px); line-height: 26px; }
+.book-sheet input:focus, .book-sheet textarea:focus { outline: none; border-color: var(--cherry); box-shadow: 0 2px 0 var(--cherry); }
+.book-sheet input::placeholder, .book-sheet textarea::placeholder { color: var(--ink-3); }
+.book-sheet [aria-invalid="true"] { border-color: var(--bad) !important; }
+.err { color: var(--bad); font-size: var(--fs-xs); min-height: 1em; }
+.check { display: flex; gap: var(--s3); align-items: flex-start; font-size: var(--fs-sm); color: var(--ink-2); margin-top: var(--s3); }
+.check input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--cherry); flex: none; }
+
+.pay-grid { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--s6); align-items: start; }
+.card-art {
+  position: relative; aspect-ratio: 1.586; border-radius: 14px; padding: 18px; color: var(--on-dark); overflow: hidden;
+  background: linear-gradient(135deg, #8e1424, #4a0c14); box-shadow: 0 12px 24px rgba(40, 10, 15, 0.35); transform: rotate(-3deg);
+  font-family: var(--type); display: grid; grid-template-rows: auto 1fr auto auto;
+}
+.card-art::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.18), transparent 50%); pointer-events: none; }
+.card-chip { width: 38px; height: 28px; border-radius: 5px; background: linear-gradient(135deg, #e6c27a, #b38a3e); }
+.card-num { align-self: end; font-size: 17px; letter-spacing: 0.08em; white-space: nowrap; }
+.card-name { font-size: 12px; letter-spacing: 0.12em; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%; }
+.card-exp { position: absolute; right: 18px; bottom: 18px; font-size: 12px; }
+.card-record { position: absolute; right: -14px; top: -14px; width: 74px; opacity: 0.9; }
+
+.book-submit { display: flex; align-items: center; justify-content: flex-end; gap: var(--s5); flex-wrap: wrap; padding-left: 40px; }
+.form-status { color: var(--bad); font-weight: 600; }
+.book-aside { position: sticky; top: calc(var(--nav-h) + var(--s5)); display: grid; gap: var(--s5); justify-items: start; }
+.book-done { min-height: calc(100vh - var(--nav-h)); display: flex; align-items: center; scroll-margin-top: var(--nav-h); }
+.book-done .display .script { font-size: 0.9em; }
+.done-stub { transform: rotate(-2deg); }
+.stub.done-stub::before { content: "Admit one / Request sent"; }
+
+@media (max-width: 1000px) {
+  .book-form-grid { grid-template-columns: 1fr; }
+  .book-aside { position: static; order: -1; }
+  .pay-grid { grid-template-columns: 1fr; }
+  .card-art { max-width: 300px; }
+}
+@media (max-width: 600px) {
+  .book-sheet { background-image: none; }
+  .book-sheet fieldset, .book-submit { padding-left: 0; }
+  .book-sheet legend { margin-left: 0; }
+  .field-row, .field-row.three { grid-template-columns: 1fr; }
+  .book-submit .confirm-btn { width: 100%; }
+}
+
 /* more polaroids on the left of the opening page */
 .houses-left { right: auto; left: clamp(12px, 3vw, 56px); top: clamp(24px, 6vh, 64px); width: clamp(200px, 22vw, 330px); }
 .houses-left .snap-a { right: auto; left: 0; --tilt: -5deg; }

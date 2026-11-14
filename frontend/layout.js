@@ -581,6 +581,8 @@ function startBooking(id, v) {
   if (booking.id !== id) Object.assign(booking, { id, venue: v, month: briefMonth(), start: null, end: null });
   booking.venue = v || booking.venue;
   $("book-next").hidden = true;
+  $("book-done").hidden = true;
+  wireBookForm();
   const img = $("book-photo");
   showPicture(img, id);
   $("cal-prev").onclick = () => { booking.month = new Date(booking.month.getFullYear(), booking.month.getMonth() - 1, 1); drawCalendar(); };
@@ -666,13 +668,152 @@ function confirmDates() {
       <div><dt>Rent, our estimate</dt><dd>${fee ? `$${(fee * days).toLocaleString()}` : "Ask"}</dd></div>
       <div><dt>Status</dt><dd>Pencilled in, not confirmed</dd></div>
     </dl>`;
-  const next = $("book-next");
-  next.hidden = false;
-  next.classList.remove("reveal");
-  void next.offsetWidth;
-  if (!reduced()) next.classList.add("reveal");
-  requestAnimationFrame(() => next.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }));
+  $("book-done").hidden = true;
+  revealAndScroll($("book-next"));
   try { sessionStorage.setItem(`stagehand.dates.${id}`, JSON.stringify({ start: iso(start), end: iso(end) })); } catch { /* private window */ }
+  prefillForm();
+}
+
+function revealAndScroll(el) {
+  el.hidden = false;
+  el.classList.remove("reveal");
+  void el.offsetWidth;
+  if (!reduced()) el.classList.add("reveal");
+  requestAnimationFrame(() => el.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }));
+}
+
+// ------------------------------------------------------------------ booking: the form
+
+const digits = (v) => String(v || "").replace(/\D/g, "");
+
+function luhn(num) {
+  let sum = 0, dbl = false;
+  for (let i = num.length - 1; i >= 0; i--) {
+    let d = Number(num[i]);
+    if (dbl) { d *= 2; if (d > 9) d -= 9; }
+    sum += d; dbl = !dbl;
+  }
+  return num.length >= 13 && num.length <= 19 && sum % 10 === 0;
+}
+
+function prefillForm() {
+  const brief = $("brief")?.value || "";
+  const audience = Number((brief.match(/(\d+)\s*(?:guests|people|audience|seats)/i) || [])[1]);
+  const group = Number((brief.match(/(\d+)\s*(?:singers|members|voices|performers|crew)/i) || [])[1]);
+  if (audience) $("bf-guests").value = audience;
+  if (group) $("bf-crew").value = group;
+}
+
+const CHECKS = {
+  "bf-name": (v) => v.trim().length >= 2 || "Add your name.",
+  "bf-email": (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()) || "That email doesn't look right.",
+  "bf-phone": (v) => digits(v).length >= 7 || "Add a phone number the venue can call.",
+  "bf-ccname": (v) => v.trim().length >= 2 || "Add the name on the card.",
+  "bf-cc": (v) => luhn(digits(v)) || "That card number doesn't check out.",
+  "bf-exp": (v) => {
+    const m = v.match(/^(\d{2})\s*\/\s*(\d{2})$/);
+    if (!m || +m[1] < 1 || +m[1] > 12) return "Use MM/YY.";
+    const end = new Date(2000 + +m[2], +m[1], 1);
+    return end > new Date() || "That card has expired.";
+  },
+  "bf-cvc": (v) => /^\d{3,4}$/.test(v.trim()) || "3 or 4 digits.",
+  "bf-zip": (v) => /^[A-Za-z0-9 -]{3,10}$/.test(v.trim()) || "Add the billing ZIP.",
+  "bf-guests": (v) => (+v >= 1 && +v <= 5000) || "How many guests?",
+  "bf-crew": (v) => (+v >= 1 && +v <= 500) || "How many performers?",
+};
+
+function check(id) {
+  const el = $(id);
+  const res = id === "bf-ok" ? (el.checked || "Tick this to send the request.") : CHECKS[id](el.value);
+  const msg = res === true ? "" : res;
+  $(`${id}-err`).textContent = msg;
+  el.setAttribute("aria-invalid", msg ? "true" : "false");
+  el.setAttribute("aria-describedby", `${id}-err`);
+  return !msg;
+}
+
+let formWired = false;
+function wireBookForm() {
+  if (formWired) return;
+  formWired = true;
+  const form = $("book-form");
+  Object.keys(CHECKS).forEach((id) => $(id).addEventListener("blur", () => { if ($(id).value) check(id); }));
+  // the card picture fills in as you type
+  $("bf-cc").addEventListener("input", (e) => {
+    const d = digits(e.target.value).slice(0, 19);
+    e.target.value = d.replace(/(.{4})/g, "$1 ").trim();
+    $("card-num").textContent = (d + "\u2022".repeat(Math.max(0, 16 - d.length))).replace(/(.{4})/g, "$1 ").trim();
+  });
+  $("bf-ccname").addEventListener("input", (e) => { $("card-name").textContent = e.target.value.toUpperCase() || "YOUR NAME"; });
+  $("bf-exp").addEventListener("input", (e) => {
+    const d = digits(e.target.value).slice(0, 4);
+    e.target.value = d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+    $("card-exp").textContent = e.target.value || "MM/YY";
+  });
+  $("bf-cvc").addEventListener("input", (e) => { e.target.value = digits(e.target.value).slice(0, 4); });
+  // once a field has been flagged, re-check it as it's fixed
+  const recheck = (e) => {
+    const id = e.target.id;
+    if ((CHECKS[id] || id === "bf-ok") && e.target.getAttribute("aria-invalid") === "true") check(id);
+    if (!form.querySelector('[aria-invalid="true"]')) $("bf-status").textContent = "";
+  };
+  form.addEventListener("input", recheck);
+  form.addEventListener("change", recheck);
+  form.addEventListener("submit", submitBooking);
+}
+
+async function submitBooking(e) {
+  e.preventDefault();
+  const ids = [...Object.keys(CHECKS), "bf-ok"];
+  const ok = ids.map(check).every(Boolean);
+  if (!ok) {
+    $("bf-status").textContent = "A few things need a look.";
+    $(ids.find((id) => $(id).getAttribute("aria-invalid") === "true"))?.focus();
+    return;
+  }
+  const { start, id, venue } = booking;
+  const end = booking.end || start;
+  const days = Math.round((end - start) / DAY) + 1;
+  const when = days > 1 ? `${nice(start)} to ${nice(end)}` : nice(start);
+  const name = $("bf-name").value.trim();
+  const notes = [
+    `Booking request for ${when}.`,
+    `Contact: ${name}, ${$("bf-email").value.trim()}, ${$("bf-phone").value.trim()}.`,
+    $("bf-time").value ? `Doors at ${$("bf-time").value}.` : "",
+    $("bf-notes").value.trim(),
+  ].filter(Boolean).join(" ");
+  const btn = $("bf-go");
+  btn.disabled = true;
+  btn.textContent = "Sending";
+  $("bf-status").textContent = "";
+  // Only the booking details go to the server. Card fields are never sent anywhere.
+  try {
+    const res = await fetch("/api/pipeline", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        venue_id: id, event_date: when, audience: +$("bf-guests").value, group_size: +$("bf-crew").value,
+        nights: Math.max(1, days), group_name: $("bf-group").value.trim() || name, status: "drafted", notes,
+      }),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(out.detail || `HTTP ${res.status}`);
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = "Request booking";
+    $("bf-status").textContent = `That didn't go through: ${err.message}. Try again in a moment.`;
+    return;
+  }
+  const last4 = digits($("bf-cc").value).slice(-4);
+  ["bf-cc", "bf-exp", "bf-cvc"].forEach((x) => { $(x).value = ""; });
+  $("card-num").textContent = "\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022";
+  $("card-exp").textContent = "MM/YY";
+  btn.disabled = false;
+  btn.textContent = "Request booking";
+  window.dispatchEvent(new CustomEvent("pipeline:changed"));
+  $("done-stub").innerHTML = $("book-stub").innerHTML.replace("Pencilled in, not confirmed", "Requested, waiting on the venue")
+    + `<p class="stub-venue">For ${esc(name)}. Card ending ${esc(last4)} checked, not charged.</p>`;
+  document.querySelectorAll("#book-done .venue-name").forEach((el) => { el.textContent = venue?.name || "the venue"; });
+  revealAndScroll($("book-done"));
 }
 
 function watchVenueName() {
