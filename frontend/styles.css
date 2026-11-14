@@ -1691,3 +1691,7 @@ select option { background: #2c0d10; color: var(--ink); }
 }
 .search-band .sb-line { font-size: min(1em, 2.8vw, 40px); }
 @media (max-width: 1000px) { .search-band .sb-line { font-size: 1em; white-space: normal; } }
+
+/* venue page title: smaller, in the Playfair used by the other headings */
+.pick-head .display, #d-name { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.05; font-size: clamp(30px, 3.6vw, 52px); }
+.pick-head .lede-dark { margin-top: var(--s2); }
