@@ -279,7 +279,7 @@ export function makeRoomImpulse(ctx, bands, dims) {
 }
 
 /** Second-order band-pass (RBJ cookbook), one octave wide, run forward over the signal. */
-function bandpass(x, f0, sr) {
+export function bandpass(x, f0, sr) {
   const w0 = (2 * Math.PI * f0) / sr;
   const q = Math.SQRT2; // one-octave bandwidth
   const alpha = Math.sin(w0) / (2 * q);

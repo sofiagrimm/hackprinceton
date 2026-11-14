@@ -42,6 +42,7 @@ def run() -> list[dict]:
             "hall": name, "city": city, "volume_m3": volume,
             "published_rt60_s": published, "estimated_rt60_s": round(ours, 2),
             "error_pct": round(100 * (ours - published) / published, 1),
+            "stage_support_db": round(est.stage_support_db, 1),
         })
     return out
 
