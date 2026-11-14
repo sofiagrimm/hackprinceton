@@ -528,15 +528,17 @@ function wireSlider(results) {
   const slides = [...document.querySelectorAll("#rs-track .rs-slide")];
   let at = 0;
   const select = (i) => {
-    at = Math.max(0, Math.min(results.length - 1, i));
+    // a loop: past the last venue it comes round to the first again
+    const n = results.length;
+    at = ((i % n) + n) % n;
     slides.forEach((s, k) => {
       s.classList.toggle("on", k === at);
-      s.classList.toggle("past", k < at);
+      s.classList.remove("past");
+      s.style.order = (k - at + n) % n; // the chosen one first, then the rest in turn, wrapping round
       s.querySelector("a").tabIndex = k === at ? 0 : -1;
     });
-    $("rs-count").textContent = `${at + 1} of ${results.length}`;
-    $("rs-prev").disabled = at === 0;
-    $("rs-next").disabled = at === results.length - 1;
+    $("rs-count").textContent = `${at + 1} of ${n}`;
+    $("rs-prev").disabled = $("rs-next").disabled = n < 2;
     renderDetail(results[at], at);
   };
   $("rs-prev").onclick = () => select(at - 1);
