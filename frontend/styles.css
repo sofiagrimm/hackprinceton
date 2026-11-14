@@ -1253,3 +1253,9 @@ body[data-view="walk3d"] .view[data-view="walk3d"] { display: block; }
 }
 /* "Taking it on the road?": a dusty plum, same muted shade as the rose above but its own colour */
 .side-b.band.wine { background: linear-gradient(rgba(112, 84, 118, 0.72), rgba(112, 84, 118, 0.72)), #3a1517 url("img/home/paper.jpg") center / cover no-repeat; }
+
+/* property page: the venue's name first, then the pictures, then the info */
+.pick-head { margin-bottom: var(--s6); }
+.pick-head .display { font-size: var(--fs-3xl); line-height: 0.98; overflow-wrap: anywhere; }
+.pick-head .lede-dark { margin-top: var(--s3); }
+.pick-main .figures { margin-top: 0; }
