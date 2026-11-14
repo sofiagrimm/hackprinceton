@@ -231,7 +231,7 @@ function rooms(id) {
 }
 
 // Rooms worth showing: big, open, made for people. Never a bathroom or a back corridor.
-const DULL = /bath|rest ?room|toilet|\bwc\b|powder|closet|laundry|storage|utility|mechanical|electrical|elevator|stair|corridor|hallway|garage|janitor|trash|locker|shower|server|mail|bedroom|kitchen(?!.*living)/i;
+const DULL = /fitness|gym|bath|rest ?room|toilet|\bwc\b|powder|closet|laundry|storage|utility|mechanical|electrical|elevator|stair|corridor|hallway|garage|janitor|trash|locker|shower|server|mail|bedroom|kitchen(?!.*living)/i;
 const SHOWY = /ballroom|lounge|rooftop|roof|terrace|hall\b|theat|stage|studio|gallery|atrium|chapel|sanctuary|auditorium|event|great room|club|courtyard|pool|bar\b|library|lobby|living|loft|music|dance|ballet|meeting|conference/i;
 
 function rankRooms(list, model) {
@@ -345,7 +345,7 @@ function roomCard(v, n, extra = "") {
 // ------------------------------------------------------------------ the shelf of real rooms (search page)
 
 // Scanned rooms across both cities, to browse before you search.
-const FEATURED = [6531330, 9956355, 8917689, 9530669, 275472, 9169656, 4029966, 9168400, 406577, 11445467];
+const FEATURED = [6531330, 9438497, 9956355, 10183484, 9530669, 10064886, 5316122, 10610091, 9252592, 4029966];
 
 async function renderShelf() {
   const list = $("featured");
@@ -544,6 +544,135 @@ async function showNextPage(id, which) {
   const jump = (target) => (e) => { e.preventDefault(); go(back); setTimeout(() => $(target).scrollIntoView(), 400); };
   $("ex-tour").href = back; $("ex-tour").onclick = jump("walk");
   $("bk-ask").href = back; $("bk-ask").onclick = jump("reach");
+  if (which === "book") startBooking(id, v);
+}
+
+// ------------------------------------------------------------------ booking: pick dates, then the next step appears
+
+const DAY = 86400000;
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const nice = (d) => d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+const booking = { id: null, venue: null, month: null, start: null, end: null };
+
+/**
+ * Which days are taken. There's no venue calendar in the data yet, so this is a fixed sample per venue
+ * (the page says so). Swap this for the venue's real calendar when one exists.
+ */
+function isTaken(id, d) {
+  let h = (id * 2654435761) ^ (d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate()) * 40503;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  const r = ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  const weekend = d.getDay() === 5 || d.getDay() === 6;
+  return r < (weekend ? 0.38 : 0.16);
+}
+
+function briefMonth() {
+  const m = ($("brief")?.value || "").match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?(?:\s+(\d{1,2}))?/i);
+  const now = new Date();
+  if (!m) return new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const mi = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"].indexOf(m[1].toLowerCase());
+  let d = new Date(now.getFullYear(), mi, 1);
+  if (d < new Date(now.getFullYear(), now.getMonth(), 1)) d = new Date(now.getFullYear() + 1, mi, 1);
+  return d;
+}
+
+function startBooking(id, v) {
+  if (booking.id !== id) Object.assign(booking, { id, venue: v, month: briefMonth(), start: null, end: null });
+  booking.venue = v || booking.venue;
+  $("book-next").hidden = true;
+  const img = $("book-photo");
+  showPicture(img, id);
+  $("cal-prev").onclick = () => { booking.month = new Date(booking.month.getFullYear(), booking.month.getMonth() - 1, 1); drawCalendar(); };
+  $("cal-next").onclick = () => { booking.month = new Date(booking.month.getFullYear(), booking.month.getMonth() + 1, 1); drawCalendar(); };
+  $("cal-confirm").onclick = confirmDates;
+  $("bk-change").onclick = (e) => { e.preventDefault(); $("book-pick").scrollIntoView({ behavior: reduced() ? "auto" : "smooth" }); };
+  drawCalendar();
+}
+
+function rangeProblem() {
+  const { start, end, id } = booking;
+  if (!start) return null;
+  for (let t = start.getTime(); t <= (end || start).getTime(); t += DAY) {
+    const d = new Date(t);
+    if (isTaken(id, d)) return d;
+  }
+  return null;
+}
+
+function drawCalendar() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const first = booking.month;
+  const firstAllowed = new Date(today.getFullYear(), today.getMonth(), 1);
+  $("cal-prev").disabled = first <= firstAllowed;
+  const bad = rangeProblem();
+  const months = [0, 1].map((k) => new Date(first.getFullYear(), first.getMonth() + k, 1));
+  $("cal-months").innerHTML = months.map((m) => {
+    const lead = (m.getDay() + 6) % 7; // weeks start on Monday
+    const days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < lead; i++) cells.push(`<span aria-hidden="true"></span>`);
+    for (let n = 1; n <= days; n++) {
+      const d = new Date(m.getFullYear(), m.getMonth(), n);
+      const past = d < today, taken = isTaken(booking.id, d);
+      const t = d.getTime(), s = booking.start?.getTime(), e = (booking.end || booking.start)?.getTime();
+      const cls = [past && "past", taken && "taken", s === t && "start", e === t && "end", s != null && t > s && t < e && "in", bad && t >= s && t <= e && "bad"].filter(Boolean).join(" ");
+      const label = `${nice(d)}${taken ? ", taken" : past ? ", in the past" : ", open"}`;
+      cells.push(`<button type="button" class="cal-day ${cls}" data-day="${iso(d)}" aria-label="${label}" aria-pressed="${s != null && t >= s && t <= e}" ${past || taken ? "disabled" : ""}>${n}</button>`);
+    }
+    return `<div class="cal-month"><h3>${MONTHS[m.getMonth()]} ${m.getFullYear()}</h3>
+      <div class="cal-grid">${["M", "T", "W", "T", "F", "S", "S"].map((x) => `<span class="cal-dow" aria-hidden="true">${x}</span>`).join("")}${cells.join("")}</div></div>`;
+  }).join("");
+  $("cal-months").querySelectorAll("button[data-day]").forEach((b) => (b.onclick = () => pickDay(b.dataset.day)));
+  renderStatus(bad);
+}
+
+function pickDay(dayIso) {
+  const [y, m, d] = dayIso.split("-").map(Number);
+  const day = new Date(y, m - 1, d);
+  if (!booking.start || booking.end || day < booking.start) { booking.start = day; booking.end = null; }
+  else booking.end = day;
+  drawCalendar();
+  $("cal-months").querySelector(`[data-day="${dayIso}"]`)?.focus();
+}
+
+function renderStatus(bad) {
+  const st = $("cal-status"), btn = $("cal-confirm");
+  st.classList.toggle("bad", !!bad);
+  if (!booking.start) { st.textContent = "Pick the first day, then the last."; btn.disabled = true; return; }
+  if (bad) {
+    st.textContent = `${nice(bad)} is taken. Pick dates around it.`;
+    btn.disabled = true;
+    return;
+  }
+  const days = Math.round(((booking.end || booking.start) - booking.start) / DAY) + 1;
+  st.textContent = booking.end
+    ? `${nice(booking.start)} to ${nice(booking.end)}, ${days} days. All open.`
+    : `${nice(booking.start)}, one day. Pick a last day too, or confirm just this one.`;
+  btn.disabled = false;
+}
+
+function confirmDates() {
+  if ($("cal-confirm").disabled) return;
+  const { start, venue, id } = booking;
+  const end = booking.end || start;
+  const days = Math.round((end - start) / DAY) + 1;
+  const fee = venue ? feeEstimate(venue) : null;
+  $("book-stub").innerHTML = `
+    <p class="stub-dates">${nice(start)}${days > 1 ? ` to<br>${nice(end)}` : ""}</p>
+    <p class="stub-venue">${esc(venue?.name || "This venue")}${venue?.best_space ? `, ${esc(venue.best_space.space_name)}` : ""}</p>
+    <dl class="specs">
+      <div><dt>Days</dt><dd>${days}</dd></div>
+      <div><dt>Rent, our estimate</dt><dd>${fee ? `$${(fee * days).toLocaleString()}` : "Ask"}</dd></div>
+      <div><dt>Status</dt><dd>Pencilled in, not confirmed</dd></div>
+    </dl>`;
+  const next = $("book-next");
+  next.hidden = false;
+  next.classList.remove("reveal");
+  void next.offsetWidth;
+  if (!reduced()) next.classList.add("reveal");
+  requestAnimationFrame(() => next.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }));
+  try { sessionStorage.setItem(`stagehand.dates.${id}`, JSON.stringify({ start: iso(start), end: iso(end) })); } catch { /* private window */ }
 }
 
 function watchVenueName() {
@@ -573,7 +702,8 @@ wireSearch();
 wireZoom();
 watchVenueName();
 // The opening page and Side B: real buildings from the inside or from the side, never straight down.
-[["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330]]
+[["snap-right", 6531330], ["snap-left", 9530669], ["snap-sticker", 9956355], ["sideb-photo", 6531330],
+  ["snap-left-a", 9438497], ["snap-left-b", 10183484], ["snap-left-c", 5316122]]
   .forEach(([id, venue]) => $(id) && showPicture($(id), venue));
 window.addEventListener("popstate", route);
 window.addEventListener("hashchange", route);

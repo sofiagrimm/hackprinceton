@@ -19,7 +19,7 @@
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="masthead">
-    <a class="logo" href="#/" aria-label="Stagehand, opening page">S<span>h</span></a>
+    <a class="logo" href="#/" aria-label="Stagehand, opening page"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="currentColor"/><circle cx="20" cy="20" r="14.5" fill="none" stroke="#4a4440" stroke-width="0.8"/><circle cx="20" cy="20" r="11" fill="none" stroke="#4a4440" stroke-width="0.8"/><circle class="logo-label" cx="20" cy="20" r="7"/><path class="logo-star" d="M20 15.6l1.3 3.1 3.1 1.3-3.1 1.3-1.3 3.1-1.3-3.1-3.1-1.3 3.1-1.3z"/></svg></a>
     <nav class="modes" aria-label="Modes">
       <a href="#/" data-mode="concerts" class="on" aria-current="page">Browse spaces</a>
       <a href="#/tour" data-mode="tour">Tour</a>
@@ -37,6 +37,25 @@
     <header class="paper-hero" id="top">
       <div class="hero-stage" id="hero3d">
         <!-- top right: real buildings from the data, as polaroids and a sticker -->
+        <div class="houses houses-left">
+          <svg class="string" viewBox="0 0 100 92" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M26 10C40 22 60 16 78 24M78 24C70 50 56 62 42 72M26 10C20 36 30 54 42 72"/>
+          </svg>
+          <span class="pin" style="left:26%;top:10%" aria-hidden="true"></span>
+          <span class="pin" style="left:78%;top:24%" aria-hidden="true"></span>
+          <span class="pin" style="left:42%;top:72%" aria-hidden="true"></span>
+          <figure class="polaroid hero-snap snap-a">
+            <img id="snap-left-a" alt="The pool deck at Rae on Sunset, Los Angeles" width="300" height="300">
+            <figcaption>club lounge / LA</figcaption>
+          </figure>
+          <figure class="polaroid hero-snap snap-b">
+            <img id="snap-left-b" alt="Buffalo Lounge at St. Andrie, Houston" width="300" height="300">
+            <figcaption>buffalo lounge / houston</figcaption>
+          </figure>
+          <figure class="sticker snap-c">
+            <img id="snap-left-c" alt="The clubhouse at The Sapphire Resort, Houston" width="200" height="200">
+          </figure>
+        </div>
         <div class="houses">
           <svg class="string" viewBox="0 0 100 92" preserveAspectRatio="none" aria-hidden="true">
             <path d="M74 8C60 20 40 14 22 22M22 22C30 50 44 64 58 70M74 8C80 34 70 52 58 70"/>
@@ -431,12 +450,61 @@
 
   <!-- ============================================================ BOOKING (placeholder until its design arrives) -->
   <div class="view" data-view="book">
-    <section class="page next-page" aria-labelledby="bk-title">
+    <!-- part one: choose the dates -->
+    <section class="page book-pick" id="book-pick" aria-labelledby="bk-title">
       <div class="wrap wide">
         <p class="crumbs"><a class="back" id="bk-back" href="#/">Back to the room</a></p>
-        <h1 class="page-title" id="bk-title">Ready to book.</h1>
-        <p class="page-sub">Booking <b class="venue-name"></b> happens here: pick a date, hold the room and send the ask. This page is being designed next.</p>
-        <p class="next-links"><a class="btn" id="bk-ask" href="#/">See the email we drafted</a></p>
+        <div class="book-head">
+          <h1 class="page-title" id="bk-title">Book <span class="venue-name script"></span> now!</h1>
+          <figure class="polaroid book-snap">
+            <img id="book-photo" alt="" width="240" height="240">
+            <figcaption class="venue-name"></figcaption>
+          </figure>
+        </div>
+
+        <div class="book-body">
+          <div class="cal" id="cal">
+            <div class="cal-nav">
+              <button type="button" class="arrow" id="cal-prev" aria-label="Previous month"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button type="button" class="arrow" id="cal-next" aria-label="Next month"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+            <div class="cal-months" id="cal-months"></div>
+          </div>
+          <aside class="cal-side">
+            <p class="cal-hint script">select your dates here</p>
+            <svg class="cal-hint-arrow" viewBox="0 0 120 60" aria-hidden="true"><path d="M112 10C80 4 40 10 12 40m0 0 4-16m-4 16 16-2" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <ul class="cal-key">
+              <li><span class="key free"></span>Open</li>
+              <li><span class="key taken"></span>Taken</li>
+              <li><span class="key picked"></span>Your dates</li>
+            </ul>
+            <p class="cal-status" id="cal-status" aria-live="polite">Pick the first day, then the last.</p>
+            <p class="note">Availability is a sample until the venue's calendar is connected.</p>
+          </aside>
+        </div>
+
+        <div class="book-confirm">
+          <button type="button" class="confirm-btn" id="cal-confirm" disabled>Confirm dates</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- part two: only appears once the dates work -->
+    <section class="band olive book-next" id="book-next" hidden aria-labelledby="bk-next-title">
+      <div class="wrap wide book-next-grid">
+        <div>
+          <h2 class="display" id="bk-next-title">Your dates are <span class="script">pencilled in.</span></h2>
+          <ol class="book-steps">
+            <li><b>We write to the venue</b><span>The email asks for these exact dates and the real rate.</span></li>
+            <li><b>They hold the room</b><span>Most venues answer within two days. Bookings tracks who has.</span></li>
+            <li><b>The tour fund pays the deposit</b><span>Only once the treasurer presses the button.</span></li>
+          </ol>
+          <p class="next-links">
+            <a class="btn" id="bk-ask" href="#/">Send the ask</a>
+            <a class="link-dark on-dark" id="bk-change" href="#book-pick">Change the dates</a>
+          </p>
+        </div>
+        <div class="stub book-stub" id="book-stub"></div>
       </div>
     </section>
   </div>
