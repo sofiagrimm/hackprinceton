@@ -114,13 +114,13 @@ def venue_fee_estimate(venue: dict, space_area_sqft: float | None) -> dict:
     area = space_area_sqft or 1500
     if venue.get("hotel"):
         fee = max(400, area * 0.35)
-        basis = "hotel event space, ~$0.35 per sq ft per evening"
+        basis = "hotel event space, about $0.35 per sq ft per evening"
     elif venue["property_type"] == "Multifamily":
         fee = max(250, area * 0.15)
-        basis = "residential amenity space, ~$0.15 per sq ft per evening"
+        basis = "residential amenity space, about $0.15 per sq ft per evening"
     else:
         fee = max(350, area * 0.25)
-        basis = "commercial space, ~$0.25 per sq ft per evening"
+        basis = "commercial space, about $0.25 per sq ft per evening"
     return {"fee": round(fee, -1), "basis": basis}
 
 
@@ -176,7 +176,7 @@ def commit_stop(venue_id: int, group_size: int = 14, nights: int = 2, audience: 
     actions.append({"type": "bill", "payee": venue["name"], "amount": bill.get("payment_amount"), "id": bill.get("id")})
     if plan["costs"]["lodging_estimate"]:
         bill = _req("POST", f"/accounts/{fund_id}/bills", {
-            "status": "pending", "payee": "Group lodging", "nickname": f"Lodging hold, {nights} night(s)",
+            "status": "pending", "payee": "Group lodging", "nickname": f"Lodging hold, {nights} night{"" if nights == 1 else "s"}",
             "payment_amount": plan["costs"]["lodging_estimate"]})
         actions.append({"type": "bill", "payee": "Group lodging", "amount": bill.get("payment_amount"), "id": bill.get("id")})
     if collect_dues:

@@ -84,9 +84,10 @@ class PlannerScout:
     def run(self, brief_text: str) -> Iterator[Event]:
         brief = parse_brief(brief_text)
         yield {"type": "plan", "text": (
-            f"Brief: {brief['group_size']} performers, ~{brief['audience']} guests, {brief['nights']} night(s) "
-            f"in {brief['metro']}; target sound: {brief['use_label']}. Plan: rank scanned spaces by acoustics "
-            "and capacity -> inspect the top venues -> check the site from the air -> find lodging -> draft outreach.")}
+            f"{brief['group_size']} performers and about {brief['audience']} guests in {brief['metro']}, "
+            f"{brief['nights']} night{'' if brief['nights'] == 1 else 's'}, for {brief['use_label']}. "
+            "I'll rank the scanned rooms, measure the best few, check the site from the air, "
+            "find a place to stay and write to the venue.")}
 
         args = {"metro": brief["metro"], "audience": brief["audience"], "use": brief["use"],
                 "stay_and_perform": brief["stay_and_perform"]}

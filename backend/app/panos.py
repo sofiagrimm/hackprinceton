@@ -61,6 +61,10 @@ def _central_pano(panos: list[dict]) -> dict | None:
     return min(panos, key=lambda p: (p["position"]["x"] - cx) ** 2 + (p["position"]["y"] - cy) ** 2)
 
 
+PRIVATE = {"bedroom", "bathroom", "closet", "laundry", "entrance", "entryway", "foyer", "hallway",
+           "staircase", "utility", "pantry", "garage"}
+
+
 def rooms_for_venue(venue_id: int, limit_models: int = 10) -> list[dict]:
     """Indoor rooms with a usable 360 photo, across the venue's scans."""
     venue = data.venues().get(int(venue_id))
@@ -76,15 +80,17 @@ def rooms_for_venue(venue_id: int, limit_models: int = 10) -> list[dict]:
             room_id = ((p.get("anchor") or {}).get("room") or {}).get("id")
             if room_id and (p.get("skybox") or {}).get("children"):
                 panos_by_room.setdefault(room_id, []).append(p)
-        from .scout import OUTDOOR_NAME
+        from .scout import OUTDOOR_NAME, UNIT_NAME
         import re
         scan_name = model.get("name") or ""
+        if UNIT_NAME.search(scan_name):  # apartment and hotel-room scans aren't places to perform
+            continue
         if (OUTDOOR_NAME.search(scan_name) or re.search(r"\bexterior\b", scan_name, re.I)) \
                 and not re.search(r"\b(interior|indoor|inside)\b", scan_name, re.I):
             continue
         for room in model.get("rooms") or []:
             labels = [c["label"] for c in room.get("classifications") or [] if c.get("label")]
-            if {l.lower() for l in labels} & OUTDOOR:
+            if {l.lower() for l in labels} & (OUTDOOR | PRIVATE):
                 continue
             pano = _central_pano(panos_by_room.get(room["id"], []))
             if not pano:
@@ -93,7 +99,7 @@ def rooms_for_venue(venue_id: int, limit_models: int = 10) -> list[dict]:
             area = dims.get("area")
             if area and dims.get("units") == "metric":
                 area *= 10.7639
-            if area is not None and area < 60:
+            if area is not None and area < 250:
                 continue
             out.append({
                 "model_id": model_id,

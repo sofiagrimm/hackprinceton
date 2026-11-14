@@ -198,7 +198,7 @@ function detail(text) {
 
 function handleEvent(ev) {
   switch (ev.type) {
-    case "agent": $("agent-name").textContent = `Planned by ${AGENT_LABEL[ev.name] || ev.name}.`; break;
+    case "agent": $("agent-name").textContent = `Planned by the ${(AGENT_LABEL[ev.name] || ev.name).replace(/^Built-in/, "built-in")}.`; break;
     case "plan": step("done", "Plan", esc(ev.text)); break;
     case "delegate": step("live", `Ask the ${ev.agent}`, esc(ev.text)); break;
     case "file": step("done", "Write the report", esc(ev.path)); break;
