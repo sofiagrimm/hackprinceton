@@ -1512,3 +1512,9 @@ body[data-view="home"] .collage { height: 100vh; height: 100svh; }
 @media (prefers-reduced-motion: reduce) { #ac-mic[aria-pressed="true"], .pr-mic.live, #mic.live, .pr-mic.live::before, #mic.live::before { animation: none; } }
 /* the clap measurement at the bottom of the acoustics page goes too */
 .view[data-view="acoustics"] .pr-measure { display: none !important; }
+
+/* results heading in the search page's style: bold Playfair, then an italic line */
+.results-page .page-title { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.02; font-size: clamp(34px, 4.4vw, 62px); }
+.results-page .rs-line { display: block; white-space: nowrap; }
+.results-page .rs-em { display: block; font-style: italic; font-weight: 600; color: var(--cherry); font-size: 0.82em; margin-top: 0.06em; }
+@media (max-width: 760px) { .results-page .rs-line { white-space: normal; } }
