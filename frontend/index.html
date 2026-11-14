@@ -37,6 +37,12 @@
       <div class="hero-stage" id="hero3d">
         <!-- top right: real buildings from the data, as polaroids and a sticker -->
         <div class="houses">
+          <svg class="string" viewBox="0 0 100 92" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M74 8C60 20 40 14 22 22M22 22C30 50 44 64 58 70M74 8C80 34 70 52 58 70"/>
+          </svg>
+          <span class="pin" style="left:74%;top:8%" aria-hidden="true"></span>
+          <span class="pin" style="left:22%;top:22%" aria-hidden="true"></span>
+          <span class="pin" style="left:58%;top:70%" aria-hidden="true"></span>
           <figure class="polaroid hero-snap snap-a">
             <img id="snap-right" alt="Inside Park Fifth, downtown Los Angeles" width="300" height="300">
             <figcaption id="snap-right-cap">park fifth / LA</figcaption>
@@ -50,6 +56,11 @@
           </figure>
         </div>
 
+        <svg class="doodle stars" viewBox="-60 0 420 200" aria-hidden="true"><g class="ink" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path pathLength="1" style="--d:2.4s" d="M-40 60l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/>
+          <path pathLength="1" style="--d:2.6s" d="M270 20l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+          <path pathLength="1" style="--d:2.8s" d="M330 128l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/>
+        </g></svg>
         <div class="lyric">
           <p class="eyebrow">Rooms for people who make things</p>
           <h1 class="hero-title">Stage<em>hand</em></h1>
@@ -173,15 +184,16 @@
     </section>
 
     <section class="band wine side-b" aria-labelledby="sideb-title">
+      <span class="halftone-record" aria-hidden="true"></span>
       <div class="wrap side-b-grid">
         <div>
-          <p class="eyebrow">Side B / More than one night</p>
+          <span class="ransom "><span class="sr-only">tracklist</span><span aria-hidden="true"><i>t</i><i>r</i><i>a</i><i>c</i><i>k</i><i>l</i><i>i</i><i>s</i><i>t</i></span></span>
           <h2 class="display" id="sideb-title">Taking it on the road?</h2>
           <ul class="side-b-list">
-            <li><a href="#/tour">Plan the whole tour</a><span>Every stop, the drive between, one total and a vote for the group.</span></li>
-            <li><a href="#/bookings">Keep every ask moving</a><span>Who you've written to, who owes you a reply, and two rooms side by side.</span></li>
-            <li><a href="#/film">Shooting instead?</a><span>Quiet rooms for dialogue, base camp for the trucks, light for each shoot day.</span></li>
-            <li><a href="#/cities">Somewhere new</a><span>Nine more cities, estimated from the outside of each building.</span></li>
+            <li><a href="#/tour">Plan the whole tour</a><b class="leader" aria-hidden="true"></b><em>tour</em><span>Every stop, the drive between, one total and a vote for the group.</span></li>
+            <li><a href="#/bookings">Keep every ask moving</a><b class="leader" aria-hidden="true"></b><em>bookings</em><span>Who you've written to, who owes you a reply, and two rooms side by side.</span></li>
+            <li><a href="#/film">Shooting instead?</a><b class="leader" aria-hidden="true"></b><em>film</em><span>Quiet rooms for dialogue, base camp for the trucks, light for each shoot day.</span></li>
+            <li><a href="#/cities">Somewhere new</a><b class="leader" aria-hidden="true"></b><em>cities</em><span>Nine more cities, estimated from the outside of each building.</span></li>
           </ul>
         </div>
         <figure class="polaroid side-b-snap">
@@ -205,7 +217,7 @@
           <div class="rs-list" id="rs-list" aria-live="polite"></div>
           <aside class="rs-aside" aria-label="How we searched">
             <section class="plan" id="plan" hidden>
-              <p class="eyebrow">Tracklist</p>
+              <span class="ransom small"><span class="sr-only">tracklist</span><span aria-hidden="true"><i>t</i><i>r</i><i>a</i><i>c</i><i>k</i><i>l</i><i>i</i><i>s</i><i>t</i></span></span>
               <h2 id="plan-title">Scouting.</h2>
               <p class="note" id="agent-name"></p>
               <ol class="steps" id="timeline"></ol>
@@ -270,7 +282,7 @@
       </div>
       <div class="wrap wide">
         <div class="liner">
-          <p class="eyebrow">Liner notes / from the scout</p>
+          <span class="ransom small"><span class="sr-only">liner notes</span><span aria-hidden="true"><i>l</i><i>i</i><i>n</i><i>e</i><i>r</i><i> </i><i>n</i><i>o</i><i>t</i><i>e</i><i>s</i></span></span>
           <div class="report" id="report"></div>
         </div>
       </div>
