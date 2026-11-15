@@ -274,6 +274,7 @@ function onBriefSubmit() {
   state.scouting = true;
   state.brief = brief;
   $("rs-title").textContent = "Scouting.";
+  $("rs-sub").hidden = false;
   $("rs-sub").textContent = `“${brief}”`;
   $("rs-list").innerHTML = `<p class="rs-wait">Listening to every scanned room that could fit you. This takes a few seconds.</p>`;
   go("#/results");
@@ -658,8 +659,9 @@ function renderResults(r) {
   $("rs-title").innerHTML = n
     ? `${n} rooms in ${esc(r.metro)}.`
     : where ? `None available in ${esc(r.place || "this location")}.` : "None available.";
+  $("rs-sub").hidden = !!n;
   $("rs-sub").textContent = n
-    ? `Out of ${r.venues_scanned.toLocaleString()} scanned buildings, each heard with ${r.audience} people in.`
+    ? ""
     : where ? "We only have scanned rooms in Los Angeles and Houston so far."
     : `No scanned room${r.metro ? ` in ${r.metro}` : ""} fits ${r.audience ? `${Number(r.audience).toLocaleString()} people` : "a group that size"}. Try a smaller audience.`;
   if (!n) { $("rs-list").innerHTML = ""; return; }
