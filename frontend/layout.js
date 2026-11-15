@@ -1040,7 +1040,6 @@ function applyPreset(name) {
 
 async function loadLabRoom(r) {
   lab.current = r;
-  $("walk-home").hidden = true;
   $("lab-rooms").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.key === `${r.model_id}/${r.pano_id}`)));
   $("lab-empty").hidden = false;
   $("lab-empty").textContent = "Loading the room…";
@@ -1091,32 +1090,6 @@ async function startLighting(id) {
     showLumens();
     $("lab-presets").querySelectorAll("button").forEach((b) => (b.onclick = () => applyPreset(b.dataset.preset)));
     $("lab-undo").onclick = () => { lab.placed.pop(); labLights(); };
-    // walking around the room
-    const step = (f, r) => {
-      const away = lab.viewer.walk(f, r);
-      $("walk-home").hidden = away < 0.2;
-      $("lab-count").dataset.away = away >= 1.7 ? "far" : "";
-    };
-    const STEP = 0.35;
-    const moves = { f: [STEP, 0], b: [-STEP, 0], l: [0, -STEP], r: [0, STEP] };
-    document.querySelectorAll("[data-walk]").forEach((b) => {
-      let timer = null;
-      const go1 = () => step(...moves[b.dataset.walk]);
-      b.addEventListener("pointerdown", (e) => { e.preventDefault(); go1(); timer = setInterval(go1, 110); });
-      ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => b.addEventListener(ev, () => clearInterval(timer)));
-      b.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go1(); } });
-    });
-    $("walk-home").onclick = () => { lab.viewer.home(); $("walk-home").hidden = true; };
-    window.addEventListener("keydown", (e) => {
-      if (document.body.dataset.view !== "lighting" || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) && e.target.type !== "range") return;
-      const k = { w: "f", arrowup: "f", s: "b", arrowdown: "b", a: "l", arrowleft: "l", d: "r", arrowright: "r" }[e.key.toLowerCase()];
-      if (!k) return;
-      const view = $("lab-view").getBoundingClientRect();
-      if (view.bottom < 0 || view.top > innerHeight) return; // only while the room is on screen
-      e.preventDefault();
-      step(...moves[k]);
-    });
     // Ctrl+Z (Cmd+Z on a Mac) takes out the last light, like Undo last
     window.addEventListener("keydown", (e) => {
       if (document.body.dataset.view !== "lighting" || e.shiftKey || e.altKey) return;

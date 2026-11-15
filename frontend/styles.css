@@ -1760,12 +1760,4 @@ body[data-view="property"] .venue-switch a { padding: 5px 11px; }
 .title-em { font-style: italic; font-weight: 600; color: #e8a3b0; }
 
 /* walking around in the lighting lab */
-.walk-pad { position: absolute; z-index: 3; right: 14px; bottom: 14px; display: grid; grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(2, 34px); gap: 4px; }
-.walk-pad button { display: grid; place-items: center; border-radius: 8px; background: rgba(246, 239, 230, 0.85); color: #2a1012; font-size: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); touch-action: none; }
-.walk-pad button:hover { background: #fff6ea; }
-.walk-pad [data-walk="f"] { grid-column: 2; grid-row: 1; }
-.walk-pad [data-walk="l"] { grid-column: 1; grid-row: 2; }
-.walk-pad [data-walk="b"] { grid-column: 2; grid-row: 2; }
-.walk-pad [data-walk="r"] { grid-column: 3; grid-row: 2; }
-.walk-home { position: absolute; z-index: 3; left: 14px; bottom: 14px; padding: 7px 12px; border-radius: 999px; font: 600 var(--fs-xs)/1 var(--body);
   background: rgba(246, 239, 230, 0.9); color: #2a1012; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
