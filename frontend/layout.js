@@ -392,7 +392,7 @@ function bestFace(r) {
     const img = new Image();
     img.onload = () => { try { done({ f, s: photoScore(img) }); } catch { done({ f, s: 0 }); } };
     img.onerror = () => done(null);
-    img.src = `/api/pano/${key}/${f}.jpg`;
+    img.src = `/api/pano/${key}/${f}.jpg?w=256`; // only scored at 48px
   }))).then((faces) => {
     const ok = faces.filter(Boolean).sort((a, b) => b.s - a.s);
     return ok.length ? { url: `/api/pano/${key}/${ok[0].f}.jpg`, score: ok[0].s } : null;
@@ -420,13 +420,15 @@ async function showPicture(img, id) {
   const urls = await pictureList(id);
   if (img.dataset.pic !== String(id)) return; // reused for another venue meanwhile
   let k = 0;
+  // cards and polaroids are a few hundred pixels wide: ask for a light copy of the room photos
+  const small = (u) => (u.startsWith("/api/pano/") ? `${u}?w=${img.width > 700 || img.closest(".prop-photo") ? 1024 : 512}` : u);
   img.onerror = () => {
     k += 1;
-    if (k < urls.length) img.src = urls[k];
+    if (k < urls.length) img.src = small(urls[k]);
     else { img.onerror = null; img.style.visibility = "hidden"; }
   };
   img.onload = () => { img.style.visibility = ""; };
-  if (urls.length) img.src = urls[0];
+  if (urls.length) img.src = small(urls[0]);
 }
 
 function photoTag(v) {
@@ -1435,11 +1437,14 @@ async function updateAcPhoto() {
   img.dataset.key = key;
   $("ac-photo-cap").textContent = sp.space_name.toLowerCase();
   img.alt = sp.space_name;
+  // the venue's own best room, already picked on the server: show it now
+  const i = Number(document.querySelector("#d-spaces button.on")?.dataset.i || 0);
+  if (i === 0) { img.removeAttribute("src"); showPicture(img, id); return; }
   const list = (await rooms(id)).filter((r) => r.model_id === sp.model_id);
   const ranked = rankRooms(list.length ? list : await rooms(id), sp.model_id);
   const views = (await Promise.all(ranked.slice(0, 3).map(bestFace))).filter(Boolean).sort((x, y) => y.score - x.score);
   if (img.dataset.key !== key) return; // the room changed while loading
-  if (views[0]) { img.src = views[0].url; img.style.visibility = ""; }
+  if (views[0]) { img.src = `${views[0].url}?w=512`; img.style.visibility = ""; }
   else showPicture(img, id);
 }
 

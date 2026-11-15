@@ -2130,3 +2130,42 @@ body { font-size: 18px; }
 .dl-name.ransom .rn { font-size: 0.95em; }
 .dl-name.ransom .rn-line { display: inline; }
 .dl-name.ransom .rn-w { margin-right: 0.2em; }
+
+/* ---------- acoustics, reorganised: one paper background, five sections with the same rhythm ---------- */
+.view[data-view="acoustics"] > section { background: transparent !important; color: var(--on-dark); }
+.view[data-view="acoustics"] .ac-intro { padding-bottom: clamp(28px, 3vw, 44px); }
+.view[data-view="acoustics"] .ac-sec { position: relative; padding: clamp(36px, 4vw, 56px) 0; }
+/* a torn-paper rule between sections, like the strip under the headers */
+.view[data-view="acoustics"] .ac-sec::before { content: ""; position: absolute; left: 50%; top: 0; width: min(1240px, calc(100% - 2 * var(--gutter, 24px))); transform: translateX(-50%);
+  height: 0; border-top: 1.5px dashed rgba(243, 231, 216, 0.28); }
+.view[data-view="acoustics"] .ac-sec h2.display { margin: 0 0 var(--s2); font-size: clamp(26px, 2.6vw, 36px); }
+.view[data-view="acoustics"] .ac-sec .lede { color: var(--on-dark-2); max-width: 62ch; margin: 0 0 var(--s4); font-size: var(--fs-md); }
+.view[data-view="acoustics"] .ac-sec .note { color: var(--on-dark-2); }
+
+/* intro: polaroid and room picker on the left, what the group will hear on the right */
+.ac-top { display: grid; grid-template-columns: clamp(220px, 22vw, 300px) minmax(0, 1fr); gap: var(--s5) clamp(28px, 4vw, 64px); align-items: start; margin-top: var(--s4); }
+.ac-left { display: flex; flex-direction: column; gap: var(--s4); }
+.ac-left .ac-photo { width: 100%; margin: 0; }
+.ac-right .ac-h { margin: 0 0 var(--s4); }
+.ac-right .ac-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: none; gap: var(--s4); }
+@media (min-width: 1250px) { .ac-right .ac-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .ac-top { grid-template-columns: 1fr; } .ac-left { flex-direction: row; flex-wrap: wrap; } .ac-left .ac-photo { width: 220px; } }
+
+/* hear it for yourself: tighter */
+.view[data-view="acoustics"] .ac-try #scope { margin-top: var(--s3); }
+.view[data-view="acoustics"] .ac-try .ac-crowd { margin-bottom: var(--s4); }
+
+/* stand in the room: the notes under the controls, not floating far below */
+.view[data-view="acoustics"] .stand-side { gap: var(--s3); }
+.view[data-view="acoustics"] .stand-side .note { font-size: var(--fs-xs); margin: 0; }
+
+/* watch the sound: heading row like the others; the duplicate console stays out of sight */
+.view[data-view="acoustics"] .sound-top { margin-bottom: 0; }
+.view[data-view="acoustics"] .sound-head .lede { margin-bottom: 0; }
+.view[data-view="acoustics"] .playroom-head { margin-top: var(--s2); }
+.view[data-view="acoustics"] .playroom-head .lede { margin-bottom: 0; }
+.view[data-view="acoustics"] .frame.black.sound { padding-top: clamp(36px, 4vw, 56px); }
+
+/* mics: the six cards in one row on a laptop */
+.view[data-view="acoustics"] .ac-mic-sec .ac-mics { margin-top: var(--s2); }
+.view[data-view="acoustics"] .ac-mic-sec .fold { margin-top: var(--s6); }

@@ -382,27 +382,28 @@
             <h1 class="page-title" id="ac-title">How <span class="script venue-name"></span> sounds</h1>
             <p class="page-sub" id="ac-verdict" hidden></p>
           </div>
+        </div>
+        <div class="ac-top">
+          <div class="ac-left">
+          <figure class="polaroid ac-photo" id="ac-photo">
+            <img id="ac-photo-img" alt="" width="320" height="240">
+            <figcaption id="ac-photo-cap"></figcaption>
+          </figure>
           <div class="ac-rooms">
             <p class="mini-head">Which room</p>
             <div class="rooms" id="d-spaces"></div>
             <button type="button" class="save-btn" id="save-sound"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Save this sound</span></button>
           </div>
-          <figure class="polaroid ac-photo" id="ac-photo">
-            <img id="ac-photo-img" alt="" width="320" height="240">
-            <figcaption id="ac-photo-cap"></figcaption>
-          </figure>
+          </div>
+          <div class="ac-right">
+            <h2 class="ac-h">What your group will hear</h2>
+            <div class="ac-cards" id="ac-cards"></div>
+          </div>
         </div>
-
-        <h2 class="ac-h">What your group will hear</h2>
-        <div class="ac-cards" id="ac-cards"></div>
-
-        <h2 class="ac-h">Mics for this room</h2>
-        <p class="note ac-mic-why" id="ac-mic-why"></p>
-        <div class="ac-mics" id="ac-mics"></div>
       </div>
     </section>
 
-    <section class="band wine ac-try" aria-labelledby="ac-try-title">
+    <section class="ac-sec ac-try" aria-labelledby="ac-try-title">
       <div class="wrap wide">
         <h2 class="display" id="ac-try-title">Hear it <span class="script">for yourself.</span></h2>
         <p class="lede">Each sound is played through this room's own echo, worked out from the 3D scan. Headphones help.</p>
@@ -420,7 +421,7 @@
       </div>
     </section>
 
-    <section class="band stand-band" id="stand" aria-labelledby="stand-title">
+    <section class="ac-sec stand-band" id="stand" aria-labelledby="stand-title">
       <div class="wrap wide">
         <h2 class="display" id="stand-title">Stand in <span class="script">the room.</span></h2>
         <p class="lede">The room in 3D at its real size. Drag the performers around the stage and put yourself anywhere, then play the chord to hear it from exactly where you stand. Headphones help.</p>
@@ -449,11 +450,11 @@
       </div>
     </section>
 
-    <section class="frame black sound" id="sound" hidden>
+    <section class="ac-sec frame black sound" id="sound" hidden>
       <div class="wrap wide">
         <div class="sound-top">
           <div class="sound-head">
-            <h2 class="display">The details.</h2>
+            <h2 class="display">Watch <span class="script">the sound.</span></h2>
             <p class="lede" id="d-verdict"></p>
           </div>
           <div class="sound-console">
@@ -467,8 +468,7 @@
           </div>
         </div>
         <div class="playroom-head">
-          <h3 class="sub-head">Play the room</h3>
-          <p class="note">The room from above, at its real size. Press play and watch the chord leave the singers, hit the walls and fade at this room's reverb. Click a seat to hear it from there.</p>
+          <p class="lede">The room from above, at its real size. Press play and watch the chord leave the singers, hit the walls and fade at this room's reverb. Click a seat to hear it from there.</p>
         </div>
         <div id="playroom" class="playroom" hidden></div>
         <div class="rt" id="d-rtchart"></div>
@@ -487,6 +487,14 @@
           </div>
         </div>
 
+      </div>
+    </section>
+
+    <section class="ac-sec ac-mic-sec" aria-labelledby="ac-mic-title">
+      <div class="wrap wide">
+        <h2 class="display" id="ac-mic-title">Mics <span class="script">for this room.</span></h2>
+        <p class="lede ac-mic-why" id="ac-mic-why"></p>
+        <div class="ac-mics" id="ac-mics"></div>
         <details class="fold dark">
           <summary>The numbers behind it</summary>
           <dl class="specs dark-specs" id="d-acoustics"></dl>

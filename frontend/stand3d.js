@@ -74,7 +74,7 @@ export function createStandView(container, { onMove } = {}) {
   const camera = new THREE.PerspectiveCamera(45, 1, 0.5, 2000);
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  let roomGroup = null, dims = { length: 12, width: 8, height: 3.5 }, pano = null, view = "3d";
+  let wanted = "", roomGroup = null, dims = { length: 12, width: 8, height: 3.5 }, pano = null, view = "3d";
 
   /** Frame the room: a three-quarter view, or straight down for the plan. */
   function fitCamera() {
@@ -243,12 +243,29 @@ export function createStandView(container, { onMove } = {}) {
     /** Dress the room in its own 360 photo (or pass nulls to go back to the plain box). */
     async setPanorama(modelId, panoId) {
       if (!modelId) { pano = null; buildRoom(); dirty = true; return; }
-      const tex = await new THREE.CubeTextureLoader().loadAsync(FACE_ORDER.map((i) => `/api/pano/${modelId}/${panoId}/${i}.jpg`));
-      tex.colorSpace = THREE.SRGBColorSpace;
-      pano?.dispose?.();
-      pano = tex;
-      buildRoom();
-      dirty = true;
+      // a light copy first so the room shows quickly, then the sharp one
+      const key = `${modelId}/${panoId}`;
+      wanted = key;
+      const load = (w) => new THREE.CubeTextureLoader().loadAsync(FACE_ORDER.map((i) => `/api/pano/${modelId}/${panoId}/${i}.jpg?w=${w}`));
+      const show = (tex) => {
+        if (wanted !== key) { tex.dispose(); return; }
+        tex.colorSpace = THREE.SRGBColorSpace;
+        pano?.dispose?.();
+        pano = tex;
+        buildRoom();
+        dirty = true;
+      };
+      show(await load(384));
+      // the sharp copy only swaps the picture: the view, the people and where you stand stay put
+      load(1024).then((tex) => {
+        if (wanted !== key) { tex.dispose(); return; }
+        tex.colorSpace = THREE.SRGBColorSpace;
+        const old = pano;
+        pano = tex;
+        roomGroup?.traverse((o) => [].concat(o.material || []).forEach((m) => { if (m.uniforms?.map) m.uniforms.map.value = tex; }));
+        old?.dispose?.();
+        dirty = true;
+      }).catch(() => {});
     },
     reset: arrange,
     /** "3d" or "top" (straight down, walls hidden). */

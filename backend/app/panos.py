@@ -154,7 +154,8 @@ def face_small(model_id: str, pano_id: str, index: int, size: int = 1024) -> byt
     path = CACHE_DIR / f"pano_{model_id}_{pano_id}_{index}_{size}.jpg"
     if path.exists():
         return path.read_bytes()
-    full = face(model_id, pano_id, index)
+    # a small copy is made from the 1024 one (already on disk for most rooms), not from the full face
+    full = face_small(model_id, pano_id, index) if size < 1024 else face(model_id, pano_id, index)
     if not full:
         return None
     from PIL import Image

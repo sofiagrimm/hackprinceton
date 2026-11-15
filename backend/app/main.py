@@ -109,11 +109,13 @@ def venue_rooms(venue_id: int) -> dict:
 
 
 @app.get("/api/pano/{model_id}/{pano_id}/{index}.jpg")
-def pano_face(model_id: str, pano_id: str, index: int, full: bool = False) -> Response:
+def pano_face(model_id: str, pano_id: str, index: int, full: bool = False, w: int = 1024) -> Response:
+    """One face of a room's 360 photo. `w` asks for a smaller copy (cards and polaroids need ~500px, not 1024)."""
     from .panos import face, face_small
     if not 0 <= index <= 5:
         raise HTTPException(404, "Panorama not available")
-    image = face(model_id, pano_id, index) if full else face_small(model_id, pano_id, index)
+    size = 1024 if w >= 1024 else max(256, min(1024, w // 128 * 128))
+    image = face(model_id, pano_id, index) if full else face_small(model_id, pano_id, index, size)
     if not image:
         raise HTTPException(404, "Panorama not available")
     return Response(image, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
