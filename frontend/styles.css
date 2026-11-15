@@ -1969,3 +1969,25 @@ body { font-size: 18px; }
   font: 400 5.2cqw/2.1 "IM Fell English", Georgia, serif; letter-spacing: 0.04em; text-transform: lowercase;
   box-shadow: inset 0 0 0 3px #8e1424, inset 0 0 0 5px #fbf8f4, 3px 4px 0 rgba(0, 0, 0, 0.45); transform: rotate(-8deg); }
 .cassette-img #go:hover { background: #a51a2c; box-shadow: inset 0 0 0 3px #a51a2c, inset 0 0 0 5px #fbf8f4, 4px 5px 0 rgba(0, 0, 0, 0.45); transform: rotate(-4deg); }
+
+/* ---- search page spacing: everything starts below the music strand, even gaps, no dead space ---- */
+.search-band { padding-top: 0; padding-bottom: clamp(48px, 5vw, 72px); }
+.search-band .search-layout { padding-top: clamp(150px, 13vw, 190px); column-gap: clamp(40px, 5vw, 80px); align-items: start; }
+.search-shelf { margin-top: 0; }
+.search-shelf #search-title { margin: 0 0 var(--s6); }
+.search-main #examples { margin-top: var(--s6); }
+.search-shelf .featured-head { margin-top: var(--s4); }
+/* "more than one show?" band: same left edge as the content above, tighter */
+.side-b.band { padding: clamp(56px, 6vw, 88px) 0; }
+.side-b .side-b-solo { max-width: none; }
+.side-b .side-b-solo > div { max-width: 640px; }
+
+/* ---- buttons as paper scraps: cream paper, oxblood ink, like the headings and filter tags ---- */
+.cassette-img #go, #tp-go {
+  background: #fbf8f4; color: #3b1519; text-transform: lowercase; font-family: "IM Fell English", Georgia, serif; letter-spacing: 0.03em;
+  box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.45); border-radius: 0;
+  clip-path: polygon(0 6%, 9% 0, 27% 4%, 48% 0, 70% 5%, 91% 0, 100% 8%, 98% 52%, 100% 94%, 82% 100%, 60% 96%, 38% 100%, 17% 95%, 0 100%, 2% 50%); }
+.cassette-img #go:hover, #tp-go:hover { background: #ffffff; color: #3b1519; box-shadow: 4px 5px 0 rgba(0, 0, 0, 0.45); }
+.search-band .search-shelf { padding-top: 0; }
+.search-shelf .featured { padding-top: 0; }
+.side-b .side-b-solo { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
