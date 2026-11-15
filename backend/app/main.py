@@ -65,6 +65,8 @@ def _warm_pictures() -> None:
     from .covers import warm_on_boot
     threading.Thread(target=browse, daemon=True).start()  # the Browse list, ready before anyone asks
     warm_on_boot()
+    from .lookalike import refresh_in_background
+    refresh_in_background()  # index the room views already on disk for the Image tab
 
 
 @app.get("/api/browse")
@@ -119,6 +121,39 @@ def pano_face(model_id: str, pano_id: str, index: int, full: bool = False, w: in
     if not image:
         raise HTTPException(404, "Panorama not available")
     return Response(image, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+
+
+class LookRequest(BaseModel):
+    image: str  # a data: URL or plain base64 JPEG/PNG
+
+
+@app.post("/api/lookalike")
+def lookalike(req: LookRequest) -> dict:
+    """Rooms that look like the uploaded picture: palette, light and layout."""
+    import base64
+    from .lookalike import search
+    raw = req.image.split(",", 1)[-1]
+    try:
+        jpeg = base64.b64decode(raw, validate=False)
+    except Exception:
+        raise HTTPException(400, "That picture couldn't be read")
+    if not jpeg or len(jpeg) > 12_000_000:
+        raise HTTPException(400, "Send a picture under 12 MB")
+    try:
+        return search(jpeg)
+    except Exception:
+        raise HTTPException(400, "That picture couldn't be read")
+
+
+class RerankRequest(BaseModel):
+    token: str
+    results: list[dict]
+
+
+@app.post("/api/lookalike/rerank")
+def lookalike_rerank(req: RerankRequest) -> dict:
+    from .lookalike import rerank
+    return rerank(req.token, req.results)
 
 
 @app.get("/api/validation")

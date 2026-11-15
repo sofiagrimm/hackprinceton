@@ -18,8 +18,8 @@ import { createStandView, seatImpulse, SeatSound } from "./stand3d.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "saved", "by-sound", "by-light", "tour", "bookings", "cities"];
-const TAB_OF = { home: null, search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "acoustics", lighting: "lighting", walk3d: "concerts", saved: "saved", "by-sound": "acoustics", "by-light": "lighting", book: "concerts", tour: "tour", bookings: "bookings", cities: "cities" };
+const VIEWS = ["home", "search", "results", "property", "explore", "acoustics", "lighting", "walk3d", "book", "saved", "by-sound", "by-light", "tour", "image", "bookings", "cities"];
+const TAB_OF = { home: null, search: "concerts", results: "concerts", property: "concerts", explore: "concerts", acoustics: "acoustics", lighting: "lighting", walk3d: "concerts", saved: "saved", "by-sound": "acoustics", "by-light": "lighting", book: "concerts", tour: "tour", image: "image", bookings: "bookings", cities: "cities" };
 const TITLES = {
   home: "Stagehand", search: "Find your space · Stagehand", results: "Results · Stagehand",
   property: "Stagehand", tour: "Plan a tour · Stagehand", 

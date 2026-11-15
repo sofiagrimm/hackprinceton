@@ -34,6 +34,7 @@
     <nav class="modes" aria-label="Modes">
       <a href="#/search" data-mode="concerts">Browse Spaces</a>
       <a href="#/tour" data-mode="tour">Tour</a>
+      <a href="#/image" data-mode="image">Image</a>
       <a href="#/acoustics" data-mode="acoustics">Acoustics</a>
       <a href="#/lighting" data-mode="lighting">Lighting</a>
       <a href="#/bookings" data-mode="bookings">Bookings</a>
@@ -766,6 +767,31 @@
     </section>
   </div>
 
+  <!-- ============================================================ IMAGE: rooms that look like a picture -->
+  <div class="view" data-view="image">
+    <section class="page tour-plan look-page" id="look" aria-labelledby="lk-title">
+      <div class="wrap wide">
+        <p class="eyebrow">Image / Look-alike</p>
+        <h1 class="browse-title" id="lk-title">Find the look</h1>
+        <p class="page-sub">Drop in a film still, a frame from your mood board or a photo of a set. We compare its colour, its light and where the light falls against every room we've scanned, and bring back the closest.</p>
+        <form class="searchbar tp-form lk-form" id="lk-form">
+          <label class="lk-drop" id="lk-drop" for="lk-file">
+            <input type="file" id="lk-file" accept="image/*" class="sr-only">
+            <img id="lk-preview" alt="" hidden>
+            <span class="lk-hint" id="lk-hint">Drop a picture here, paste one, or click to choose a file.</span>
+          </label>
+          <button class="cta" id="lk-go" type="submit" disabled>find rooms</button>
+        </form>
+        <p class="tp-status" id="lk-status" aria-live="polite"></p>
+
+        <div id="lk-result" hidden>
+          <p class="tp-summary" id="lk-summary"></p>
+          <ol class="tp-stops lk-list" id="lk-list"></ol>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <!-- ============================================================ BOOKINGS -->
   <div class="view" data-view="bookings">
     <section class="page pipeline" id="pipeline" aria-labelledby="pl-title">
@@ -851,6 +877,7 @@
   <script type="module" src="regions.js"></script>
   <script type="module" src="app.js"></script>
   <script type="module" src="tourplan.js"></script>
+  <script type="module" src="lookalike.js"></script>
   <script type="module" src="pipeline.js"></script>
 </body>
 </html>

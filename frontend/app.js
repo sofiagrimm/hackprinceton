@@ -566,7 +566,7 @@ function drawScope() {
     canvas.height = 80 * devicePixelRatio;
     sound.analyser.getByteTimeDomainData(data);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "#2997ff";
+    ctx.strokeStyle = "#fbf8f4";
     ctx.lineWidth = 2 * devicePixelRatio;
     ctx.beginPath();
     for (let i = 0; i < data.length; i++) {

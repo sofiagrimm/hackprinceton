@@ -124,6 +124,7 @@ body[data-view="book"] .view[data-view="book"],
 body[data-view="results"] .view[data-view="results"],
 body[data-view="property"] .view[data-view="property"],
 body[data-view="tour"] .view[data-view="tour"],
+body[data-view="image"] .view[data-view="image"],
 body[data-view="film"] .view[data-view="film"],
 body[data-view="bookings"] .view[data-view="bookings"],
 body[data-view="cities"] .view[data-view="cities"] { display: block; }
@@ -2169,3 +2170,10 @@ body { font-size: 18px; }
 /* mics: the six cards in one row on a laptop */
 .view[data-view="acoustics"] .ac-mic-sec .ac-mics { margin-top: var(--s2); }
 .view[data-view="acoustics"] .ac-mic-sec .fold { margin-top: var(--s6); }
+
+/* the Image tab's button: the same stamp as "plan the tour" */
+#lk-go { text-transform: lowercase; font: 400 21px/1 "IM Fell English", Georgia, serif; letter-spacing: 0.03em; padding: 0 26px; min-height: 52px; transform: rotate(-2deg);
+  background: #3b1519; color: #fbf8f4; box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.45); border-radius: 0;
+  clip-path: polygon(0 6%, 9% 0, 27% 4%, 48% 0, 70% 5%, 91% 0, 100% 8%, 98% 52%, 100% 94%, 82% 100%, 60% 96%, 38% 100%, 17% 95%, 0 100%, 2% 50%); }
+#lk-go:hover { background: #561f25; color: #fbf8f4; transform: rotate(0); }
+#lk-go:disabled { opacity: 0.55; cursor: default; transform: rotate(-2deg); }
