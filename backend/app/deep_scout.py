@@ -29,7 +29,7 @@ from .agent import _call, parse_brief
 
 SCOUT_LLM = os.environ.get("SCOUT_LLM", "")
 
-LEAD_PROMPT = """You are Encore Scout, a location scout for touring performers (a cappella groups, choirs, \
+LEAD_PROMPT = """You are Stagehand, a location scout for touring performers (a cappella groups, choirs, \
 and film crews). You use real CoStar, Matterport and Vexcel data for Los Angeles and Houston.
 
 Work like this:

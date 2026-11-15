@@ -19,7 +19,7 @@ from .config import ANTHROPIC_API_KEY, FRONTEND_DIR, MATTERPORT_SDK_KEY
 from .bootstrap import ensure_index
 
 INDEX_SOURCE = ensure_index()
-app = FastAPI(title="Encore Scout")
+app = FastAPI(title="Stagehand")
 
 
 class ScoutRequest(BaseModel):

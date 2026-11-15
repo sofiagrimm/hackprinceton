@@ -79,22 +79,30 @@ def _money(x: float) -> str:
     return f"${round(x, -1):,.0f}" if x >= 100 else f"${x:,.0f}"
 
 
-def _rt_words(a: dict) -> str:
+FEEL = {  # what too dry / too live / just right means for each kind of show
+    "film_dialogue": ("dead enough that dialogue will record clean", "a bit live for dialogue, so bring sound blankets and lav mics",
+                      "good for recording dialogue"),
+    "rehearsal": ("very dry, so every part will be exposed", "lively, so spoken lines may blur at the back; slow down a little",
+                  "clear enough that every line carries"),
+    "amplified_show": ("dry, which suits a sound system", "live, so keep the speakers low and aimed at the audience",
+                       "right for a show with a sound system"),
+}
+
+
+def _rt_words(a: dict, use: str = "a_cappella_performance") -> str:
     lo, hi = a["target_s"]
     rt = a["rt60_occupied_s"]
-    if rt < lo:
-        feel = "a little dry, so the blend will be clear but you'll want to sing out"
-    elif rt > hi:
-        feel = "quite live, so keep the tempos steady and the consonants crisp"
-    else:
-        feel = "right where you want it for unamplified voices"
+    dry, live, right = FEEL.get(use, ("a little dry, so the blend will be clear but you'll want to sing out",
+                                      "quite live, so keep the tempos steady and the consonants crisp",
+                                      "right where you want it for unamplified voices"))
+    feel = dry if rt < lo else live if rt > hi else right
     return f"With a full house the sound hangs for about {_seconds(rt)}, which is {feel}"
 
 
-def _say_pick(pick: dict, stay: dict | None) -> str:
+def _say_pick(pick: dict, stay: dict | None, use: str = "a_cappella_performance") -> str:
     a = pick["best_space"]["acoustics"]
     parts = [f"I'd try the {_space(pick)} at {pick['name']}, on {_street(pick['address'])}.",
-             _rt_words(a) + f". It seats around {_round_people(a['capacity_seated'])}."]
+             _rt_words(a, use) + f". It seats around {_round_people(a['capacity_seated'])}."]
     if stay:
         where = ("in the same building" if stay.get("same_building")
                  else f"{stay['distance_miles']} miles away")
@@ -103,7 +111,7 @@ def _say_pick(pick: dict, stay: dict | None) -> str:
             parts.append(f"You can sleep in the same building{cost}.")
         else:
             parts.append(f"You could sleep at {stay['name']}, {where}{cost}.")
-    parts.append("Want me to text you a link so you can hear it?")
+    parts.append("Want me to text you a link so you can hear it and see the light?")
     return " ".join(parts)
 
 
@@ -145,7 +153,7 @@ def _offer(st: dict, i: int) -> dict:
     st["stay"] = stay
     a = pick["best_space"]["acoustics"]
     return {
-        "say": _say_pick(pick, stay),
+        "say": _say_pick(pick, stay, b.get("use", "a_cappella_performance")),
         "venue_id": pick["venue_id"],
         "venue": pick["name"],
         "room": pick["best_space"]["space_name"],
@@ -297,8 +305,16 @@ TOOL_SCHEMAS = [
             "type": "object",
             "properties": {
                 "city": {"type": "string", "enum": ["Los Angeles", "Houston"]},
-                "audience": {"type": "integer", "description": "Expected guests, not counting singers."},
-                "group_size": {"type": "integer", "description": "Singers in the group. Default 14."},
+                "audience": {"type": "integer", "description": "Expected guests, not counting the performers or crew. "
+                                                            "For a film shoot with no audience, use the crew size."},
+                "group_size": {"type": "integer", "description": "Performers or crew who need beds. Default 14."},
+                "use": {"type": "string",
+                        "enum": ["a_cappella_performance", "choral_performance", "rehearsal", "recording",
+                                 "film_dialogue", "amplified_show"],
+                        "description": "What the room is for: a_cappella_performance (default), choral_performance "
+                                       "(a choir), rehearsal (also spoken theatre and readings), recording (vocals), "
+                                       "film_dialogue (a film or video shoot with talking), amplified_show (a band or "
+                                       "anything with a sound system)."},
                 "nights": {"type": "integer", "description": "Nights they need to stay. Default 2."},
                 "event_date": {"type": "string", "description": "As the caller said it, e.g. March 14."},
                 "stay_same_building": {"type": "boolean",
@@ -329,12 +345,15 @@ TOOL_SCHEMAS = [
     },
 ]
 
-VOICE_PROMPT = """You are Encore Scout on the phone. You help a cappella groups and choirs find a room to \
-sing in, in Los Angeles or Houston, and somewhere to stay.
+VOICE_PROMPT = """You are Stagehand on the phone. You help singers, actors and film crews find a room for \
+their show or shoot, in Los Angeles or Houston, and somewhere to stay. You know how each room sounds \
+because you've worked it out from its 3D scan.
 
 Keep every turn short: one or two sentences, like a friend who books venues. Ask only for what you need: \
-the city, the date, roughly how many guests, and how many nights. Assume 14 singers and 2 nights if they \
-don't say. As soon as you have a city and a crowd size, call find_rooms and read its `say` field almost \
+the city, the date, roughly how many guests, and how many nights, and what it's for (singing, a play, \
+filming). Assume an a cappella show, 14 people and 2 nights if they don't say. For a film shoot set use to \
+film_dialogue; for a play or reading, rehearsal; for a choir, choral_performance; for a band, amplified_show. \
+As soon as you have a city and a crowd size, call find_rooms and read its `say` field almost \
 word for word. If they want something else, call next_option. If they ask about hotels, call find_lodging. \
 When they want to hear the room, or before you hang up, call text_me_the_link.
 
@@ -420,7 +439,7 @@ def retell_config(token: str = "") -> dict:
     _check(token)
     base = os.environ.get("PUBLIC_URL", "").rstrip("/") or "http://localhost:8000"
     return {"general_prompt": VOICE_PROMPT,
-            "begin_message": "Hi, this is Encore Scout. Where's the show, and about how many people?",
+            "begin_message": "Hi, this is Stagehand. What are you putting on, where, and for about how many people?",
             "functions": retell_functions(base, token),
             "agent_webhook_url": f"{base}/api/voice/retell-events?token={token}"}
 

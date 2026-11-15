@@ -93,7 +93,7 @@ def run(lines: list[str], interactive: bool = False) -> None:
     call = {"call_id": f"sim_{uuid.uuid4().hex[:8]}", "from_number": CALLER, "to_number": "+15557654321",
             "direction": "inbound", "call_type": "phone_call"}
     agent = StandIn()
-    print("Agent: Hi, this is Encore Scout. Where's the show, and about how many people?")
+    print("Agent: Hi, this is Stagehand. What are you putting on, where, and for about how many people?")
     source = iter(lines) if not interactive else iter(lambda: input("Caller: "), "")
     for line in source:
         if not interactive:
