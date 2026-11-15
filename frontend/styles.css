@@ -1912,3 +1912,7 @@ body { font-size: 18px; }
 /* Browse by acoustics: photos in full colour too, like the lighting page */
 .view[data-view="by-sound"] .browse-card img { filter: saturate(1.05) contrast(1.03); }
 .view[data-view="by-sound"] .browse-card::after { opacity: 0.35; }
+/* Plan the whole tour: big cut-out title */
+#tp-title { font-size: clamp(50px, 6.4vw, 92px); max-width: 80%; }
+#tp-title .rn { font-size: 1em; }
+@media (max-width: 900px) { #tp-title { max-width: none; } }
