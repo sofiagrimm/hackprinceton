@@ -1821,14 +1821,14 @@ body[data-view="property"] .music-strand { top: calc(var(--nav-h) + 84px); }
 .browse-page .page-sub { font-family: "IM Fell English", Georgia, serif; font-size: clamp(18px, 1.5vw, 21px); color: #e9dccd; max-width: 46ch; }
 .browse-filters { gap: var(--s3) var(--s6); align-items: center; }
 .browse-filters label { font-family: "IM Fell English", Georgia, serif; font-size: 20px; gap: var(--s3); }
-.browse-filters .bf-word { display: inline-block; padding: 2px 7px 3px; background: #f3e7d8; color: #2a1012; transform: rotate(-1.5deg); box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.35); }
+.browse-filters .bf-word { display: inline-block; padding: 2px 7px 3px; background: #fbf8f4; color: #3b1519; transform: rotate(-1.5deg); box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.35); }
 .browse-filters select { appearance: none; -webkit-appearance: none; font: 400 20px/1.2 "IM Fell English", Georgia, serif; color: #2a1012;
   background: #f1e6d8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 1h10L6 9z' fill='none' stroke='%232a1012' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") right 12px center / 13px no-repeat;
   border: 0; border-radius: 0; padding: 7px 38px 7px 14px; min-height: 0; box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35); transform: rotate(0.8deg); cursor: pointer;
   clip-path: polygon(0 3%, 6% 0, 18% 4%, 33% 0, 51% 3%, 68% 0, 84% 4%, 100% 1%, 99% 96%, 85% 100%, 66% 97%, 47% 100%, 29% 96%, 12% 100%, 0 97%); }
 .browse-filters select:focus-visible { outline: 2px solid #f3d27a; outline-offset: 3px; }
 .browse-count { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--s5); }
-.browse-count .bf-word { display: inline-block; padding: 1px 7px 3px; background: #f3e7d8; color: #2a1012; font: 400 19px/1.25 "IM Fell English", Georgia, serif; box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.35); }
+.browse-count .bf-word { display: inline-block; padding: 1px 7px 3px; background: #fbf8f4; color: #3b1519; font: 400 19px/1.25 "IM Fell English", Georgia, serif; box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.35); }
 .browse-count .bf-word:nth-child(2n) { transform: rotate(1.4deg); } .browse-count .bf-word:nth-child(2n+1) { transform: rotate(-1.2deg); }
 
 .browse-grid { gap: clamp(28px, 3vw, 48px) clamp(20px, 2.4vw, 36px); margin-top: var(--s7); }
@@ -1861,3 +1861,30 @@ body[data-view="property"] .music-strand { top: calc(var(--nav-h) + 84px); }
   background: radial-gradient(circle, rgba(243, 231, 216, 0.75) 2.4px, transparent 2.9px) 0 0 / 11px 11px;
   -webkit-mask-image: radial-gradient(circle at 0 100%, #000 20%, transparent 68%); mask-image: radial-gradient(circle at 0 100%, #000 20%, transparent 68%); }
 @media (max-width: 900px) { .browse-camera, .browse-star { display: none; } }
+
+/* ================================================================ ransom-note headings (ransom.js)
+   Paper and ink sampled from the "stagehand" logo: near-white #fdfaf7, faded plum #65474d. */
+.ransom { position: relative; z-index: 7; line-height: 1.45; letter-spacing: 0; font-style: normal; }
+.ransom .rn { font-size: 0.66em; }
+.ransom .rn { display: inline; }
+.ransom .rn-w { display: inline-flex; flex-wrap: nowrap; align-items: center; margin-right: 0.28em; white-space: nowrap; }
+.ransom .rn-t { display: inline-block; line-height: 1; color: #3b1519; text-transform: none; letter-spacing: 0;
+  background: #fbf8f4 linear-gradient(135deg, rgba(0, 0, 0, 0.025), transparent 40%, rgba(0, 0, 0, 0.04));
+  transform: translateY(var(--y)) rotate(var(--t)); margin: 0 0.02em; box-shadow: 0.04em 0.06em 0 rgba(0, 0, 0, 0.32);
+  clip-path: polygon(0 4%, 18% 0, 47% 3%, 79% 0, 100% 5%, 97% 38%, 100% 71%, 96% 100%, 64% 97%, 31% 100%, 2% 96%, 4% 61%, 0 30%); }
+.ransom .rn-t.grey { background-color: #fbf8f4; }
+.ransom .rn-t.inv { background: #fbf8f4; color: #3b1519; }
+.ransom .rn-t.punct { padding-left: 0.04em !important; padding-right: 0.04em !important; }
+/* any coloured or italic bits inside the old headings are folded into the tiles */
+.ransom .script, .ransom em { font: inherit; color: inherit; }
+/* Browse by lighting: photos in full colour (light is the point), with only a faint print screen */
+.view[data-view="by-light"] .browse-card img { filter: saturate(1.05) contrast(1.03); }
+.view[data-view="by-light"] .browse-card::after { opacity: 0.35; }
+
+/* the microphone's cord tucks behind the first row of cards instead of stopping in mid-air */
+.view[data-view="by-sound"] .browse-grid { position: relative; z-index: 8; }
+.view[data-view="by-sound"] .browse-mic { width: min(36%, 470px); top: 60px; }
+
+/* body text everywhere in the old-style serif used on the Browse pages */
+:root { --body: "IM Fell English", "Iowan Old Style", Georgia, serif; }
+body { font-size: 18px; }
