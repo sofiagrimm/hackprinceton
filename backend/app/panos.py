@@ -137,3 +137,42 @@ def face(model_id: str, pano_id: str, index: int) -> bytes | None:
         return None
     path.write_bytes(r.content)
     return r.content
+
+
+# --------------------------------------------------------------------------- speed
+# A full face is 2048 px and about 850 KB; the viewer looks just as good at 1024 px (about 150 KB),
+# so that is what the page gets. Faces for every room of a venue are fetched in the background as
+# soon as its room list is asked for, so a click on a room finds them already on disk.
+import io as _io
+from concurrent.futures import ThreadPoolExecutor as _Pool
+
+_pool = _Pool(max_workers=6)
+_warming: set[str] = set()
+
+
+def face_small(model_id: str, pano_id: str, index: int, size: int = 1024) -> bytes | None:
+    path = CACHE_DIR / f"pano_{model_id}_{pano_id}_{index}_{size}.jpg"
+    if path.exists():
+        return path.read_bytes()
+    full = face(model_id, pano_id, index)
+    if not full:
+        return None
+    from PIL import Image
+    img = Image.open(_io.BytesIO(full)).convert("RGB")
+    if img.width > size:
+        img = img.resize((size, size), Image.LANCZOS)
+    buf = _io.BytesIO()
+    img.save(buf, "JPEG", quality=82, optimize=True, progressive=True)
+    path.write_bytes(buf.getvalue())
+    return buf.getvalue()
+
+
+def warm(rooms: list[dict]) -> None:
+    """Fetch every face of these rooms in the background (each room once per process)."""
+    for r in rooms:
+        key = f"{r['model_id']}/{r['pano_id']}"
+        if key in _warming:
+            continue
+        _warming.add(key)
+        for i in range(6):
+            _pool.submit(face_small, r["model_id"], r["pano_id"], i)
