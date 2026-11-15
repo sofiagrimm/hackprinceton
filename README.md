@@ -2,23 +2,26 @@
 
 # Stagehand
 
-Finding a place to sing on tour is harder than it sounds. A cappella groups and choirs need rooms with the right
-amount of echo, somewhere nearby to sleep, and a price the group can split. Most of that gets worked out over
-dozens of emails and a few bad gigs in carpeted conference rooms.
+Finding the right room for a performance is harder than it sounds. A choir on tour needs a room with enough echo
+to carry unamplified voices. A theater group or a film crew needs the opposite: a room dead enough for dialogue to
+stay clear, with light that fits the scene and the look they have in mind. Most of that gets worked out over dozens
+of emails, a few site visits and some bad gigs in carpeted conference rooms.
 
-Stagehand does the legwork. You describe the stop ("14 singers in LA on March 14, a show for 80, two
-nights") and an agent searches 3,288 buildings in Los Angeles and Houston that have Matterport 3D scans. For each
-candidate room it estimates the reverberation time from the room's measured size and likely finishes, with and
-without an audience, and compares it to what works for unamplified voices. It looks at the building from above
-with Vexcel aerial imagery, finds lodging nearby, checks the group's bank balance and writes the email to the
-person who can say yes.
+Stagehand does the legwork. You describe what you need ("14 singers in LA on March 14, a show for 80, two nights",
+or a dialogue scene in a dim, moody room) and an agent searches 3,288 buildings in Los Angeles and Houston that have
+Matterport 3D scans. For each candidate room it estimates the reverberation time and speech clarity from the room's
+measured size and likely finishes, with and without an audience, and compares them to what works for singing or
+for spoken dialogue. It works out where daylight falls in the room at a given date and time, can match rooms to a
+photo or mood-board frame you upload, looks at the building from above with Vexcel aerial imagery, finds lodging
+nearby, checks the group's bank balance and writes the email to the person who can say yes.
 
-You can also hear the room. The site plays a four-part chord, a clap or your own voice through a reverb built from
-that room's numbers, and shows the building in 3D with the real sun moving over it on the day of the show.
+You can also hear and see the room. The site plays a four-part chord, a clap or your own voice through a reverb
+built from that room's numbers, and shows the building in 3D with the real sun moving over it on the day of the show.
 
 We built it at HackPrinceton (Fall 2026) on data from CoStar Group: CoStar property records, Matterport scans and
 Vexcel aerial imagery for the same buildings. One of us sings in an a cappella group that books spaces like this
-every tour, which is where the idea came from.
+every tour, which is where the idea started; it grew to cover acting and film once we saw how much of the same
+work goes into finding a room for a scene.
 
 ## How it works
 
@@ -45,7 +48,9 @@ of the building and a link that opens the site ready to play the chord in that r
 
 ## Running it
 
-Install the backend:
+It's live at https://hackprinceton-production.up.railway.app/, so you can try it without setting anything up.
+
+To run it locally, install the backend:
 
 ```bash
 cd backend
