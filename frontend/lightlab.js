@@ -23,6 +23,7 @@ const FRAG = `
   uniform samplerCube map;
   uniform vec3 room;        // half width, height, half depth (m)
   uniform float eye;
+  uniform vec3 cam;         // where you stand (the photo stays projected from the scan spot)
   uniform float ambient;    // house lights 0..1
   uniform int count;
   uniform vec3 lpos[MAX];
@@ -35,15 +36,16 @@ const FRAG = `
 
   void main() {
     vec3 d = normalize(vDir);
-    vec3 base = textureCube(map, d).rgb;
-    // Where this ray meets the box, and that surface's normal.
-    vec3 o = vec3(0.0, eye, 0.0);
-    float tx = (d.x > 0.0 ? room.x : -room.x) / (abs(d.x) < 1e-4 ? 1e-4 : d.x);
-    float tz = (d.z > 0.0 ? room.z : -room.z) / (abs(d.z) < 1e-4 ? 1e-4 : d.z);
-    float ty = d.y > 0.0 ? (room.y - eye) / max(d.y, 1e-4) : -eye / min(d.y, -1e-4);
+    // Where this ray, from where you stand, meets the box, and that surface's normal.
+    vec3 o = cam;
+    float tx = ((d.x > 0.0 ? room.x : -room.x) - o.x) / (abs(d.x) < 1e-4 ? 1e-4 : d.x);
+    float tz = ((d.z > 0.0 ? room.z : -room.z) - o.z) / (abs(d.z) < 1e-4 ? 1e-4 : d.z);
+    float ty = d.y > 0.0 ? (room.y - o.y) / max(d.y, 1e-4) : -o.y / min(d.y, -1e-4);
     float t = min(tx, min(ty, tz));
     vec3 n = t == tx ? vec3(-sign(d.x), 0.0, 0.0) : t == tz ? vec3(0.0, 0.0, -sign(d.z)) : vec3(0.0, -sign(d.y), 0.0);
     vec3 p = o + d * t;
+    // the photo's colour at that point, as the scan camera saw it
+    vec3 base = textureCube(map, normalize(p - vec3(0.0, eye, 0.0))).rgb;
 
     vec3 light = vec3(0.0);
     vec3 halo = vec3(0.0);
@@ -172,7 +174,7 @@ export function createLightLab(container) {
   const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 100);
   const blank = () => Array.from({ length: MAX }, () => new THREE.Vector3());
   const uniforms = {
-    map: { value: null }, room: { value: new THREE.Vector3(5, 3, 5) }, eye: { value: EYE }, ambient: { value: 0.35 }, count: { value: 0 },
+    map: { value: null }, room: { value: new THREE.Vector3(5, 3, 5) }, eye: { value: EYE }, cam: { value: new THREE.Vector3(0, EYE, 0) }, ambient: { value: 0.35 }, count: { value: 0 },
     lpos: { value: blank() }, lcol: { value: blank() }, lpow: { value: new Array(MAX).fill(0) },
     ldir: { value: blank() }, lcone: { value: new Array(MAX).fill(0) }, lsize: { value: new Array(MAX).fill(1) },
   };
@@ -228,11 +230,12 @@ export function createLightLab(container) {
 
   function surfacePoint(d) {
     const { x: hx, y: h, z: hz } = uniforms.room.value;
-    const tx = (d.x > 0 ? hx : -hx) / (Math.abs(d.x) < 1e-4 ? 1e-4 : d.x);
-    const tz = (d.z > 0 ? hz : -hz) / (Math.abs(d.z) < 1e-4 ? 1e-4 : d.z);
-    const ty = d.y > 0 ? (h - EYE) / Math.max(d.y, 1e-4) : -EYE / Math.min(d.y, -1e-4);
+    const o = uniforms.cam.value;
+    const tx = ((d.x > 0 ? hx : -hx) - o.x) / (Math.abs(d.x) < 1e-4 ? 1e-4 : d.x);
+    const tz = ((d.z > 0 ? hz : -hz) - o.z) / (Math.abs(d.z) < 1e-4 ? 1e-4 : d.z);
+    const ty = d.y > 0 ? (h - o.y) / Math.max(d.y, 1e-4) : -o.y / Math.min(d.y, -1e-4);
     const t = Math.min(tx, ty, tz);
-    const p = new THREE.Vector3(0, EYE, 0).addScaledVector(d, t);
+    const p = o.clone().addScaledVector(d, t);
     const n = t === tx ? new THREE.Vector3(-Math.sign(d.x), 0, 0) : t === tz ? new THREE.Vector3(0, 0, -Math.sign(d.z)) : new THREE.Vector3(0, -Math.sign(d.y), 0);
     return { p, n, d: d.clone() };
   }
@@ -264,10 +267,24 @@ export function createLightLab(container) {
       // a box the size of the scanned room, a little longer than wide
       const area = Math.max(150, areaSqft || 800) * 0.0929;
       const w = Math.sqrt(area / 1.3), dpt = area / w;
+      uniforms.cam.value.set(0, EYE, 0);
       uniforms.room.value.set(w / 2, Math.max(2.6, (heightFt || 10) * 0.3048), dpt / 2);
       dirty = true;
     },
     room: () => uniforms.room.value.clone(),
+    /** Where you stand. */
+    cam: () => uniforms.cam.value.clone(),
+    /** Walk: forward and right in metres, relative to where you're facing; stays 0.4 m off the walls. */
+    walk(forward, right) {
+      const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+      const c = uniforms.cam.value, r = uniforms.room.value;
+      c.x = Math.max(-r.x + 0.4, Math.min(r.x - 0.4, c.x + fx * forward + -fz * right));
+      c.z = Math.max(-r.z + 0.4, Math.min(r.z - 0.4, c.z + fz * forward + fx * right));
+      dirty = true;
+      return Math.hypot(c.x, c.z);
+    },
+    /** Back to where the 360 photo was taken. */
+    home() { uniforms.cam.value.set(0, EYE, 0); dirty = true; },
     surfacePoint,
     onPick(fn) { onPick = fn; },
     /** While set, pressing on a placed light drags it instead of turning the view. */
