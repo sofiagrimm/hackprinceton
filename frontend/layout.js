@@ -1962,6 +1962,9 @@ async function submitBooking(e) {
     });
     const out = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(out.detail || `HTTP ${res.status}`);
+    window.dispatchEvent(new CustomEvent("pipeline:remember", { detail: {
+      venue_id: id, event_date: when, audience: +$("bf-guests").value, group_size: +$("bf-crew").value,
+      nights: Math.max(1, days), group_name: $("bf-group").value.trim() || name, status: "drafted", notes } }));
   } catch (err) {
     btn.disabled = false;
     btn.textContent = "Request booking";

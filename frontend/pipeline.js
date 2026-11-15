@@ -25,7 +25,41 @@ window.fetch = (input, init) => {
   return realFetch(input, init);
 };
 
+// The live server's disk is wiped on every deploy, so this browser keeps its own copy of each booking
+// (what was sent, plus its latest status) and puts back any the server has lost.
+const KEEP = "stagehand.bookings";
+const kept = () => { try { return JSON.parse(localStorage.getItem(KEEP) || "{}"); } catch { return {}; } };
+const keep = (all) => { try { localStorage.setItem(KEEP, JSON.stringify(all)); } catch { /* private mode */ } };
+function remember(path, opts) {
+  const all = kept();
+  const m = path.match(/^\/api\/pipeline(?:\/(\d+))?$/);
+  if (!m) return;
+  if (opts.method === "POST" && !m[1] && opts.body?.venue_id) all[opts.body.venue_id] = { ...(all[opts.body.venue_id] || {}), ...opts.body };
+  else if (opts.method === "PATCH" && m[1] && all[m[1]]) all[m[1]] = { ...all[m[1]], ...(opts.body?.status ? { status: opts.body.status } : {}) };
+  else if (opts.method === "PATCH" && m[1]) all[m[1]] = { venue_id: Number(m[1]), ...(opts.body?.status ? { status: opts.body.status } : {}) };
+  else if (opts.method === "DELETE" && m[1]) delete all[m[1]];
+  else return;
+  keep(all);
+}
+// layout.js posts booking requests with plain fetch: remember those too
+window.addEventListener("pipeline:remember", (e) => remember("/api/pipeline", { method: "POST", body: e.detail }));
+
+async function restoreLost(board) {
+  const have = new Set((board.groups || []).flatMap((g) => (g.entries || g.items || []).map((x) => String(x.venue_id))));
+  const lost = Object.values(kept()).filter((b) => b.venue_id && !have.has(String(b.venue_id)));
+  for (const b of lost) {
+    try {
+      await realFetch("/api/pipeline", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
+      if (b.status && b.status !== "drafted") {
+        await realFetch(`/api/pipeline/${b.venue_id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: b.status }) });
+      }
+    } catch { /* try again next time */ }
+  }
+  return lost.length;
+}
+
 async function api(path, opts = {}) {
+  remember(path, opts);
   const res = await realFetch(path, {
     headers: { "Content-Type": "application/json" },
     ...opts,
@@ -54,6 +88,7 @@ function since(days) {
 async function loadBoard() {
   try {
     state.board = await api("/api/pipeline");
+    if (await restoreLost(state.board)) state.board = await api("/api/pipeline");
   } catch {
     state.board = { groups: [], count: 0 };
   }
