@@ -16,6 +16,17 @@
   <link rel="stylesheet" href="playroom.css">
 </head>
 <body data-view="home">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="duotone" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="0.30 0.59 0.11 0 0  0.30 0.59 0.11 0 0  0.30 0.59 0.11 0 0  0 0 0 1 0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.20 0.96"/>
+        <feFuncG type="table" tableValues="0.06 0.91"/>
+        <feFuncB type="table" tableValues="0.08 0.85"/>
+      </feComponentTransfer>
+    </filter>
+  </svg>
+
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="masthead">
@@ -679,6 +690,7 @@
   <div class="view" data-view="by-sound">
     <section class="page browse-page" aria-labelledby="bs-title">
       <div class="wrap wide">
+        <img class="browse-mic" src="img/microphone.webp" alt="" aria-hidden="true" width="1420" height="963">
         <h1 class="browse-title" id="bs-title">Browse by acoustics</h1>
         <p class="page-sub">Every scanned room, by how it sounds with an audience in. Pick one to hear it.</p>
         <div class="browse-filters" role="group" aria-label="Filter rooms">
@@ -703,6 +715,8 @@
   <div class="view" data-view="by-light">
     <section class="page browse-page" aria-labelledby="bl-title">
       <div class="wrap wide">
+        <img class="browse-deco browse-camera" src="img/home/camera.webp" alt="" aria-hidden="true">
+        <img class="browse-deco browse-star" src="img/star.webp" alt="" aria-hidden="true">
         <h1 class="browse-title" id="bl-title">Browse by lighting</h1>
         <p class="page-sub">Venues by their light: daylight through big windows, tall ceilings to hang fixtures from. Pick one to light it your way.</p>
         <div class="browse-filters" role="group" aria-label="Filter venues">

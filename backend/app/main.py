@@ -51,6 +51,21 @@ def room_acoustics(area_sqft: float, height_ft: float | None = None, width_ft: f
 _browse: list[dict] | None = None
 
 
+@app.get("/api/venues/{venue_id}/pictures")
+def venue_pictures(venue_id: int) -> dict:
+    """The venue's pictures, best first, chosen once on the server and kept."""
+    from .covers import pictures
+    return {"urls": pictures(venue_id)}
+
+
+@app.on_event("startup")
+def _warm_pictures() -> None:
+    import threading
+    from .covers import warm_on_boot
+    threading.Thread(target=browse, daemon=True).start()  # the Browse list, ready before anyone asks
+    warm_on_boot()
+
+
 @app.get("/api/browse")
 def browse() -> dict:
     """Every venue on the Browse pages, trimmed to what a card needs. Worked out once, then reused."""

@@ -402,30 +402,17 @@ function bestFace(r) {
 
 const listCache = {};
 function pictureList(id) {
-  listCache[id] ||= (async () => {
-    const info = venueInfo[id] || {};
-    const ranked = rankRooms(await rooms(id), info.model);
-    // Look at the three most promising rooms and lead with the best-looking view among them.
-    // the biggest, showiest rooms get a head start over a merely colourful photo
-    const views = (await Promise.all(ranked.slice(0, 8).map(bestFace)))
-      .map((v, i) => v && { ...v, score: v.score + ([14, 8, 3][i] || 0) }).filter(Boolean);
-    const inside = views.sort((a, b) => b.score - a.score).map((v) => v.url);
-    return [
-      ...inside.slice(0, 1),
-      info.photo,
-      ...inside.slice(1),
-      `/api/film/${id}/oblique/s.jpg`,
-      `/api/film/${id}/oblique/n.jpg`,
-      `/api/film/${id}/oblique/e.jpg`,
-      `/api/film/${id}/oblique/w.jpg`,
-    ].filter(Boolean);
-  })();
+  // The server picks each venue's pictures once and keeps them, so this is one quick request.
+  listCache[id] ||= fetch(`/api/venues/${id}/pictures`).then((r) => (r.ok ? r.json() : { urls: [] }))
+    .then((d) => (d.urls && d.urls.length ? d.urls : [venueInfo[id]?.photo].filter(Boolean)))
+    .catch(() => [venueInfo[id]?.photo].filter(Boolean));
   return listCache[id];
 }
 
 /** Point an <img> at a property's best picture, stepping down the list when one doesn't load. */
 async function showPicture(img, id) {
   img.dataset.pic = id;
+  if (!img.getAttribute("src") && venueInfo[id]?.photo) img.src = venueInfo[id].photo;
   const urls = await pictureList(id);
   if (img.dataset.pic !== String(id)) return; // reused for another venue meanwhile
   let k = 0;
@@ -523,7 +510,7 @@ async function renderBrowseSound() {
       : sort === "dry" ? (x, y) => x.a.rt60_occupied_s - y.a.rt60_occupied_s
       : sort === "seats" ? (x, y) => (y.a.capacity_seated || 0) - (x.a.capacity_seated || 0)
       : (x, y) => off(x.a.rt60_occupied_s) - off(y.a.rt60_occupied_s) || Math.abs(x.a.rt60_occupied_s - (lo + hi) / 2) - Math.abs(y.a.rt60_occupied_s - (lo + hi) / 2));
-    $("bs-count").textContent = `${rooms.length} room${rooms.length === 1 ? "" : "s"}${use !== "any" ? `, closest to ${lo} to ${hi}s of echo first` : ""}.`;
+    scraps($("bs-count"), `${rooms.length} room${rooms.length === 1 ? "" : "s"}${use !== "any" ? `, closest to ${lo} to ${hi}s of echo first` : ""}.`);
     const max = 3.2;
     pagedGrid($("bs-grid"), rooms, ({ v, sp, a }, i) => `
       <li><a class="polaroid browse-card" href="#/venue/${v.venue_id}/sound" style="--tilt:${[-1.2, 0.9, -0.5, 1.3][i % 4]}deg" data-space="${esc(sp.space_name)}">
@@ -546,6 +533,24 @@ async function renderBrowseSound() {
   draw();
 }
 
+
+/** Set text as cut-out paper scraps, one per word (the real text stays readable to screen readers). */
+function scraps(el, text) {
+  el.setAttribute("aria-label", text);
+  el.innerHTML = text.split(/\s+/).filter(Boolean).map((w) => `<span class="bf-word" aria-hidden="true">${esc(w)}</span>`).join("");
+}
+
+/** Filter labels on the Browse pages: their words become paper scraps too. */
+function scrapLabels() {
+  document.querySelectorAll(".browse-filters label").forEach((l) => {
+    const t = [...l.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim());
+    if (!t) return;
+    const s = document.createElement("span"); s.className = "bf-word"; s.textContent = t.textContent.trim();
+    l.replaceChild(s, t);
+  });
+}
+scrapLabels();
+
 async function renderBrowseLight() {
   const vs = await loadBrowse();
   vs.forEach(remember);
@@ -560,15 +565,15 @@ async function renderBrowseLight() {
     const list = info.filter((x) => (!city || x.v.metro === city) && (!min || (x.ceiling || 0) >= min)
       && (!light || (light === "day" ? x.glass : !x.glass)))
       .sort((x, y) => (y.glass - x.glass) || ((y.ceiling || 0) - (x.ceiling || 0)));
-    $("bl-count").textContent = `${list.length} venue${list.length === 1 ? "" : "s"}.`;
+    scraps($("bl-count"), `${list.length} venue${list.length === 1 ? "" : "s"}.`);
     pagedGrid($("bl-grid"), list, ({ v, glass, ceiling, rooms }, i) => `
       <li><a class="polaroid browse-card" href="#/venue/${v.venue_id}/light" style="--tilt:${[1.1, -0.8, 0.6, -1.3][i % 4]}deg">
         <img alt="" data-venue="${v.venue_id}">
         <span class="bc-body">
           <span class="bc-kind">${esc(v.metro)}</span>
           <span class="bc-name">${esc(v.name)}</span>
-          <span class="bc-tags">${glass ? `<span class="bc-tag sun">Lots of daylight</span>` : `<span class="bc-tag dark">Easy to black out</span>`}${ceiling ? `<span class="bc-tag">${Math.round(ceiling)} ft ceiling</span>` : ""}<span class="bc-tag">${rooms} room${rooms === 1 ? "" : "s"}</span></span>
-          <span class="bc-go">Light it</span>
+          <span class="bc-tags">${glass ? `<span class="bc-tag sun">lots of daylight</span>` : `<span class="bc-tag dark">easy to black out</span>`}${ceiling ? `<span class="bc-tag">${Math.round(ceiling)} ft ceiling</span>` : ""}<span class="bc-tag">${rooms} room${rooms === 1 ? "" : "s"}</span></span>
+          <span class="bc-go">light it</span>
         </span></a></li>`);
   };
   ["bl-light", "bl-ceiling", "bl-city"].forEach((id) => ($(id).onchange = draw));
