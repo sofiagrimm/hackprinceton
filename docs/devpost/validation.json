@@ -1,0 +1,29 @@
+[
+ {
+  "hall": "Concertgebouw",
+  "city": "Amsterdam",
+  "published": 2.0,
+  "ours": 1.96,
+  "p10": 1.31,
+  "p90": 2.73,
+  "err": -2.1
+ },
+ {
+  "hall": "Musikverein",
+  "city": "Vienna",
+  "published": 2.0,
+  "ours": 1.8,
+  "p10": 1.21,
+  "p90": 2.5,
+  "err": -9.9
+ },
+ {
+  "hall": "Symphony Hall",
+  "city": "Boston",
+  "published": 1.9,
+  "ours": 1.62,
+  "p10": 1.03,
+  "p90": 2.31,
+  "err": -14.9
+ }
+]

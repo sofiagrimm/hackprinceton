@@ -1,0 +1,53 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root { --surface:#2a1012; --ink:#f3e7d8; --ink2:#c9b4a8; --muted:#8f7470; --grid:rgba(243,231,216,.12);
+          --ours:#b88a24; --pub:#c9586e; }
+  html,body { margin:0; background:var(--surface); }
+  body { width:1200px; height:580px; font-family:"IM Fell English",Georgia,serif; color:var(--ink); }
+  .card { padding:44px 56px 0; }
+  h1 { font:700 34px/1.15 "Playfair Display",Georgia,serif; margin:0; letter-spacing:-.01em; }
+  .sub { color:var(--ink2); font-size:19px; margin:10px 0 0; }
+  .legend { display:flex; gap:28px; margin:22px 0 0; color:var(--ink2); font-size:17px; align-items:center; }
+  .legend span { display:inline-flex; align-items:center; gap:10px; }
+  svg text { font-family:"IM Fell English",Georgia,serif; }
+  .foot { position:absolute; left:56px; bottom:26px; color:var(--muted); font-size:15px; }
+</style></head>
+<body><div class="card">
+  <h1>The published reverb time lands inside our range in all three halls.</h1>
+  <p class="sub">Run blind on three of the world's most measured concert halls, using only what a 3D scan would give us.</p>
+  <div class="legend">
+    <span><svg width="64" height="16"><line x1="4" y1="8" x2="60" y2="8" stroke="#b88a24" stroke-width="5" stroke-linecap="round" opacity=".45"/><circle cx="32" cy="8" r="7" fill="#b88a24" stroke="#2a1012" stroke-width="2"/></svg>Our estimate, with its 80% range (P10 to P90, 400 runs)</span>
+    <span><svg width="22" height="22"><rect x="5" y="5" width="12" height="12" transform="rotate(45 11 11)" fill="#c9586e" stroke="#2a1012" stroke-width="2"/></svg>Published (Beranek 2004)</span>
+  </div>
+  <svg id="plot" width="1088" height="360" style="margin-top:14px"></svg>
+</div>
+<div class="foot">Occupied mid-frequency reverberation time. Source: L. Beranek, Concert Halls and Opera Houses, 2nd ed. (Springer, 2004).</div>
+<script>
+const rows = [{"hall": "Concertgebouw", "city": "Amsterdam", "published": 2.0, "ours": 1.96, "p10": 1.31, "p90": 2.73, "err": -2.1}, {"hall": "Musikverein", "city": "Vienna", "published": 2.0, "ours": 1.8, "p10": 1.21, "p90": 2.5, "err": -9.9}, {"hall": "Symphony Hall", "city": "Boston", "published": 1.9, "ours": 1.62, "p10": 1.03, "p90": 2.31, "err": -14.9}];
+const svg = document.getElementById('plot');
+const W = 1088, left = 250, right = 70, padTop = 10, rowH = 96;
+const x0 = 1.0, x1 = 3.0;
+const X = (v) => left + (v - x0) / (x1 - x0) * (W - left - right);
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; svg.appendChild(e); return e; };
+const bottom = padTop + rows.length * rowH;
+for (let t = 1.0; t <= 3.0001; t += 0.5) {
+  el('line', { x1: X(t), x2: X(t), y1: padTop, y2: bottom, stroke: 'rgba(243,231,216,.12)', 'stroke-width': 1 });
+  el('text', { x: X(t), y: bottom + 28, 'text-anchor': 'middle', fill: '#8f7470', 'font-size': 16 }, t.toFixed(1) + ' s');
+}
+rows.forEach((r, i) => {
+  const y = padTop + i * rowH + rowH / 2;
+  el('text', { x: 0, y: y - 4, fill: '#f3e7d8', 'font-size': 22 }, r.hall);
+  el('text', { x: 0, y: y + 20, fill: '#c9b4a8', 'font-size': 16 }, r.city);
+  el('line', { x1: X(r.p10), x2: X(r.p90), y1: y, y2: y, stroke: '#b88a24', 'stroke-width': 5, 'stroke-linecap': 'round', opacity: .45 });
+  el('circle', { cx: X(r.ours), cy: y, r: 8, fill: '#b88a24', stroke: '#2a1012', 'stroke-width': 2 });
+  const px = X(r.published);
+  el('rect', { x: px - 7, y: y - 7, width: 14, height: 14, transform: `rotate(45 ${px} ${y})`, fill: '#c9586e', stroke: '#2a1012', 'stroke-width': 2 });
+  // direct labels: ours below the dot, published above the diamond
+  el('text', { x: X(r.ours), y: y + 32, 'text-anchor': 'middle', fill: '#f3e7d8', 'font-size': 16 }, r.ours.toFixed(2) + ' s');
+  el('text', { x: px, y: y - 20, 'text-anchor': 'middle', fill: '#c9b4a8', 'font-size': 16 }, r.published.toFixed(1) + ' s');
+  el('text', { x: W - 4, y: y + 6, 'text-anchor': 'end', fill: '#f3e7d8', 'font-size': 18 }, (r.err > 0 ? '+' : '') + r.err.toFixed(1) + '%');
+});
+</script></body></html>
