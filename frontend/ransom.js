@@ -44,7 +44,11 @@ function cut(el, given) {
   el.dataset.ransom = text;
   const r = rand(hash(text + (el.id || "")));
   let prevFont = -1, i = 0;
-  const words = text.toLowerCase().split(" ").map((word) => {
+  // a heading made of separate lines (e.g. ".sb-line" + ".sb-em") keeps those lines; "\n" marks a break
+  const parts = el.querySelectorAll(":scope > .rn-src > .sb-line, :scope > .rn-src > .sb-em, :scope > .sb-line, :scope > .sb-em");
+  const lineText = parts.length > 1 ? [...parts].map((p) => p.textContent.replace(/\s+/g, " ").trim()).join(" \n ") : text;
+  const words = lineText.toLowerCase().split(" ").filter(Boolean).map((word) => {
+    if (word === "\n") return "\n";
     const tiles = [...word].map((ch) => {
       let f;
       do { f = Math.floor(r() * FONTS.length); } while (f === prevFont);
@@ -75,7 +79,8 @@ function cut(el, given) {
   }
   el.querySelector(":scope > .rn")?.remove();
   el.removeAttribute("aria-label");
-  el.insertAdjacentHTML("beforeend", `<span class="rn" aria-hidden="true">${words.join(" ")}</span>`);
+  const lines = words.join(" ").split(" \n ").map((l) => `<span class="rn-line">${l}</span>`).join("");
+  el.insertAdjacentHTML("beforeend", `<span class="rn" aria-hidden="true">${lines}</span>`);
   el.classList.add("ransom");
   watch?.takeRecords(); // our own rewrite is not a change to react to
 }

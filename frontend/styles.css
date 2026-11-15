@@ -1927,3 +1927,5 @@ body { font-size: 18px; }
 #pl-title { font-size: clamp(50px, 6.4vw, 92px); max-width: 80%; }
 #pl-title .rn { font-size: 1em; }
 @media (max-width: 900px) { #pl-title { max-width: none; } }
+
+.ransom .rn-line { display: block; }
