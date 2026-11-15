@@ -1789,19 +1789,18 @@ body[data-view="property"] .venue-switch a { padding: 5px 11px; }
 .logo img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4)); transition: transform .4s ease-out; }
 .logo:hover img { transform: rotate(-18deg) scale(1.06); }
 
-/* A long music staff drifting along the bottom of the top bar, on every page except the opening collage.
-   img/staff-loop.webp is the collage's staff (notes only) followed by its mirror image, so the ends meet;
-   one tile is 1716 x 180, shown 34 px tall = 324.1 px wide. The bar grows to make room, and everything
-   that sticks under it uses --nav-h, so sub-menus move down with it. */
-body:not([data-view="home"]) { --nav-h: 98px; }
-body:not([data-view="home"]) .masthead { align-items: flex-start; padding-top: 12px;
-  background: url("img/staff-loop.webp") 0 calc(100% - 4px) / auto 34px repeat-x, rgba(44, 13, 16, 0.96);
-  animation: strand-drift 12s linear infinite; }
-@keyframes strand-drift { to { background-position: -324.1px calc(100% - 4px), 0 0; } }
-@media (prefers-reduced-motion: reduce) { body:not([data-view="home"]) .masthead { animation: none; } }
+/* A long cream music staff drifting across the wine paper just under the top bar, on every page but
+   the opening collage. It lies over the page (scrolls away with it) and under any venue sub-menu.
+   img/staff-loop.webp: the collage's staff (notes only) and its mirror image, so the ends meet;
+   one tile is 1716 x 180, shown 44 px tall = 419.5 px wide. */
+.music-strand { position: absolute; left: 0; right: 0; top: calc(var(--nav-h) + 6px); height: 52px; z-index: 5; pointer-events: none;
+  background: url("img/staff-loop.webp") 0 50% / auto 44px repeat-x; opacity: 0.8; animation: strand-drift 14s linear infinite; }
+body[data-view="home"] .music-strand { display: none; }
+body[data-view="property"] .music-strand { top: calc(var(--nav-h) + 56px); }
+@keyframes strand-drift { to { background-position-x: -419.5px; } }
+@media (prefers-reduced-motion: reduce) { .music-strand { animation: none; } }
 /* the search page's own staff would double up with it */
 .search-staff { display: none; }
-body:not([data-view="home"]) .masthead .logo { align-self: flex-start; margin-top: 2px; }
 
 /* Home -> search: notes fly out of the name */
 .note-burst { position: fixed; inset: 0; z-index: 70; pointer-events: none; overflow: hidden; }
