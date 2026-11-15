@@ -301,6 +301,30 @@ function onToolResult(name, result) {
 
 // ------------------------------------------------------------------ other rooms
 
+/** No search behind this venue (opened from the shelf or Browse): show other scanned rooms in its city. */
+let browseList = null;
+async function showNearbyRooms(v) {
+  try {
+    browseList ||= fetch("/api/browse").then((r) => r.json()).then((d) => d.venues || []);
+    const all = await browseList;
+    if (state.venue?.venue_id !== v.venue_id) return;
+    const pick = all.filter((x) => x.venue_id !== v.venue_id && x.metro === v.metro)
+      .map((x) => ({ x, sp: [...x.spaces].sort((p, q) => (q.acoustics?.capacity_seated || 0) - (p.acoustics?.capacity_seated || 0))[0] }))
+      .filter(({ sp }) => sp?.acoustics?.rt60_occupied_s)
+      .slice(0, 8);
+    if (!pick.length) return;
+    $("cards").innerHTML = pick.map(({ x, sp }) => `
+      <button class="card" data-id="${x.venue_id}">
+        <img src="${esc(x.photo || "")}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+        <div class="name">${esc(x.name)}</div>
+        <div class="meta">${esc(sp.space_name)}. ${sp.acoustics.rt60_occupied_s}s, ${sp.acoustics.capacity_seated} seats.</div>
+      </button>`).join("");
+    document.querySelectorAll("#cards .card").forEach((el) => (el.onclick = () => { location.hash = `#/venue/${el.dataset.id}`; }));
+    window.dispatchEvent(new CustomEvent("scout:cards"));
+    $("more").hidden = false;
+  } catch { /* optional */ }
+}
+
 function renderCards() {
   const r = state.search;
   if (!r?.results.length) return;
@@ -339,6 +363,7 @@ async function openVenue(id, scroll = false) {
   state.roomOverride = null;
   ["pick", "sound", "light", "walk", "stay", "fund", "reach"].forEach((s) => ($(s).hidden = false));
   $("more").hidden = !state.search?.results?.length;
+  if (!state.search?.results?.length) showNearbyRooms(v);
   $("nav-links").hidden = false;
 
   $("d-name").textContent = v.name;

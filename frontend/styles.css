@@ -2125,3 +2125,8 @@ body { font-size: 18px; }
 #cards .card .meta { font-family: "IM Fell English", Georgia, serif; font-size: 15px; color: #4a2c2c; }
 .pick-grid .prop-photo img, #prop-photo { height: min(40vh, 400px) !important; width: 100%; aspect-ratio: auto !important; object-fit: cover; }
 .pick-grid .explore-3d { max-height: calc(min(40vh, 400px) + 70px); }
+/* building names inside a sentence: small inline cut-outs */
+.dl-name.ransom { display: inline; font-size: 1em; line-height: 1.9; }
+.dl-name.ransom .rn { font-size: 0.95em; }
+.dl-name.ransom .rn-line { display: inline; }
+.dl-name.ransom .rn-w { margin-right: 0.2em; }

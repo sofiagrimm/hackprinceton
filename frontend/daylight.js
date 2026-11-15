@@ -104,12 +104,15 @@ export function createDaylight(root, { viewer }) {
     data = d;
     data.frames.forEach((f) => { f.grid = decodeLux(f.lux); });
     viewer()?.setWindows?.(d.room, d.windows.walls);
-    q(".dl-verdicts").innerHTML = [...d.verdicts, ...d.shade].map((v) => `<li>${esc(v)}</li>`).join("");
+    // building names (e.g. "Westmore on Wilshire") as little ransom-note cut-outs
+    const names = (d.neighbours?.with_height || []).map((b) => b.name).filter(Boolean).sort((x, y) => y.length - x.length);
+    const cutNames = (t) => names.reduce((h, n) => h.split(esc(n)).join(`<span class="ransom-me dl-name">${esc(n)}</span>`), esc(t));
+    q(".dl-verdicts").innerHTML = [...d.verdicts, ...d.shade].map((v) => `<li>${cutNames(v)}</li>`).join("");
     const glass = d.walls.filter((w) => w.window_m2 > 0.5).map((w) => `${w.compass} (${Math.round(w.window_m2)} m² of glass)`);
     q(".dl-facing").textContent = glass.length ? `Windows face ${glass.join(", ")}.` : "We didn't find windows in this photo.";
     const nb = d.neighbours;
-    q(".dl-neighbours").textContent = nb.with_height.length
-      ? `Nearby: ${nb.with_height.slice(0, 4).map((b) => `${b.name} (${b.floors} floors, ${b.distance_m} m ${b.compass})`).join(", ")}.`
+    q(".dl-neighbours").innerHTML = nb.with_height.length
+      ? `Nearby: ${nb.with_height.slice(0, 4).map((b) => `<span class="ransom-me dl-name">${esc(b.name)}</span> (${b.floors} floors, ${b.distance_m} m ${b.compass})`).join(", ")}.`
       : "We have no heights for the buildings around this one, so we couldn't check for shade.";
     q(".dl-assume ul").innerHTML = d.assumptions.map((a) => `<li>${esc(a)}</li>`).join("");
     r.onNeighbours?.(nb.buildings);
