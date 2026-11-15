@@ -1,3 +1,5 @@
+<img src="docs/banner/stagehand.svg" width="100%" alt="Stagehand: hear and see a room before you book it">
+
 # Stagehand
 
 Finding a place to sing on tour is harder than it sounds. A cappella groups and choirs need rooms with the right

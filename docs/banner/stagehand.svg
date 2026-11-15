@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="529" viewBox="0 0 1080 529" font-family="ui-monospace,SFMono-Regular,Consolas,Menlo,monospace" font-size="14.5">
+<style>.notes{animation:bob 6s ease-in-out infinite}@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}.cursor{animation:blink 1.1s steps(1) infinite}@keyframes blink{50%{opacity:0}}@media (prefers-reduced-motion:reduce){.notes,.cursor{animation:none}}</style>
+<rect width="100%" height="100%" rx="10" fill="#2a1012"/>
+<g class="notes">
+<text x="26" y="120.0" xml:space="preserve" fill="#e9dccd">              ~~</text>
+<text x="26" y="137.0" xml:space="preserve" fill="#e9dccd">              o@OUev+;'</text>
+<text x="26" y="154.0" xml:space="preserve" fill="#e9dccd">              oQaQ@@@@@Oe</text>
+<text x="26" y="171.0" xml:space="preserve" fill="#e9dccd">              eC  ',+voQ0'</text>
+<text x="26" y="188.0" xml:space="preserve" fill="#e9dccd">              eo       ,O'</text>
+<text x="26" y="205.0" xml:space="preserve" fill="#e9dccd">              eo       ;O'               ~</text>
+<text x="26" y="222.0" xml:space="preserve" fill="#e9dccd">              eo       ;O'              ,0el=</text>
+<text x="26" y="239.0" xml:space="preserve" fill="#e9dccd">              eo       ;O'              ,QcCaQ=</text>
+<text x="26" y="256.0" xml:space="preserve" fill="#e9dccd">              eo       ;O'            ''+Q,,=el;=========;</text>
+<text x="26" y="273.0" xml:space="preserve" fill="#e9dccd">          ;+=~eo       ;O'       ',;===;+Q~              '</text>
+<text x="26" y="290.0" xml:space="preserve" fill="#e9dccd">        =O@@@0@C       ,O   ~,;==;,'    =Q;;===========;;,</text>
+<text x="26" y="307.0" xml:space="preserve" fill="#e9dccd">==;,''  ,UOOOQe~  =CeaoC0+==;,'   ~,;=c+cQ~             ''</text>
+<text x="26" y="324.0" xml:space="preserve" fill="#e9dccd">  ~,;;==;;+cc=,;;=O@@@@@q'   ~;===;~+O00OO;;;=========;;;,</text>
+<text x="26" y="341.0" xml:space="preserve" fill="#e9dccd">=;,'         '''' ,voeex=;===,~   ',+aoov,''            '~</text>
+<text x="26" y="358.0" xml:space="preserve" fill="#e9dccd"> '~,;===;;;,,,,,,;;,;;,~~'   ',===;~     ~,;;;========;;,~</text>
+<text x="26" y="375.0" xml:space="preserve" fill="#e9dccd">=;~'      ''''''''     '~;===;~   '~;===;,~'           ''~</text>
+<text x="26" y="392.0" xml:space="preserve" fill="#e9dccd"> '~;====;;,,,,,,,,;====;,'   ',;==;,'    '~,;;;=====;;;,,~</text>
+<text x="26" y="409.0" xml:space="preserve" fill="#e9dccd">;,~'     ''~~~~~''     '~,===;~'   ~,;===;,~''       ''~~,</text>
+<text x="26" y="426.0" xml:space="preserve" fill="#e9dccd"> ~,;===;;,,~~~~~,,;;===;,~   '~;===;~'</text>
+<text x="26" y="443.0" xml:space="preserve" fill="#e9dccd">;,'     ''~~~~~~~''     ',;===;~'</text>
+<text x="26" y="460.0" xml:space="preserve" fill="#e9dccd">',;====;,,~~~~~~~,,;====;,'</text>
+<text x="26" y="477.0" xml:space="preserve" fill="#e9dccd">       '~~,,,,,,,~~'</text>
+</g>
+<text x="589" y="43.0"><tspan fill="#f3d27a" xml:space="preserve">stagehand</tspan><tspan fill="#9c7b77" xml:space="preserve">@</tspan><tspan fill="#f3e7d8" xml:space="preserve">hackprinceton</tspan></text>
+<text x="589" y="60.0"><tspan fill="#9c7b77" xml:space="preserve">----------------------------------</tspan></text>
+<text x="589" y="77.0"><tspan fill="#d9a3a8" xml:space="preserve">Tagline       </tspan><tspan fill="#f3e7d8" xml:space="preserve">hear and see a room before you book it</tspan></text>
+<text x="589" y="94.0"><tspan fill="#d9a3a8" xml:space="preserve">For           </tspan><tspan fill="#f3e7d8" xml:space="preserve">singers, actors and film crews</tspan></text>
+<text x="589" y="111.0"><tspan fill="#d9a3a8" xml:space="preserve">Host          </tspan><tspan fill="#f3e7d8" xml:space="preserve">HackPrinceton, Fall 2026</tspan></text>
+<text x="589" y="128.0"><tspan fill="#d9a3a8" xml:space="preserve">Uptime        </tspan><tspan fill="#f3e7d8" xml:space="preserve">36 hours</tspan></text>
+<text x="589" y="162.0"><tspan fill="#d9a3a8" xml:space="preserve">Data.Inside   </tspan><tspan fill="#f3e7d8" xml:space="preserve">Matterport, 2,986 room views</tspan></text>
+<text x="589" y="179.0"><tspan fill="#d9a3a8" xml:space="preserve">Data.Record   </tspan><tspan fill="#f3e7d8" xml:space="preserve">CoStar, 3,288 properties</tspan></text>
+<text x="589" y="196.0"><tspan fill="#d9a3a8" xml:space="preserve">Data.Above    </tspan><tspan fill="#f3e7d8" xml:space="preserve">Vexcel aerials and footprints</tspan></text>
+<text x="589" y="213.0"><tspan fill="#d9a3a8" xml:space="preserve">Data.Around   </tspan><tspan fill="#f3e7d8" xml:space="preserve">OpenStreetMap building heights</tspan></text>
+<text x="589" y="247.0"><tspan fill="#d9a3a8" xml:space="preserve">Kernel        </tspan><tspan fill="#f3e7d8" xml:space="preserve">Eyring T60, 6 octave bands</tspan></text>
+<text x="589" y="264.0"><tspan fill="#d9a3a8" xml:space="preserve">Wave          </tspan><tspan fill="#f3e7d8" xml:space="preserve">2D FDTD over the floor plan</tspan></text>
+<text x="589" y="281.0"><tspan fill="#d9a3a8" xml:space="preserve">Seat          </tspan><tspan fill="#f3e7d8" xml:space="preserve">image sources + HRTF, 3rd order</tspan></text>
+<text x="589" y="298.0"><tspan fill="#d9a3a8" xml:space="preserve">Clap          </tspan><tspan fill="#f3e7d8" xml:space="preserve">ISO 3382, Schroeder + Lundeby</tspan></text>
+<text x="589" y="315.0"><tspan fill="#d9a3a8" xml:space="preserve">Agent         </tspan><tspan fill="#f3e7d8" xml:space="preserve">LangChain Deep Agents, 2 subagents</tspan></text>
+<text x="589" y="332.0"><tspan fill="#d9a3a8" xml:space="preserve">Money         </tspan><tspan fill="#f3e7d8" xml:space="preserve">Capital One Nessie</tspan></text>
+<text x="589" y="349.0"><tspan fill="#d9a3a8" xml:space="preserve">Voice         </tspan><tspan fill="#f3e7d8" xml:space="preserve">Photon 2.0, iMessage and phone</tspan></text>
+<text x="589" y="383.0"><tspan fill="#f3d27a" xml:space="preserve">Checked blind against</tspan></text>
+<text x="589" y="400.0"><tspan fill="#d9a3a8" xml:space="preserve">Concertgebouw   </tspan><tspan fill="#f3e7d8" xml:space="preserve">1.96s</tspan><tspan fill="#9c7b77" xml:space="preserve"> vs </tspan><tspan fill="#f3e7d8" xml:space="preserve">2.0s</tspan><tspan fill="#f3e7d8" xml:space="preserve">  </tspan><tspan fill="#bcd3a2" xml:space="preserve">-2.1%</tspan></text>
+<text x="589" y="417.0"><tspan fill="#d9a3a8" xml:space="preserve">Musikverein     </tspan><tspan fill="#f3e7d8" xml:space="preserve">1.80s</tspan><tspan fill="#9c7b77" xml:space="preserve"> vs </tspan><tspan fill="#f3e7d8" xml:space="preserve">2.0s</tspan><tspan fill="#f3e7d8" xml:space="preserve">  </tspan><tspan fill="#bcd3a2" xml:space="preserve">-9.9%</tspan></text>
+<text x="589" y="434.0"><tspan fill="#d9a3a8" xml:space="preserve">Boston Symphony </tspan><tspan fill="#f3e7d8" xml:space="preserve">1.62s</tspan><tspan fill="#9c7b77" xml:space="preserve"> vs </tspan><tspan fill="#f3e7d8" xml:space="preserve">1.9s</tspan><tspan fill="#f3e7d8" xml:space="preserve">  </tspan><tspan fill="#bcd3a2" xml:space="preserve">-14.9%</tspan></text>
+<text x="589" y="468.0"><tspan fill="#d9a3a8" xml:space="preserve">Commits       </tspan><tspan fill="#f3e7d8" xml:space="preserve">252</tspan><tspan fill="#f3e7d8" xml:space="preserve">    </tspan><tspan fill="#d9a3a8" xml:space="preserve">Lines </tspan><tspan fill="#f3e7d8" xml:space="preserve">20,121</tspan></text>
+<text x="589" y="485.0"><tspan fill="#d9a3a8" xml:space="preserve">Team          </tspan><tspan fill="#f3e7d8" xml:space="preserve">Sofia Grimm, Corinne Laurey</tspan></text>
+<rect x="589" y="490.0" width="22" height="14" fill="#3b1519"/>
+<rect x="615" y="490.0" width="22" height="14" fill="#8e1424"/>
+<rect x="641" y="490.0" width="22" height="14" fill="#b4646b"/>
+<rect x="667" y="490.0" width="22" height="14" fill="#d9a3a8"/>
+<rect x="693" y="490.0" width="22" height="14" fill="#f3d27a"/>
+<rect x="719" y="490.0" width="22" height="14" fill="#e9dccd"/>
+<rect x="745" y="490.0" width="22" height="14" fill="#fbf8f4"/>
+<rect class="cursor" x="779" y="490.0" width="9" height="14" fill="#f3e7d8"/>
+</svg>
