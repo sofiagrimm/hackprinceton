@@ -5,6 +5,16 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+/** Words as cut-out letters, like the headings (ransom.js picks up .ransom-me). */
+const cut = (w) => `<span class="ransom-me lk-word">${esc(w)}</span>`;
+// just two cut-outs: the mood ("dim and moody") and one short keyword from the rest
+const KEY = { "warm, amber light": "amber", "cool, bluish light": "cool blue", "rich colour": "rich colour", "muted, quiet colour": "muted", "hard contrast": "contrasty", "soft, flat contrast": "soft" };
+function lookLine(look) {
+  const mood = look[0];
+  const extra = look.slice(1).map((w) => KEY[w]).find(Boolean);
+  return extra ? `${cut(mood)} and ${cut(extra)}` : cut(mood);
+}
+
 let picture = null; // the chosen picture, shrunk, as a data: URL
 let run = 0;
 
@@ -71,7 +81,7 @@ async function find() {
     if (mine !== run) return;
     if (!res.ok) throw new Error(d.detail || "Something went wrong.");
     if (!d.results.length) { $("lk-status").textContent = "No room photos are ready yet. Try again in a minute."; $("lk-result").hidden = true; return; }
-    $("lk-summary").textContent = `Your picture reads as ${d.look.join(", ")}. These are the closest of ${d.rooms_compared.toLocaleString()} room views.`;
+    $("lk-summary").innerHTML = `Your picture reads as ${lookLine(d.look)}. These are the closest of ${d.rooms_compared.toLocaleString()} room views.`;
     show(d);
     $("lk-status").textContent = "";
     if (d.can_rerank) {
@@ -79,7 +89,10 @@ async function find() {
       const rr = await fetch("/api/lookalike/rerank", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: d.token, results: d.results }) })
         .then((r) => r.json()).catch(() => null);
       if (mine !== run) return;
-      if (rr?.reranked) show(rr);
+      if (rr?.reranked) {
+        show(rr);
+        if (rr.seen_as) $("lk-summary").innerHTML = `Looks like ${/^[aeiou]/.test(rr.seen_as) ? "an" : "a"} ${esc(rr.seen_as)}: ${lookLine(d.look)}. The rooms closest in kind and in feel:`;
+      }
       $("lk-status").textContent = "";
     }
   } catch (e) {

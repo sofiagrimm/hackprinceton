@@ -65,8 +65,8 @@ def _warm_pictures() -> None:
     from .covers import warm_on_boot
     threading.Thread(target=browse, daemon=True).start()  # the Browse list, ready before anyone asks
     warm_on_boot()
-    from .lookalike import refresh_in_background
-    refresh_in_background()  # index the room views already on disk for the Image tab
+    from .lookalike import label_in_background
+    label_in_background()  # index the room views on disk for the Image tab, and learn their room names
 
 
 @app.get("/api/browse")

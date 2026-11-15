@@ -75,3 +75,9 @@
   .lk-shot { max-width: 260px; }
   .lk-drop img { width: 120px; height: 80px; }
 }
+
+/* the look words in the summary, cut out like the headings */
+.lk-word.ransom { display: inline; font-size: 0.82em; line-height: 1.9; }
+.lk-word.ransom .rn-line { display: inline; }
+.lk-word.ransom .rn-w { margin-right: 0.18em; }
+.look-page .tp-summary { line-height: 1.7; }

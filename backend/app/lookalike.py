@@ -8,9 +8,9 @@ how colourful, how warm, how much fine detail. The upload gets the same treatmen
 nearest rooms come back, one per venue, with the wall that matched best.
 
 It is a colour-and-light match, not object recognition: a candle-lit dining room will find other
-dim, amber rooms, which is what a cinematographer scouting a look usually wants. When an
-Anthropic key is set, `rerank` asks Claude to look at the reference and the shortlist side by
-side and reorder them by the whole feel of the space, with a line on why.
+dim, amber rooms. `rerank` adds what's in the picture when OPENROUTER_API_KEY is set: a free
+vision model names the kind of space, rooms with matching scan labels move up, and the model then
+compares the shortlist with the picture by eye and says why each fits.
 """
 
 from __future__ import annotations
@@ -24,11 +24,10 @@ import uuid
 from collections import OrderedDict
 from pathlib import Path
 
-from .config import ANTHROPIC_API_KEY, CACHE_DIR
+from .config import CACHE_DIR
 
 INDEX = CACHE_DIR / "lookalike_index.json"
 FACE = re.compile(r"^pano_(?P<model>[A-Za-z0-9]+)_(?P<pano>[a-z0-9]+)_(?P<face>[1-4])_1024\.jpg$")
-LOOK_MODEL = "claude-sonnet-5-5"
 
 _lock = threading.Lock()
 _index: dict[str, list[float]] | None = None
@@ -186,60 +185,163 @@ def search(jpeg: bytes, n: int = 12) -> dict:
     _uploads[token] = jpeg
     while len(_uploads) > 20:
         _uploads.popitem(last=False)
-    return {"token": token, "look": qwords, "rooms_compared": len(scored), "results": results, "can_rerank": bool(ANTHROPIC_API_KEY)}
+    return {"token": token, "look": qwords, "rooms_compared": len(scored), "results": results, "can_rerank": bool(_key())}
 
 
-# ------------------------------------------------------------------ optional: Claude looks at the shortlist
+# ------------------------------------------------------------------ what's in the picture (free vision models via OpenRouter)
+#
+# (These are reasoning models: they think before answering, so they get a generous token budget.)
+# Colour and light alone can't tell a diner from a chapel. When OPENROUTER_API_KEY is set, a free vision
+# model says what kind of space the picture shows; rooms whose scan labels match ("kitchen", "lobby",
+# "ballroom") move up; then the model looks at the shortlist next to the picture and reorders it.
 
-def _small(jpeg: bytes, size: int = 384) -> str:
+OPENROUTER = "https://openrouter.ai/api/v1/chat/completions"
+VISION_MODELS = ["nvidia/nemotron-3.5-super-vl:free", "google/gemma-4-31b-it:free", "google/gemma-4-26b-a4b-it:free", "openrouter/free"]
+LABELS = CACHE_DIR / "lookalike_labels.json"
+_labels: dict[str, dict] | None = None
+
+
+def _key() -> str:
+    import os
+    return os.environ.get("OPENROUTER_API_KEY", "")
+
+
+def _data_url(jpeg: bytes, size: int = 384) -> str:
     from PIL import Image
     img = Image.open(io.BytesIO(jpeg)).convert("RGB")
     img.thumbnail((size, size))
     buf = io.BytesIO()
     img.save(buf, "JPEG", quality=80)
-    return base64.b64encode(buf.getvalue()).decode()
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+
+
+def _ask(content: list[dict], max_tokens: int = 4000) -> dict | None:
+    """One question to the first free vision model that answers; the reply's JSON, or None."""
+    import httpx
+    for model in VISION_MODELS:
+        try:
+            r = httpx.post(OPENROUTER, headers={"Authorization": f"Bearer {_key()}"}, timeout=90,
+                           json={"model": model, "max_tokens": max_tokens, "messages": [{"role": "user", "content": content}]})
+            if r.status_code != 200:
+                continue
+            text = r.json()["choices"][0]["message"].get("content") or ""
+            text = text[text.find("{"): text.rfind("}") + 1]
+            if text:
+                return json.loads(text)
+        except Exception:
+            continue
+    return None
+
+
+def _room_labels() -> dict[str, dict]:
+    global _labels
+    if _labels is None:
+        try:
+            _labels = json.loads(LABELS.read_text())
+        except Exception:
+            _labels = {}
+    return _labels
+
+
+def label_rooms(limit: int | None = None) -> int:
+    """Learn the scan's room name for each photographed spot (Matterport labels: kitchen, lobby...)."""
+    from .panos import _model
+    labels = _room_labels()
+    models = sorted({m["model"] for n in _load() if (m := FACE.match(n))} - set(labels))
+    done = 0
+    for model_id in models[:limit] if limit else models:
+        model = _model(model_id)
+        if model is None:
+            continue
+        rooms = {r["id"]: " / ".join(c["label"] for c in r.get("classifications") or [] if c.get("label")) for r in model.get("rooms") or []}
+        panos = {p["id"]: rooms.get(((p.get("anchor") or {}).get("room") or {}).get("id"), "") for p in model.get("panoLocations") or []}
+        labels[model_id] = {"scan": model.get("name") or "", "panos": {k: v for k, v in panos.items() if v}}
+        done += 1
+        if done % 25 == 0:
+            LABELS.write_text(json.dumps(labels))
+    if done:
+        LABELS.write_text(json.dumps(labels))
+    return done
+
+
+def _place_words(model_id: str, pano_id: str, venue: dict) -> str:
+    lab = _room_labels().get(model_id) or {}
+    return " ".join([(lab.get("panos") or {}).get(pano_id, ""), lab.get("scan", ""), venue.get("subtype") or "", venue.get("property_type") or ""]).lower()
 
 
 def rerank(token: str, results: list[dict]) -> dict:
-    """Ask Claude to reorder the shortlist by the feel of the space, with a reason for each."""
-    if not ANTHROPIC_API_KEY:
-        return {"results": results, "reranked": False}
+    """Bring in what's in the picture: describe it, favour rooms of the same kind, then compare by eye."""
     ref = _uploads.get(token)
-    if not ref:
+    if not (_key() and ref):
         return {"results": results, "reranked": False}
+    from . import data
     from .panos import face_small
-    content: list[dict] = [
-        {"type": "text", "text": "Reference frame (a film/photo the user wants to match):"},
-        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": _small(ref)}},
-    ]
-    kept = []
-    for r in results[:10]:
-        m = re.match(r"/api/pano/([^/]+)/([^/]+)/(\d)\.jpg", r["picture"])
-        img = m and face_small(m[1], m[2], int(m[3]), 384)
-        if not img:
+    ref_url = _data_url(ref)
+    seen_as = _ask([
+        {"type": "text", "text": "A film crew is looking for a location like this picture. What kind of space is it? Reply with JSON only: "
+                                 '{"space": "the room type in 1-3 plain words, e.g. kitchen, church, diner, office, warehouse, ballroom, lobby", '
+                                 '"keywords": ["3 to 6 single words for what is in it: materials, furniture, architecture, era"], '
+                                 '"summary": "the place in under 10 words, lowercase, no full stop"}'},
+        {"type": "image_url", "image_url": {"url": ref_url}}]) or {}
+    words = {w.lower() for w in re.findall(r"[a-zA-Z]{4,}", " ".join([str(seen_as.get("space", ""))] + [str(k) for k in seen_as.get("keywords") or []]))}
+    words -= {"room", "with", "space", "area", "interior", "indoor", "light", "lighting", "modern"}
+    # rescore every room view: the look, minus a bonus for being the same kind of place
+    q = look(ref)
+    owner = _venues_by_model()
+    venues = data.venues()
+    best: dict[int, tuple[float, str, re.Match, int]] = {}
+    for name, v in _load().items():
+        m = FACE.match(name)
+        if not v or not m or m["model"] not in owner:
             continue
-        kept.append(r)
-        content += [{"type": "text", "text": f"Room {len(kept)}: {r['name']}"},
-                    {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": base64.b64encode(img).decode()}}]
-    if not kept:
-        return {"results": results, "reranked": False}
-    content.append({"type": "text", "text": (
-        "You are helping a film location scout. Rank the rooms by how well each could stand in for the reference: "
-        "architecture, era, materials, scale, light quality and mood count more than exact colour. "
-        "Reply with JSON only: {\"order\": [room numbers, best first], \"why\": {\"<room number>\": \"one short plain sentence, under 16 words\"}}")})
-    try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY, base_url="https://api.anthropic.com")
-        resp = client.messages.create(model=LOOK_MODEL, max_tokens=800, messages=[{"role": "user", "content": content}])
-        text = "".join(b.text for b in resp.content if getattr(b, "type", "") == "text")
-        data = json.loads(text[text.find("{"): text.rfind("}") + 1])
-        order = [int(i) for i in data.get("order", []) if 1 <= int(i) <= len(kept)]
-        order += [i for i in range(1, len(kept) + 1) if i not in order]
-        out = []
-        for i in order:
-            r = dict(kept[i - 1])
-            r["why"] = str((data.get("why") or {}).get(str(i), ""))[:160]
-            out.append(r)
-        return {"results": out + results[10:], "reranked": True}
-    except Exception:
-        return {"results": results, "reranked": False}
+        vid = owner[m["model"]]
+        place = _place_words(m["model"], m["pano"], venues.get(vid) or {})
+        hits = sum(1 for w in words if w in place or w.rstrip("s") in place)
+        d = _distance(q, v) - 0.45 * min(hits, 2)
+        if vid not in best or d < best[vid][0]:
+            best[vid] = (d, name, m, hits)
+    shortlist = sorted(best.items(), key=lambda kv: kv[1][0])[:10]
+    cands = []
+    for vid, (d, name, m, hits) in shortlist:
+        v = venues.get(vid) or {}
+        room = ((_room_labels().get(m["model"]) or {}).get("panos") or {}).get(m["pano"], "")
+        cands.append({
+            "venue_id": vid, "name": v.get("name") or "A venue",
+            "city": ", ".join(x for x in (v.get("city"), v.get("state")) if x),
+            "picture": f"/api/pano/{m['model']}/{m['pano']}/{m['face']}.jpg",
+            "match": max(1, min(99, round(100 * (1 - (d + 0.45 * min(hits, 2)) / 1.6)) + 8 * min(hits, 2))),
+            "shared": [], "look": _words(_load()[name]),
+            "why": f"Also a {room.lower()}." if hits and room else "",
+        })
+    # the model looks at the shortlist next to the picture and reorders it
+    content: list[dict] = [{"type": "text", "text": "Reference picture a film crew wants to match:"}, {"type": "image_url", "image_url": {"url": ref_url}}]
+    shown = []
+    for c in cands:
+        mm = re.match(r"/api/pano/([^/]+)/([^/]+)/(\d)\.jpg", c["picture"])
+        img = mm and face_small(mm[1], mm[2], int(mm[3]), 256)
+        if img:
+            shown.append(c)
+            content += [{"type": "text", "text": f"Room {len(shown)}:"}, {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(img).decode()}}]
+    content.append({"type": "text", "text": "Rank the rooms by how well each could stand in for the reference: kind of space, architecture, materials, "
+                                            "era and mood matter more than exact colour. Reply with JSON only: "
+                                            '{"order": [room numbers, best first], "why": {"1": "one short plain sentence about what it shares with the reference"}}'})
+    verdict = _ask(content, 6000) if shown else None
+    if verdict:
+        try:
+            order = [int(i) for i in verdict.get("order", []) if 1 <= int(i) <= len(shown)]
+            order = list(dict.fromkeys(order)) + [i for i in range(1, len(shown) + 1) if i not in order]
+            why = verdict.get("why") or {}
+            ranked = []
+            for rank, i in enumerate(order):
+                c = dict(shown[i - 1])
+                c["why"] = str(why.get(str(i)) or c["why"])[:180]
+                c["match"] = max(c["match"], 96 - 4 * rank) if rank < 3 else c["match"]
+                ranked.append(c)
+            shown = ranked
+        except Exception:
+            pass
+    return {"results": shown or results, "reranked": True, "seen_as": str(seen_as.get("space") or seen_as.get("summary") or "").lower().strip(" .")[:60]}
+
+
+def label_in_background() -> None:
+    threading.Thread(target=lambda: (refresh(), label_rooms()), daemon=True).start()

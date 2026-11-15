@@ -2196,3 +2196,8 @@ body { font-size: 18px; }
 .view[data-view="acoustics"] h1#ac-title .rn { font-size: 1em !important; }
 .view[data-view="acoustics"] .ac-top { margin-top: clamp(40px, 4vw, 64px); }
 @media (max-width: 760px) { .view[data-view="acoustics"] h1#ac-title { font-size: clamp(28px, 8vw, 38px) !important; } }
+
+/* Image tab heading: the same size as the tour planner's */
+#lk-title { font-size: clamp(50px, 6.4vw, 92px); max-width: 80%; }
+#lk-title .rn { font-size: 1em; }
+@media (max-width: 900px) { #lk-title { max-width: none; } }
