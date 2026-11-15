@@ -1947,3 +1947,12 @@ body { font-size: 18px; }
 .rs-card .rs-view { font: 400 19px/1.2 "IM Fell English", Georgia, serif; text-transform: lowercase; color: #2a1012; border-bottom: 2px solid #2a1012; text-decoration: none; }
 .rs-card .rs-view::after { content: " \2192"; }
 .rs-card .rs-num, .rs-card .rs-tag { display: none; }
+/* search page: the cards first, then "browse spaces" and its arrows underneath */
+.search-shelf { display: flex; flex-direction: column; }
+.search-shelf .featured { order: 1; }
+.search-shelf .featured-head { order: 2; margin-top: 0; align-items: center; }
+.search-shelf .featured { padding-bottom: var(--s2); margin-bottom: 0; }
+/* "Plan the tour": a cherry rubber-stamp button like the cassette's "scout" */
+#tp-go { background: #8e1424; color: #fbf8f4; font: 400 21px/1 "IM Fell English", Georgia, serif; letter-spacing: 0.03em; text-transform: lowercase;
+  padding: 0 26px; min-height: 52px; border-radius: 3px; box-shadow: inset 0 0 0 3px #8e1424, inset 0 0 0 5px #fbf8f4, 3px 4px 0 rgba(0, 0, 0, 0.4); transform: rotate(-2deg); }
+#tp-go:hover { background: #a51a2c; color: #fbf8f4; box-shadow: inset 0 0 0 3px #a51a2c, inset 0 0 0 5px #fbf8f4, 4px 5px 0 rgba(0, 0, 0, 0.4); transform: rotate(0); }
