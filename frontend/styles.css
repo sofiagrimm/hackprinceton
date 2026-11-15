@@ -1763,3 +1763,7 @@ body[data-view="property"] .venue-switch a { padding: 5px 11px; }
 /* inline links in running text, e.g. "Browse Spaces" on the bookings page */
 .inline-link { color: var(--blush); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
 .inline-link:hover, .inline-link:focus-visible { color: #f6c9d1; text-decoration-thickness: 2.5px; }
+
+/* Show more under the Browse by acoustics / lighting grids */
+.browse-more { display: block; margin: var(--s7, 40px) auto 0; }
+.browse-more[hidden] { display: none; }

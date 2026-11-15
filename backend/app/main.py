@@ -48,6 +48,41 @@ def room_acoustics(area_sqft: float, height_ft: float | None = None, width_ft: f
                     use=use, audience=audience).to_dict()
 
 
+_browse: list[dict] | None = None
+
+
+@app.get("/api/browse")
+def browse() -> dict:
+    """Every venue on the Browse pages, trimmed to what a card needs. Worked out once, then reused."""
+    global _browse
+    if _browse is None:
+        from pathlib import Path
+        ids = json.loads((Path(__file__).with_name("browse_venues.json")).read_text())["venue_ids"]
+        out = []
+        for vid in ids:
+            v = scout.analyze_venue(vid, use="a_cappella_performance", audience=80)
+            if "error" in v or not v.get("spaces") or not v.get("photo"):
+                continue
+            out.append({
+                "venue_id": v["venue_id"], "name": v["name"], "metro": v["metro"], "photo": v["photo"],
+                "best_space": {"model_id": (v.get("best_space") or {}).get("model_id")},
+                "spaces": [{
+                    "space_name": sp["space_name"], "height_ft": sp.get("height_ft"),
+                    "glass": (sp["acoustics"].get("assumptions") or {}).get("walls") == "glass"
+                    or any(w in " ".join(sp["acoustics"].get("materials_evidence") or []).lower() for w in ("window", "glass")),
+                    "acoustics": {k: sp["acoustics"].get(k) for k in ("rt60_occupied_s", "capacity_seated")},
+                } for sp in v["spaces"]],
+            })
+        _browse = out
+    return {"venues": _browse}
+
+
+@app.on_event("startup")
+def _warm_browse() -> None:
+    import threading
+    threading.Thread(target=lambda: browse() if (data.INDEX_DIR / "venues.json").exists() else None, daemon=True).start()
+
+
 @app.get("/api/venues/{venue_id}/rooms")
 def venue_rooms(venue_id: int) -> dict:
     """Indoor rooms with a 360 photo, for the lighting preview."""

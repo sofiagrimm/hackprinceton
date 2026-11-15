@@ -438,17 +438,45 @@ function roomCard(v, n, extra = "") {
 // ------------------------------------------------------------------ browse by acoustics / lighting
 
 // Scanned venues across both cities (the shelf, plus rooms the scout often ranks).
-const BROWSE = [6531330, 9956355, 9530669, 275472, 1454929, 406577, 4029966, 18894683, 12850684, 247506, 9438497,
-  8289522, 5008867, 13927180, 9252592, 4031851, 275969, 8917689, 9168400, 9169656, 11445467, 1535575, 1517580,
-  1541906, 4628713, 10183484, 4774008, 10064886, 5316122, 671746, 7769278, 10610091, 4658608, 5587423];
 const USE_TARGET = { a_cappella_performance: [1.3, 2.0], choral_performance: [1.6, 2.4], rehearsal: [0.7, 1.2], recording: [0.4, 0.8], film_dialogue: [0.3, 0.6] };
 let browseVenues = null;
 
+// Every venue with measured rooms, a cover photo and a 360 photo, in one request.
 function loadBrowse() {
-  browseVenues ||= Promise.all([...new Set([...BROWSE, ...(state.search?.results || []).map((r) => r.venue_id)])].map((id) =>
-    fetch(`/api/venues/${id}?audience=80&use=a_cappella_performance`).then((r) => (r.ok ? r.json() : null)).catch(() => null)))
-    .then((vs) => vs.filter((v) => v?.spaces?.length));
+  browseVenues ||= fetch("/api/browse").then((r) => (r.ok ? r.json() : { venues: [] }))
+    .then((d) => (d.venues || []).filter((v) => v?.spaces?.length))
+    .catch(() => { browseVenues = null; return []; });
   return browseVenues;
+}
+
+const PAGE = 24;
+
+// Cards only fetch their picture once they're about to scroll into view.
+const lazyPics = "IntersectionObserver" in window ? new IntersectionObserver((entries) => entries.forEach((e) => {
+  if (!e.isIntersecting) return;
+  lazyPics.unobserve(e.target);
+  showPicture(e.target, Number(e.target.dataset.venue));
+}), { rootMargin: "400px 0px" }) : null;
+
+function hydrateLazy(root) {
+  root.querySelectorAll("img[data-venue]:not([data-pic])").forEach((img) => (lazyPics ? lazyPics.observe(img) : showPicture(img, Number(img.dataset.venue))));
+}
+
+/** Draw the first page of cards, with a Show more button for the rest. */
+function pagedGrid(grid, items, card) {
+  let shown = 0;
+  const more = grid.nextElementSibling?.classList.contains("browse-more") ? grid.nextElementSibling
+    : grid.insertAdjacentElement("afterend", Object.assign(document.createElement("button"), { type: "button", className: "btn ghost browse-more" }));
+  const step = () => {
+    grid.insertAdjacentHTML("beforeend", items.slice(shown, shown + PAGE).map((x, i) => card(x, shown + i)).join(""));
+    shown = Math.min(items.length, shown + PAGE);
+    more.hidden = shown >= items.length;
+    more.textContent = `Show more (${items.length - shown} left)`;
+    hydrateLazy(grid);
+  };
+  grid.innerHTML = "";
+  more.onclick = step;
+  step();
 }
 
 const feel = (rt) => (rt < 0.7 ? "dry" : rt < 1.3 ? "clear" : rt <= 2.2 ? "balanced" : "live");
@@ -469,7 +497,7 @@ async function renderBrowseSound() {
       : (x, y) => off(x.a.rt60_occupied_s) - off(y.a.rt60_occupied_s) || Math.abs(x.a.rt60_occupied_s - (lo + hi) / 2) - Math.abs(y.a.rt60_occupied_s - (lo + hi) / 2));
     $("bs-count").textContent = `${rooms.length} room${rooms.length === 1 ? "" : "s"}${use !== "any" ? `, closest to ${lo} to ${hi}s of echo first` : ""}.`;
     const max = 3.2;
-    $("bs-grid").innerHTML = rooms.slice(0, 60).map(({ v, sp, a }, i) => `
+    pagedGrid($("bs-grid"), rooms, ({ v, sp, a }, i) => `
       <li><a class="polaroid browse-card" href="#/venue/${v.venue_id}/sound" style="--tilt:${[-1.2, 0.9, -0.5, 1.3][i % 4]}deg" data-space="${esc(sp.space_name)}">
         <img alt="" data-venue="${v.venue_id}">
         <span class="bc-body">
@@ -478,12 +506,13 @@ async function renderBrowseSound() {
           <span class="bc-meter" aria-hidden="true"><span class="bc-band" style="left:${(lo / max) * 100}%;width:${((hi - lo) / max) * 100}%"></span><span class="bc-dot" style="left:${Math.min(100, (a.rt60_occupied_s / max) * 100)}%"></span></span>
           <span class="bc-line"><b>${a.rt60_occupied_s}s</b> of echo, ${feel(a.rt60_occupied_s)}. ${a.capacity_seated} seats.</span>
           <span class="bc-go">Hear it</span>
-        </span></a></li>`).join("");
-    hydrate($("bs-grid"));
+        </span></a></li>`);
     // open the chosen room, not just the venue's first
-    $("bs-grid").querySelectorAll("a[data-space]").forEach((link) => (link.onclick = () => {
+    $("bs-grid").onclick = (e) => {
+      const link = e.target.closest("a[data-space]");
+      if (!link) return;
       try { sessionStorage.setItem("stagehand.open", JSON.stringify({ type: "sound", room: link.dataset.space, crowd: "full", venue: Number(link.href.match(/venue\/(\d+)/)[1]) })); } catch { /* private window */ }
-    }));
+    };
   };
   ["bs-use", "bs-city", "bs-sort"].forEach((id) => ($(id).onchange = draw));
   draw();
@@ -494,7 +523,7 @@ async function renderBrowseLight() {
   vs.forEach(remember);
   const info = vs.map((v) => {
     const sp = v.best_space || v.spaces[0], a = sp?.acoustics || {};
-    const glass = v.spaces.some((x) => x.acoustics?.assumptions?.walls === "glass" || /window|glass/i.test((x.acoustics?.materials_evidence || []).join(" ")));
+    const glass = v.spaces.some((x) => x.glass);
     const ceiling = Math.max(...v.spaces.map((x) => x.height_ft || 0)) || null;
     return { v, glass, ceiling, rooms: v.spaces.length };
   });
@@ -504,7 +533,7 @@ async function renderBrowseLight() {
       && (!light || (light === "day" ? x.glass : !x.glass)))
       .sort((x, y) => (y.glass - x.glass) || ((y.ceiling || 0) - (x.ceiling || 0)));
     $("bl-count").textContent = `${list.length} venue${list.length === 1 ? "" : "s"}.`;
-    $("bl-grid").innerHTML = list.map(({ v, glass, ceiling, rooms }, i) => `
+    pagedGrid($("bl-grid"), list, ({ v, glass, ceiling, rooms }, i) => `
       <li><a class="polaroid browse-card" href="#/venue/${v.venue_id}/light" style="--tilt:${[1.1, -0.8, 0.6, -1.3][i % 4]}deg">
         <img alt="" data-venue="${v.venue_id}">
         <span class="bc-body">
@@ -512,8 +541,7 @@ async function renderBrowseLight() {
           <span class="bc-name">${esc(v.name)}</span>
           <span class="bc-tags">${glass ? `<span class="bc-tag sun">Lots of daylight</span>` : `<span class="bc-tag dark">Easy to black out</span>`}${ceiling ? `<span class="bc-tag">${Math.round(ceiling)} ft ceiling</span>` : ""}<span class="bc-tag">${rooms} room${rooms === 1 ? "" : "s"}</span></span>
           <span class="bc-go">Light it</span>
-        </span></a></li>`).join("");
-    hydrate($("bl-grid"));
+        </span></a></li>`);
   };
   ["bl-light", "bl-ceiling", "bl-city"].forEach((id) => ($(id).onchange = draw));
   draw();
