@@ -1961,3 +1961,11 @@ body { font-size: 18px; }
 .search-shelf #search-title { order: 0; margin: 0 0 var(--s5); font-size: clamp(30px, 2.9vw, 44px); }
 .search-layout { align-items: start; }
 .search-main .cassette { margin-top: 0; }
+.search-shelf { margin-top: -84px; position: relative; z-index: 6; }
+@media (max-width: 900px) { .search-shelf { margin-top: 0; } }
+/* "scout": the same cherry stamp as "plan the tour", sitting on the cassette's corner */
+.cassette-img #go { width: auto; aspect-ratio: auto; right: 2%; bottom: 7%; padding: 0 0.9em; min-height: 0; height: auto;
+  line-height: 2.1; border: 0; border-radius: 3px; background: #8e1424; color: #fbf8f4;
+  font: 400 5.2cqw/2.1 "IM Fell English", Georgia, serif; letter-spacing: 0.04em; text-transform: lowercase;
+  box-shadow: inset 0 0 0 3px #8e1424, inset 0 0 0 5px #fbf8f4, 3px 4px 0 rgba(0, 0, 0, 0.45); transform: rotate(-8deg); }
+.cassette-img #go:hover { background: #a51a2c; box-shadow: inset 0 0 0 3px #a51a2c, inset 0 0 0 5px #fbf8f4, 4px 5px 0 rgba(0, 0, 0, 0.45); transform: rotate(-4deg); }
