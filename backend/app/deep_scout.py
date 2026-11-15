@@ -81,7 +81,17 @@ class DeepScout:
         self.spec = spec or SCOUT_LLM
 
     def run(self, brief_text: str) -> Iterator[dict]:
+        from datetime import date
+
         from deepagents import create_deep_agent
+
+        # Same answer as the planner for a city we have no scanned rooms in, without spending a model run on it.
+        brief = parse_brief(brief_text)
+        if not brief["metro"]:
+            yield {"type": "message", "text": f"None available in {brief['elsewhere']}. We only have scanned rooms in Los Angeles and Houston so far."}
+            yield {"type": "done", "brief": brief, "none": "location"}
+            return
+        found = {"any": False}
 
         events: queue.Queue = queue.Queue()
 
@@ -97,6 +107,8 @@ class DeepScout:
                         events.put(next(gen))
                 except StopIteration as stop:
                     result = stop.value
+                if name == "search_venues" and isinstance(result, dict) and result.get("results"):
+                    found["any"] = True
                 return json.dumps(result, default=str)[:30000]
 
             tool.__name__ = name
@@ -114,7 +126,7 @@ class DeepScout:
         agent = create_deep_agent(
             model=_make_model(self.spec),
             tools=[tools["search_venues"], tools["draft_outreach"], *extra],
-            system_prompt=LEAD_PROMPT,
+            system_prompt=LEAD_PROMPT + f"\n\nToday is {date.today():%A, %B %d, %Y}. A date with no year is the next one coming up.",
             subagents=[
                 {"name": "acoustics-analyst",
                  "description": "Compares the scanned rooms at shortlisted venues and picks the one whose "
@@ -151,7 +163,7 @@ class DeepScout:
                 yield events.get(timeout=0.2)
             except queue.Empty:
                 continue
-        yield {"type": "done", "brief": parse_brief(brief_text)}
+        yield {"type": "done", "brief": brief, **({} if found["any"] else {"none": "audience"})}
 
 
 def _safe_translate(chunk) -> list[dict]:
