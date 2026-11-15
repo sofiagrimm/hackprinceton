@@ -918,7 +918,7 @@ const lab = { viewer: null, id: null, kind: "wash", placed: [], rooms: [] };
 function labLights() {
   const all = lab.placed.flatMap((x) => x.fixtures);
   lab.viewer.setLights(all);
-  $("lab-count").textContent = `${lab.placed.length} light${lab.placed.length === 1 ? "" : "s"}`;
+  $("lab-count").textContent = `${lab.placed.length} of ${MAX_LIGHTS} lights`;
   $("lab-list").innerHTML = lab.placed.map((x, i) =>
     `<li><span class="sw" style="--c:${x.color}"></span>${esc(KINDS[x.kind].label)}<button type="button" data-i="${i}" aria-label="Remove ${esc(KINDS[x.kind].label)} ${i + 1}">&times;</button></li>`).join("");
   $("lab-list").querySelectorAll("button").forEach((b) => (b.onclick = () => { lab.placed.splice(Number(b.dataset.i), 1); labLights(); }));
@@ -1008,7 +1008,14 @@ function eraseNear(hit) {
   labLights();
 }
 
+const MAX_LIGHTS = 32;
+
 function placeLight(kind, hit, color, power) {
+  if (lab.placed.length >= MAX_LIGHTS) {
+    $("lab-count").textContent = `That's the limit: ${MAX_LIGHTS} lights. Remove one to add another.`;
+    setTimeout(labLights, 1800);
+    return;
+  }
   const k = KINDS[kind];
   const mult = power ?? Number($("lab-power").value);
   const col = color || $("lab-color").value;
@@ -1270,7 +1277,7 @@ async function restoreDesign() {
   await loadLabRoom(r);
   $("lab-ambient").value = d.ambient;
   lab.viewer.setAmbient(d.ambient);
-  lab.placed = d.lights.map((x) => ({ ...x }));
+  lab.placed = d.lights.slice(0, MAX_LIGHTS).map((x) => ({ ...x }));
   labLights();
   $("save-light").setAttribute("aria-pressed", "true");
 }
