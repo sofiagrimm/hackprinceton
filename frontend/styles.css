@@ -2098,3 +2098,7 @@ body { font-size: 18px; }
 /* explore choices all lowercase, titles and their lines */
 .ex-choice b, .ex-choice span, .ex-choice small, .ex-choice { text-transform: lowercase; }
 .view[data-view="explore"] .page-sub { text-transform: lowercase; }
+/* "explore in 3D" in cut-out letters */
+.explore-label.ransom { display: block; font-size: clamp(30px, 3.2vw, 46px); line-height: 1.3; }
+.explore-label.ransom .rn { font-size: 1em; }
+.explore-sub { text-transform: lowercase; }
