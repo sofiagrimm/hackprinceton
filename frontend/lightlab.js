@@ -24,6 +24,7 @@ const FRAG = `
   uniform vec3 room;        // half width, height, half depth (m)
   uniform float eye;
   uniform vec3 cam;         // where you stand (the photo stays projected from the scan spot)
+  uniform float flatten;    // 0: project the photo exactly onto the box; 1: treat it as a distant backdrop
   uniform float ambient;    // house lights 0..1
   uniform int count;
   uniform vec3 lpos[MAX];
@@ -44,8 +45,20 @@ const FRAG = `
     float t = min(tx, min(ty, tz));
     vec3 n = t == tx ? vec3(-sign(d.x), 0.0, 0.0) : t == tz ? vec3(0.0, 0.0, -sign(d.z)) : vec3(0.0, -sign(d.y), 0.0);
     vec3 p = o + d * t;
+    // Soften the corners: near an edge, lean the surface's normal towards the neighbouring surface's,
+    // so light rolls round where two walls (or a wall and the floor) meet instead of stopping dead.
+    float ex = room.x - abs(p.x), ez = room.z - abs(p.z), eTop = room.y - p.y, eBot = p.y;
+    vec3 ns = n
+      + vec3(-sign(p.x), 0.0, 0.0) * exp(-ex / 0.8)
+      + vec3(0.0, 0.0, -sign(p.z)) * exp(-ez / 0.8)
+      + vec3(0.0, -1.0, 0.0) * exp(-eTop / 0.8)
+      + vec3(0.0, 1.0, 0.0) * exp(-eBot / 0.8);
+    n = normalize(ns);
     // the photo's colour at that point, as the scan camera saw it
-    vec3 base = textureCube(map, normalize(p - vec3(0.0, eye, 0.0))).rgb;
+    // The box is only roughly the room's shape, so the further you are from the scan spot the more an exact
+    // projection bends things. Lean towards the plain view direction as you move away to keep it straight.
+    vec3 fromScan = normalize(p - vec3(0.0, eye, 0.0));
+    vec3 base = textureCube(map, normalize(mix(fromScan, d, flatten))).rgb;
 
     vec3 light = vec3(0.0);
     vec3 halo = vec3(0.0);
@@ -54,9 +67,12 @@ const FRAG = `
       vec3 L = lpos[i] - p;
       float dist = length(L);
       vec3 l = L / max(dist, 1e-3);
-      float ndl = max(dot(n, l), 0.0);
+      // wrap lighting: a gentle fall-off as a surface turns away, never a hard line
+      float ndl = clamp((dot(n, l) + 0.35) / 1.35, 0.0, 1.0);
+      ndl *= ndl;
       float cone = 1.0;
-      if (dot(ldir[i], ldir[i]) > 0.0) cone = smoothstep(lcone[i], lcone[i] + 0.06, dot(-l, normalize(ldir[i])));
+      // spotlights fade out over a wider rim, so their pool of light has a soft edge
+      if (dot(ldir[i], ldir[i]) > 0.0) cone = smoothstep(lcone[i] - 0.05, lcone[i] + 0.16, dot(-l, normalize(ldir[i])));
       light += lcol[i] * lpow[i] * ndl * cone / (1.0 + dist * dist * 0.35);
       // the fixture itself, seen from where you stand
       vec3 toL = normalize(lpos[i] - o);
@@ -174,7 +190,7 @@ export function createLightLab(container) {
   const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 100);
   const blank = () => Array.from({ length: MAX }, () => new THREE.Vector3());
   const uniforms = {
-    map: { value: null }, room: { value: new THREE.Vector3(5, 3, 5) }, eye: { value: EYE }, cam: { value: new THREE.Vector3(0, EYE, 0) }, ambient: { value: 0.35 }, count: { value: 0 },
+    map: { value: null }, room: { value: new THREE.Vector3(5, 3, 5) }, eye: { value: EYE }, cam: { value: new THREE.Vector3(0, EYE, 0) }, flatten: { value: 0 }, ambient: { value: 0.35 }, count: { value: 0 },
     lpos: { value: blank() }, lcol: { value: blank() }, lpow: { value: new Array(MAX).fill(0) },
     ldir: { value: blank() }, lcone: { value: new Array(MAX).fill(0) }, lsize: { value: new Array(MAX).fill(1) },
   };
@@ -250,8 +266,26 @@ export function createLightLab(container) {
   new ResizeObserver(resize).observe(container);
   resize();
 
+  let fadeTargets = [], fadeFrom = 0, fadeStart = 0;
+  const REACH = 1.8; // metres you can walk from the scan spot
+  const camGoal = new THREE.Vector3(0, EYE, 0);
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   (function frame() {
     requestAnimationFrame(frame);
+    if (fadeStart) {
+      const k = Math.min(1, (performance.now() - fadeStart) / 350);
+      const ease = 1 - Math.pow(1 - k, 3);
+      for (let i = fadeFrom; i < fadeTargets.length; i++) uniforms.lpow.value[i] = fadeTargets[i] * ease;
+      if (k >= 1) fadeStart = 0;
+      dirty = true;
+    }
+    // glide towards where you're walking, and flatten the photo as you leave the scan spot
+    const cam = uniforms.cam.value;
+    if (cam.distanceTo(camGoal) > 0.002) {
+      cam.lerp(camGoal, reduceMotion ? 1 : 0.18);
+      uniforms.flatten.value = Math.min(0.75, Math.hypot(cam.x, cam.z) / REACH * 0.75);
+      dirty = true;
+    }
     if (!dirty || !uniforms.map.value) return;
     dirty = false;
     camera.rotation.set(pitch, yaw, 0, "YXZ");
@@ -267,7 +301,7 @@ export function createLightLab(container) {
       // a box the size of the scanned room, a little longer than wide
       const area = Math.max(150, areaSqft || 800) * 0.0929;
       const w = Math.sqrt(area / 1.3), dpt = area / w;
-      uniforms.cam.value.set(0, EYE, 0);
+      uniforms.cam.value.set(0, EYE, 0); camGoal.set(0, EYE, 0);
       uniforms.room.value.set(w / 2, Math.max(2.6, (heightFt || 10) * 0.3048), dpt / 2);
       dirty = true;
     },
@@ -277,14 +311,18 @@ export function createLightLab(container) {
     /** Walk: forward and right in metres, relative to where you're facing; stays 0.4 m off the walls. */
     walk(forward, right) {
       const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
-      const c = uniforms.cam.value, r = uniforms.room.value;
-      c.x = Math.max(-r.x + 0.4, Math.min(r.x - 0.4, c.x + fx * forward + -fz * right));
-      c.z = Math.max(-r.z + 0.4, Math.min(r.z - 0.4, c.z + fz * forward + fx * right));
+      const c = camGoal, r = uniforms.room.value;
+      let x = c.x + fx * forward + -fz * right, z = c.z + fz * forward + fx * right;
+      // stay where the photo still holds up: within REACH of the scan spot and off the walls
+      const dist = Math.hypot(x, z);
+      if (dist > REACH) { x *= REACH / dist; z *= REACH / dist; }
+      c.x = Math.max(-r.x + 0.4, Math.min(r.x - 0.4, x));
+      c.z = Math.max(-r.z + 0.4, Math.min(r.z - 0.4, z));
       dirty = true;
       return Math.hypot(c.x, c.z);
     },
     /** Back to where the 360 photo was taken. */
-    home() { uniforms.cam.value.set(0, EYE, 0); dirty = true; },
+    home() { camGoal.set(0, EYE, 0); dirty = true; },
     surfacePoint,
     onPick(fn) { onPick = fn; },
     /** While set, pressing on a placed light drags it instead of turning the view. */
@@ -293,17 +331,22 @@ export function createLightLab(container) {
     /** lights: [{ pos: Vector3, color: '#rrggbb', power, dir: Vector3|null, cone, size }] */
     setLights(lights) {
       const n = Math.min(MAX, lights.length);
+      // lights that weren't there before fade in instead of switching on all at once
+      const prev = uniforms.count.value;
+      fadeTargets = lights.slice(0, n).map((l) => (l ? l.power : 0));
+      fadeFrom = prev;
       uniforms.count.value = n;
       for (let i = 0; i < MAX; i++) {
         const l = lights[i];
         uniforms.lpos.value[i].copy(l ? l.pos : new THREE.Vector3());
         uniforms.lcol.value[i].copy(l ? new THREE.Vector3(...new THREE.Color(l.color).toArray()) : new THREE.Vector3());
-        uniforms.lpow.value[i] = l ? l.power : 0;
+        uniforms.lpow.value[i] = l ? (i >= prev && !reduceMotion ? 0 : l.power) : 0;
         uniforms.ldir.value[i].copy(l?.dir || new THREE.Vector3());
         uniforms.lcone.value[i] = l?.cone ?? 0;
         uniforms.lsize.value[i] = l?.size ?? 1;
       }
       dirty = true;
+      if (n > prev) fadeStart = performance.now();
     },
     look(y, p) { yaw = y; pitch = p; dirty = true; },
     snapshot() { renderer.render(scene, camera); return el.toDataURL("image/jpeg", 0.85); },

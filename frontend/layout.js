@@ -1095,7 +1095,7 @@ async function startLighting(id) {
     const step = (f, r) => {
       const away = lab.viewer.walk(f, r);
       $("walk-home").hidden = away < 0.2;
-      $("lab-count").dataset.away = away >= 2.5 ? "far" : "";
+      $("lab-count").dataset.away = away >= 1.7 ? "far" : "";
     };
     const STEP = 0.35;
     const moves = { f: [STEP, 0], b: [-STEP, 0], l: [0, -STEP], r: [0, STEP] };
