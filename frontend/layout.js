@@ -402,30 +402,17 @@ function bestFace(r) {
 
 const listCache = {};
 function pictureList(id) {
-  listCache[id] ||= (async () => {
-    const info = venueInfo[id] || {};
-    const ranked = rankRooms(await rooms(id), info.model);
-    // Look at the three most promising rooms and lead with the best-looking view among them.
-    // the biggest, showiest rooms get a head start over a merely colourful photo
-    const views = (await Promise.all(ranked.slice(0, 8).map(bestFace)))
-      .map((v, i) => v && { ...v, score: v.score + ([14, 8, 3][i] || 0) }).filter(Boolean);
-    const inside = views.sort((a, b) => b.score - a.score).map((v) => v.url);
-    return [
-      ...inside.slice(0, 1),
-      info.photo,
-      ...inside.slice(1),
-      `/api/film/${id}/oblique/s.jpg`,
-      `/api/film/${id}/oblique/n.jpg`,
-      `/api/film/${id}/oblique/e.jpg`,
-      `/api/film/${id}/oblique/w.jpg`,
-    ].filter(Boolean);
-  })();
+  // The server picks each venue's pictures once and keeps them, so this is one quick request.
+  listCache[id] ||= fetch(`/api/venues/${id}/pictures`).then((r) => (r.ok ? r.json() : { urls: [] }))
+    .then((d) => (d.urls && d.urls.length ? d.urls : [venueInfo[id]?.photo].filter(Boolean)))
+    .catch(() => [venueInfo[id]?.photo].filter(Boolean));
   return listCache[id];
 }
 
 /** Point an <img> at a property's best picture, stepping down the list when one doesn't load. */
 async function showPicture(img, id) {
   img.dataset.pic = id;
+  if (!img.getAttribute("src") && venueInfo[id]?.photo) img.src = venueInfo[id].photo;
   const urls = await pictureList(id);
   if (img.dataset.pic !== String(id)) return; // reused for another venue meanwhile
   let k = 0;

@@ -1793,11 +1793,11 @@ body[data-view="property"] .venue-switch a { padding: 5px 11px; }
    the opening collage. It lies over the page (scrolls away with it) and under any venue sub-menu.
    img/staff-loop.webp: the collage's staff (notes only) and its mirror image, so the ends meet;
    one tile is 1716 x 180, shown 44 px tall = 419.5 px wide. */
-.music-strand { position: absolute; left: 0; right: 0; top: calc(var(--nav-h) + 6px); height: 52px; z-index: 5; pointer-events: none;
-  background: url("img/staff-loop.webp") 0 50% / auto 44px repeat-x; opacity: 0.8; animation: strand-drift 14s linear infinite; }
+.music-strand { position: absolute; left: 0; right: 0; top: calc(var(--nav-h) + 2px); height: 104px; z-index: 5; pointer-events: none;
+  background: url("img/staff-loop.webp") 0 50% / auto 96px repeat-x; opacity: 0.7; animation: strand-drift 34s linear infinite; }
 body[data-view="home"] .music-strand { display: none; }
-body[data-view="property"] .music-strand { top: calc(var(--nav-h) + 56px); }
-@keyframes strand-drift { to { background-position-x: -419.5px; } }
+body[data-view="property"] .music-strand { top: calc(var(--nav-h) + 52px); }
+@keyframes strand-drift { to { background-position-x: -915.2px; } }  /* one tile, 1716 x 180, shown 96 px tall */
 @media (prefers-reduced-motion: reduce) { .music-strand { animation: none; } }
 /* the search page's own staff would double up with it */
 .search-staff { display: none; }
