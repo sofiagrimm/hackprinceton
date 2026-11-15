@@ -36,6 +36,7 @@ function rand(seed) {
 }
 
 function cut(el, given) {
+  if (el.querySelector(":scope > .rn") === null) el.dataset.ransom = "";
   // the app replaced the whole heading (textContent = ...): start over from its new text
   if (el.querySelector(":scope > .rn") && !el.querySelector(":scope > .rn-src")) el.querySelector(":scope > .rn").remove();
   [...el.childNodes].forEach((n) => { if (n.nodeType === 3 && n.textContent.trim() && el.querySelector(":scope > .rn-src")) { el.querySelector(":scope > .rn-src").replaceChildren(n); } });
@@ -106,7 +107,8 @@ var watch = new MutationObserver((list) => {
     if (!h || seen.has(h)) return;
     seen.add(h);
     const t = realText(h);
-    if (t && t !== h.dataset.ransom) cut(h, t);
+    // re-cut when the words changed, or when the app replaced the heading and the tiles are gone
+    if (t && (t !== h.dataset.ransom || !h.querySelector(":scope > .rn"))) cut(h, t);
   });
 });
 

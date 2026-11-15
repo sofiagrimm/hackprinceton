@@ -824,7 +824,8 @@ function openVenue(id) {
   state.venueId = id;
   const card = document.querySelector(`#cards .card[data-id="${id}"]`);
   if (card) { card.click(); return; }
-  // No card for it (the shelf, a shared link, a reload): let app.js open it from the address.
+  // No card for it (the shelf, a shared link): app.js opens it in place, no page reload.
+  if (window.stagehandOpenVenue) { window.stagehandOpenVenue(id); return; }
   location.href = `/?venue=${id}#/venue/${id}`;
 }
 
@@ -962,6 +963,7 @@ function ensureVenue(id, hash) {
   state.venueId = id;
   const card = document.querySelector(`#cards .card[data-id="${id}"]`);
   if (card) { state.quietCard = true; card.click(); state.quietCard = false; return false; }
+  if (window.stagehandOpenVenue) { window.stagehandOpenVenue(id); return false; }
   location.href = `/?venue=${id}${hash}`;
   return true; // the page is reloading; callers should stop here
 }

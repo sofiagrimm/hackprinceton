@@ -323,6 +323,9 @@ function scoreColor(score) {
 
 // ------------------------------------------------------------------ the pick
 
+// layout.js opens venues that aren't in the current results through this, without reloading the page
+window.stagehandOpenVenue = (id) => openVenue(Number(id));
+
 async function openVenue(id, scroll = false) {
   const use = state.search?.use || "a_cappella_performance";
   const audience = state.search?.audience || 60;
