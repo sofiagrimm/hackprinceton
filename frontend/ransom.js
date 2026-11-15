@@ -35,11 +35,13 @@ function rand(seed) {
   };
 }
 
-function cut(el) {
-  const text = el.textContent.replace(/\s+/g, " ").trim();
+function cut(el, given) {
+  // the app replaced the whole heading (textContent = ...): start over from its new text
+  if (el.querySelector(":scope > .rn") && !el.querySelector(":scope > .rn-src")) el.querySelector(":scope > .rn").remove();
+  [...el.childNodes].forEach((n) => { if (n.nodeType === 3 && n.textContent.trim() && el.querySelector(":scope > .rn-src")) { el.querySelector(":scope > .rn-src").replaceChildren(n); } });
+  const text = given || realText(el) || el.textContent.replace(/\s+/g, " ").trim();
   if (!text || el.dataset.ransom === text) return;
   el.dataset.ransom = text;
-  el.setAttribute("aria-label", text);
   const r = rand(hash(text + (el.id || "")));
   let prevFont = -1, i = 0;
   const words = text.toLowerCase().split(" ").map((word) => {
@@ -63,30 +65,59 @@ function cut(el) {
     }).join("");
     return `<span class="rn-w">${tiles}</span>`;
   });
-  el.innerHTML = `<span class="rn" aria-hidden="true">${words.join(" ")}</span>`;
+  // keep the heading's own markup (the app writes venue names into it) as the readable text
+  let src = el.querySelector(":scope > .rn-src");
+  if (!src) {
+    src = document.createElement("span");
+    src.className = "rn-src";
+    while (el.firstChild) src.appendChild(el.firstChild);
+    el.appendChild(src);
+  }
+  el.querySelector(":scope > .rn")?.remove();
+  el.removeAttribute("aria-label");
+  el.insertAdjacentHTML("beforeend", `<span class="rn" aria-hidden="true">${words.join(" ")}</span>`);
   el.classList.add("ransom");
+  watch?.takeRecords(); // our own rewrite is not a change to react to
+}
+
+/** The heading's real words: its text outside the tiles (the app writes new text there). */
+function realText(el) {
+  const src = el.querySelector(":scope > .rn-src");
+  let t = src ? src.textContent : "";
+  // text the app wrote straight into the heading (replacing everything) also counts
+  el.childNodes.forEach((n) => { if (!(n.nodeType === 1 && (n.classList.contains("rn") || n.classList.contains("rn-src")))) t += n.textContent; });
+  return t.replace(/\s+/g, " ").trim();
 }
 
 function cutAll(root = document) {
-  root.querySelectorAll(SELECTOR).forEach(cut);
+  root.querySelectorAll(SELECTOR).forEach((h) => cut(h));
 }
 
 // Re-cut a heading when the app changes its words (a venue name arriving, results counting up).
-const watch = new MutationObserver((list) => {
+var watch = new MutationObserver((list) => {
   const seen = new Set();
   list.forEach((m) => {
     const h = (m.target.nodeType === 1 ? m.target : m.target.parentElement)?.closest?.(SELECTOR);
-    if (h && !seen.has(h) && !m.target.closest?.(".rn")) { seen.add(h); h.dataset.ransom = ""; cut(h); }
+    if (!h || seen.has(h)) return;
+    seen.add(h);
+    const t = realText(h);
+    if (t && t !== h.dataset.ransom) cut(h, t);
   });
 });
 
 cutAll();
 document.querySelectorAll(SELECTOR).forEach((h) => watch.observe(h, { childList: true, characterData: true, subtree: true }));
 // headings added later (results, saved items)
+let pending = false;
 new MutationObserver(() => {
-  document.querySelectorAll(SELECTOR).forEach((h) => {
-    if (!h.dataset.watched) { h.dataset.watched = "1"; watch.observe(h, { childList: true, characterData: true, subtree: true }); }
-    if (!h.querySelector(".rn")) cut(h);
+  if (pending) return;
+  pending = true;
+  requestAnimationFrame(() => {
+    pending = false;
+    document.querySelectorAll(SELECTOR).forEach((h) => {
+      if (!h.dataset.watched) { h.dataset.watched = "1"; watch.observe(h, { childList: true, characterData: true, subtree: true }); }
+      if (!h.querySelector(".rn")) cut(h);
+    });
   });
 }).observe(document.body, { childList: true, subtree: true });
 

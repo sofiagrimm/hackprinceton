@@ -1888,3 +1888,8 @@ body[data-view="property"] .music-strand { top: calc(var(--nav-h) + 84px); }
 /* body text everywhere in the old-style serif used on the Browse pages */
 :root { --body: "IM Fell English", "Iowan Old Style", Georgia, serif; }
 body { font-size: 18px; }
+
+.ransom > .rn-src { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* smaller headings keep their tiles readable */
+.ransom.ac-h .rn, .ransom.sv-h .rn, .ransom.featured-title .rn { font-size: 1.15em; }
+.ransom.ac-h, .ransom.sv-h, .ransom.featured-title { font-size: clamp(22px, 1.9vw, 28px); }
