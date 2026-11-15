@@ -207,11 +207,11 @@ function igniteIntoSearch() {
     { opacity: 0, transform: "scale(0.35)" },
     { opacity: 0.85, transform: "scale(1)", offset: 0.6 },
     { opacity: 1, transform: "scale(1.6)" },
-  ], { duration: 520, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }).onfinish = () => {
+  ], { duration: 260, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }).onfinish = () => {
     cta.classList.remove("igniting");
     go("#/search");
     focusBrief();
-    light.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 360, easing: "ease-in-out", fill: "forwards" }).onfinish = () => {
+    light.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 190, easing: "ease-out", fill: "forwards" }).onfinish = () => {
       light.remove();
       state.zooming = false;
     };
