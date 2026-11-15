@@ -1916,3 +1916,10 @@ body { font-size: 18px; }
 #tp-title { font-size: clamp(50px, 6.4vw, 92px); max-width: 80%; }
 #tp-title .rn { font-size: 1em; }
 @media (max-width: 900px) { #tp-title { max-width: none; } }
+
+/* "More than one show?" band on the search page: words and one button, no photo */
+.side-b-solo { grid-template-columns: minmax(0, 1fr); max-width: 760px; }
+.side-b-lede { margin: var(--s4) 0 0; font-size: clamp(18px, 1.5vw, 21px); line-height: 1.55; color: #f3e7d8; }
+.side-b-cta { margin-top: var(--s5); }
+.side-b .side-b-cta { background: #fbf8f4; color: #3b1519; font: 400 20px/1 "IM Fell English", Georgia, serif; padding: 0 var(--s5); min-height: 50px; box-shadow: 4px 5px 0 rgba(0, 0, 0, 0.4); transform: rotate(-1deg); }
+.side-b .side-b-cta:hover { color: #3b1519; background: #fff; transform: rotate(0) translate(-1px, -1px); }

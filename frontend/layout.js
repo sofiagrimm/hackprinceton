@@ -612,6 +612,7 @@ async function renderShelf() {
 /** The polaroid beside "Working on the road?": a slow cross-fade through real venues, each a link to its page. */
 function sideShow(venues) {
   const frame = $("ss-frame"), cap = $("ss-cap");
+  if (!frame || !cap) return; // the band no longer has a slideshow
   if (!frame || !venues.length) return;
   frame.innerHTML = venues.map((v, i) => `
     <a class="ss-slide${i === 0 ? " on" : ""}" href="#/venue/${v.venue_id}" aria-label="${esc(v.name)}, ${esc(v.best_space.space_name)}. Open this venue."${i ? ' tabindex="-1" aria-hidden="true"' : ""}>
