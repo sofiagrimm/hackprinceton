@@ -189,33 +189,62 @@ function zoomIn() {
   };
 }
 
-/** The Stagehand name keeps glowing brighter until its light fills the screen, then the search page fades in. */
+/** Home -> search, musically: a quick rising four-note chord plays while notes fly out of the
+ *  Stagehand name and drift up over the search page as it appears. About 0.6 s in all. */
 function igniteIntoSearch() {
   state.zooming = true;
   const cta = $("hero-cta"), logo = cta.querySelector(".cl-logo");
   const r = (logo || cta).getBoundingClientRect();
-  const cx = ((r.left + r.width / 2) / innerWidth) * 100, cy = ((r.top + r.height / 2) / innerHeight) * 100;
-  cta.classList.add("igniting");
-  const light = document.createElement("div");
-  light.className = "ignite-light";
-  light.setAttribute("aria-hidden", "true");
-  light.style.setProperty("--cx", `${cx}%`);
-  light.style.setProperty("--cy", `${cy}%`);
-  document.body.appendChild(light);
-  // the bloom grows out of the name and washes the screen in warm light
-  light.animate([
-    { opacity: 0, transform: "scale(0.35)" },
-    { opacity: 0.85, transform: "scale(1)", offset: 0.6 },
-    { opacity: 1, transform: "scale(1.6)" },
-  ], { duration: 260, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }).onfinish = () => {
-    cta.classList.remove("igniting");
+  const ox = r.left + r.width / 2, oy = r.top + r.height / 2;
+  playFlourish();
+  const burst = document.createElement("div");
+  burst.className = "note-burst";
+  burst.setAttribute("aria-hidden", "true");
+  const glyphs = ["\u266A", "\u266B", "\u2669", "\u266C"];
+  for (let i = 0; i < 22; i++) {
+    const n = document.createElement("span");
+    n.textContent = glyphs[i % glyphs.length];
+    const size = 26 + Math.random() * 40;
+    n.style.fontSize = `${size}px`;
+    n.style.left = `${ox + (Math.random() - 0.5) * r.width * 0.8}px`;
+    n.style.top = `${oy + (Math.random() - 0.5) * r.height * 0.6}px`;
+    burst.appendChild(n);
+    const dx = (Math.random() - 0.5) * innerWidth * 0.9, dy = -innerHeight * (0.35 + Math.random() * 0.6);
+    const spin = (Math.random() - 0.5) * 70;
+    n.animate([
+      { transform: "translate(-50%, -50%) scale(0.4) rotate(0deg)", opacity: 0 },
+      { opacity: 1, offset: 0.2 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1) rotate(${spin}deg)`, opacity: 0 },
+    ], { duration: 700 + Math.random() * 350, delay: Math.random() * 160, easing: "cubic-bezier(.2,.7,.3,1)", fill: "both" });
+  }
+  document.body.appendChild(burst);
+  setTimeout(() => {
     go("#/search");
     focusBrief();
-    light.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 190, easing: "ease-out", fill: "forwards" }).onfinish = () => {
-      light.remove();
-      state.zooming = false;
-    };
-  };
+    state.zooming = false;
+  }, 330);
+  setTimeout(() => burst.remove(), 1300);
+}
+
+/** C major, rising: four short plucked notes, like a music box. */
+function playFlourish() {
+  try {
+    const ctx = playFlourish.ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+    ctx.resume();
+    const t0 = ctx.currentTime + 0.01;
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+      const t = t0 + i * 0.075;
+      const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "triangle"; o.frequency.value = f;
+      o2.type = "sine"; o2.frequency.value = f * 2;
+      const g2 = ctx.createGain(); g2.gain.value = 0.25;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.16, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+      o.connect(g); o2.connect(g2).connect(g); g.connect(ctx.destination);
+      o.start(t); o2.start(t); o.stop(t + 0.95); o2.stop(t + 0.95);
+    });
+  } catch (_) { /* no sound is fine */ }
 }
 
 /** Back out of the search page: the sheet shrinks back into the blob. Runs as the home view appears. */
