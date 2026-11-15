@@ -25,14 +25,24 @@ const PANO_FRAG = `
   uniform vec3 eye;
   uniform float shade;
   uniform float calm; // how much to quiet the photo (the floor smears furniture flat)
+  uniform float wash; // 1 = just the surface's own colour (the floor: anything standing on it smears flat)
+  uniform vec3 nrm;   // the surface's normal: where the scan camera saw it edge-on, the photo streaks
   varying vec3 vWorld;
   void main() {
-    vec3 c = textureCube(map, normalize(vWorld - eye)).rgb;
+    vec3 d = normalize(vWorld - eye);
+    // seen head-on the photo is sharp; at a grazing angle one pixel covers metres, so show its blurred colour instead
+    float sharp = smoothstep(0.22, 0.6, abs(dot(d, nrm)));
+    vec3 c = mix(textureCube(map, d, 6.0).rgb, textureCube(map, d).rgb, sharp);
+    // straight below the camera is the tripod and whatever stood next to it, blown up: use the floor's own colour there
+    vec3 floorTone = 0.25 * (textureCube(map, normalize(vec3(1.0, -1.2, 0.0)), 8.0).rgb + textureCube(map, normalize(vec3(-1.0, -1.2, 0.0)), 8.0).rgb
+                           + textureCube(map, normalize(vec3(0.0, -1.2, 1.0)), 8.0).rgb + textureCube(map, normalize(vec3(0.0, -1.2, -1.0)), 8.0).rgb);
+    c = mix(c, floorTone, max(smoothstep(0.72, 0.9, -d.y), wash));
     float l = dot(c, vec3(0.299, 0.587, 0.114));
     c = mix(c, vec3(l) * vec3(1.02, 0.97, 0.92), calm * 0.55);
     gl_FragColor = vec4(c * shade, 1.0);
     #include <colorspace_fragment>
   }`;
+const FLOOR = [0, 1, 0];
 const CHERRY = 0x8e1424, CREAM = 0xf3ece1, GOLD = 0xd9a441;
 
 function person(color, height = 1.7) {
@@ -97,15 +107,15 @@ export function createStandView(container, { onMove } = {}) {
     roomGroup = new THREE.Group();
     const { length: L, width: W, height: H } = dims;
     // floor, with a 1 m grid
-    const panoMat = (shade, calm = 0) => new THREE.ShaderMaterial({
-      uniforms: { map: { value: pano }, eye: { value: new THREE.Vector3(0, PANO_EYE, 0) }, shade: { value: shade }, calm: { value: calm } },
+    const panoMat = (shade, calm = 0, nrm = [0, 1, 0.0001]) => new THREE.ShaderMaterial({
+      uniforms: { map: { value: pano }, eye: { value: new THREE.Vector3(0, PANO_EYE, 0) }, shade: { value: shade }, calm: { value: calm }, wash: { value: nrm === FLOOR ? 0.85 : 0 }, nrm: { value: new THREE.Vector3(...nrm) } },
       vertexShader: PANO_VERT, fragmentShader: PANO_FRAG, side: THREE.BackSide,
     });
     // in 3D the floor wears the photo too, so it looks like the real room; the top view keeps a plain plan
     const plain = new THREE.MeshStandardMaterial({ color: 0x9a7058, roughness: 0.85 });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W), pano && view !== "top" ? panoMat(0.9, 0.25) : plain);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(L, W), pano && view !== "top" ? panoMat(0.9, 0.25, FLOOR) : plain);
     floor.userData.plain = plain;
-    if (pano) { floor.userData.photo = panoMat(0.9, 0.25); floor.userData.photo.side = THREE.DoubleSide; }
+    if (pano) { floor.userData.photo = panoMat(0.9, 0.25, FLOOR); floor.userData.photo.side = THREE.DoubleSide; }
     if (floor.material !== plain) floor.material = floor.userData.photo;
     floor.rotation.x = -Math.PI / 2;
     floor.name = "floor";
@@ -124,7 +134,7 @@ export function createStandView(container, { onMove } = {}) {
     // walls: see-through from outside, faint from inside
     // walls: from outside you see the far walls' inner faces (a dollhouse); the near ones step aside
     const box = new THREE.Mesh(new THREE.BoxGeometry(L, H, W), pano
-      ? [panoMat(0.92), panoMat(0.92), panoMat(1.05), panoMat(0.85), panoMat(0.92), panoMat(0.92)]
+      ? [panoMat(0.92, 0, [1, 0, 0]), panoMat(0.92, 0, [1, 0, 0]), panoMat(1.05), panoMat(0.85), panoMat(0.92, 0, [0, 0, 1]), panoMat(0.92, 0, [0, 0, 1])]
       : new THREE.MeshStandardMaterial({ color: 0xe9ddd0, transparent: true, opacity: 0.1, side: THREE.BackSide, depthWrite: false }));
     if (pano) box.material[3].visible = false; // the floor plane already covers the bottom
     box.position.y = H / 2;
