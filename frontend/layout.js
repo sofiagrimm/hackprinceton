@@ -1725,7 +1725,11 @@ function drawCalendar() {
 function pickDay(dayIso) {
   const [y, m, d] = dayIso.split("-").map(Number);
   const day = new Date(y, m - 1, d);
-  if (!booking.start || booking.end || day < booking.start) { booking.start = day; booking.end = null; }
+  const same = (x) => x && x.getTime() === day.getTime();
+  // clicking a picked day again unpicks it: the last day goes back to one day, the first day clears it all
+  if (same(booking.end) && !same(booking.start)) booking.end = null;
+  else if (same(booking.start)) { booking.start = null; booking.end = null; }
+  else if (!booking.start || booking.end || day < booking.start) { booking.start = day; booking.end = null; }
   else booking.end = day;
   drawCalendar();
   $("cal-months").querySelector(`[data-day="${dayIso}"]`)?.focus();
