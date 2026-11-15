@@ -1994,3 +1994,21 @@ body { font-size: 18px; }
 /* on the cream tour form, the inverted tile: oxblood paper, cream letters */
 #tp-go, #tp-go:hover { background: #3b1519; color: #fbf8f4; }
 #tp-go:hover { background: #561f25; }
+
+/* The wide display face (Syne) clashed with the scrapbook look: venue names, totals and big numbers
+   now use the old-style serif, with lining numbers so prices and times stay easy to read. */
+:root { --display: "Playfair Display", "Iowan Old Style", Georgia, serif; }
+.tp-stops, .tp-summary, .tp-totals, .stub, .figures, .fig .n, .ac-big, .pl-rows, .rs-card-foot b, .pick .fig .n { font-variant-numeric: lining-nums; }
+
+/* tour page: the share link reads on the wine paper */
+.tp-share-link { color: #f3c6cf; font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.tp-share-link:hover, .tp-share-link:focus-visible { color: #fff6ea; }
+/* amounts in the tour receipt and stop prices in the serif with modern numerals */
+.tp-totals dd, .tp-totals .row b, .tp-totals li span:last-child, .tp-stop-cost, .tp-stops .cost, .tp-stops small { font-family: "Playfair Display", Georgia, serif; font-variant-numeric: lining-nums; }
+/* vote links readable on the cream card */
+.tp-vote { color: #8e1424; text-decoration-color: rgba(142, 20, 36, 0.5); }
+.tp-vote:hover { color: #3b1519; }
+.tp-cost, .tp-cost small, .stub dd { font-family: "Playfair Display", Georgia, serif; font-variant-numeric: lining-nums; }
+.tp-vote.on { color: #3b1519; }
+.search-band .search-shelf { margin-top: -60px; }
+@media (max-width: 900px) { .search-band .search-shelf { margin-top: 0; } }
