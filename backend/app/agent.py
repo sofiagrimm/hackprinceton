@@ -40,10 +40,52 @@ USE_WORDS = [
 ]
 
 
+# Places we have scanned rooms in, by the words people use for them.
+COVERED = {
+    "los angeles": "Los Angeles", "la": "Los Angeles", "l.a.": "Los Angeles", "hollywood": "Los Angeles",
+    "west hollywood": "Los Angeles", "weho": "Los Angeles", "santa monica": "Los Angeles", "dtla": "Los Angeles",
+    "koreatown": "Los Angeles", "silver lake": "Los Angeles", "echo park": "Los Angeles", "culver city": "Los Angeles",
+    "beverly hills": "Los Angeles", "venice": "Los Angeles", "burbank": "Los Angeles", "pasadena": "Los Angeles",
+    "houston": "Houston", "htx": "Houston", "the heights": "Houston", "montrose": "Houston", "midtown houston": "Houston",
+}
+# Well-known places we have nothing in, so "a show in Chicago" doesn't quietly turn into Los Angeles.
+ELSEWHERE = [
+    "new york", "nyc", "manhattan", "brooklyn", "chicago", "boston", "philadelphia", "philly", "washington dc", "d.c.",
+    "seattle", "portland", "san francisco", "sf", "oakland", "berkeley", "san jose", "sacramento", "san diego",
+    "las vegas", "phoenix", "denver", "austin", "dallas", "san antonio", "fort worth", "atlanta", "miami", "orlando",
+    "tampa", "nashville", "new orleans", "detroit", "minneapolis", "st. louis", "kansas city", "pittsburgh",
+    "baltimore", "charlotte", "raleigh", "salt lake city", "princeton", "new jersey", "london", "paris", "toronto",
+    "tallahassee", "pensacola", "stanford", "honolulu", "anchorage", "cleveland", "columbus", "cincinnati",
+    "indianapolis", "milwaukee", "albuquerque", "tucson", "el paso", "memphis", "louisville", "richmond", "buffalo",
+    "providence", "hartford", "new haven", "ithaca", "ann arbor", "madison", "boulder", "santa fe",
+]
+NOT_PLACES = {"january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
+              "november", "december", "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "sept", "oct", "nov",
+              "dec", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "the", "our",
+              "a", "an", "my", "spring", "summer", "fall", "autumn", "winter", "person", "total"}
+
+
+def _where(text: str) -> tuple[str | None, str | None]:
+    """(metro we cover, or None; the place they named if it's somewhere we don't). No place at all: Los Angeles."""
+    t = f" {text.lower()} "
+    for alias in sorted(COVERED, key=len, reverse=True):
+        if re.search(rf"(?<![a-z]){re.escape(alias)}(?![a-z])", t):
+            return COVERED[alias], None
+    for place in sorted(ELSEWHERE, key=len, reverse=True):
+        if re.search(rf"(?<![a-z]){re.escape(place)}(?![a-z])", t):
+            return None, place.title() if len(place) > 3 else place.upper()
+    # "in Springfield", "touring to Lyon": a capitalised name after a place word
+    for m in re.finditer(r"\b(?:in|at|near|around|to|visiting|touring)\s+((?:[A-Z][\w.'-]+)(?:\s+[A-Z][\w.'-]+){0,2})", text):
+        name = m.group(1)
+        if name.split()[0].lower() not in NOT_PLACES:
+            return None, name
+    return "Los Angeles", None
+
+
 def parse_brief(text: str) -> dict:
     """Pull the key numbers out of a free-text brief with simple patterns."""
     t = f" {text.lower()} "
-    metro = "Houston" if "houston" in t else "Los Angeles"
+    metro, elsewhere = _where(text)
 
     def num(patterns: list[str], default: int) -> int:
         for p in patterns:
@@ -70,7 +112,7 @@ def parse_brief(text: str) -> dict:
     stay = any(w in t for w in ("stay", "sleep", "housing", "lodging", "hotel", "overnight", "same building"))
     date = re.search(r"(?:on|for)\s+((?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2})", t)
     return {
-        "metro": metro, "group_size": group, "audience": audience, "nights": nights,
+        "metro": metro, "elsewhere": elsewhere, "group_size": group, "audience": audience, "nights": nights,
         "use": use, "use_label": USES[use][2], "stay_and_perform": stay,
         "event_date": date.group(1).title() if date else "",
     }
@@ -83,6 +125,10 @@ class PlannerScout:
 
     def run(self, brief_text: str) -> Iterator[Event]:
         brief = parse_brief(brief_text)
+        if not brief["metro"]:
+            yield {"type": "message", "text": f"None available in {brief['elsewhere']}. We only have scanned rooms in Los Angeles and Houston so far."}
+            yield {"type": "done", "brief": brief, "none": "location"}
+            return
         yield {"type": "plan", "text": (
             f"{brief['group_size']} performers and about {brief['audience']} guests in {brief['metro']}, "
             f"{brief['nights']} night{'' if brief['nights'] == 1 else 's'}, for {brief['use_label']}. "
@@ -97,8 +143,8 @@ class PlannerScout:
             args["stay_and_perform"] = False
             found = yield from _call("search_venues", args)
         if not found.get("results"):
-            yield {"type": "message", "text": "No scanned space fits that audience. Try a smaller audience."}
-            yield {"type": "done", "brief": brief}
+            yield {"type": "message", "text": f"None available for {brief['audience']:,} people in {brief['metro']}. Try a smaller audience."}
+            yield {"type": "done", "brief": brief, "none": "audience"}
             return
 
         top = found["results"][:3]

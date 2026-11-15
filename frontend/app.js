@@ -190,7 +190,7 @@ async function runScout() {
   ["pick", "sound", "light", "walk", "stay", "fund", "reach", "more"].forEach((s) => ($(s).hidden = true));
   $("plan").hidden = false;
   $("plan").scrollIntoView({ behavior: "smooth" });
-  Object.assign(state, { search: null, analyses: {}, housing: {}, outreach: {} });
+  Object.assign(state, { search: null, none: null, analyses: {}, housing: {}, outreach: {} });
 
   try {
     const res = await fetch("/api/scout", {
@@ -216,6 +216,11 @@ async function runScout() {
   }
   document.querySelectorAll(".steps li.live").forEach((li) => li.classList.replace("live", "done"));
   $("plan-title").textContent = state.search?.results?.length ? "Done." : "Nothing fit yet.";
+  // nothing to show: tell the results page so it says so instead of waiting
+  if (!state.search?.results?.length) {
+    window.dispatchEvent(new CustomEvent("scout:results", { detail: {
+      results: [], none: state.none || "audience", metro: state.brief?.metro, place: state.brief?.elsewhere, audience: state.brief?.audience } }));
+  }
   $("go").disabled = false;
   $("go").textContent = "Scout";
   $("ask").classList.remove("scouting");
@@ -244,7 +249,7 @@ function handleEvent(ev) {
     case "tool": step("live", TOOL_LABEL[ev.name] || ev.name, esc(summarizeInput(ev.input))); break;
     case "tool_result": onToolResult(ev.name, ev.result); break;
     case "message": $("report").innerHTML += md(ev.text); break;
-    case "done": state.brief = ev.brief; break;
+    case "done": state.brief = ev.brief; state.none = ev.none || null; break;
     case "error": step("err", "Error", esc(ev.text)); break;
   }
 }

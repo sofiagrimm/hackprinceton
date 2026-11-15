@@ -55,7 +55,7 @@ async function boot() {
   } catch { return; }
   renderPicker();
   // addExample(); // the Bay Area example button is turned off
-  interceptBrief();
+  // interceptBrief(); the main search now answers "None available" for cities outside Los Angeles and Houston
 }
 
 function addExample() {

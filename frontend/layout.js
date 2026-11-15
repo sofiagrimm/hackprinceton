@@ -12,7 +12,6 @@
 // This file never touches the search or venue logic in app.js. It reads results through the
 // "scout:results" event and opens a venue by pressing that venue's card in #cards.
 
-import { detectCity } from "./regions.js";
 import { createLightLab, fixturesFor, KINDS, EYE, stageMeter, kelvinHex, kelvinOf, ev100, shutterFor, isoFor, C_INCIDENT } from "./lightlab.js";
 import { playGramophone, playShutter } from "./oldtime.js";
 import { createStandView, seatImpulse, SeatSound } from "./stand3d.js";
@@ -271,7 +270,6 @@ function focusBrief() {
 function onBriefSubmit() {
   const brief = $("brief").value.trim();
   if (!brief || $("go").disabled) return;
-  if (detectCity(brief)) { go("#/cities"); return; }
   state.search = null;
   state.scouting = true;
   state.brief = brief;
@@ -656,12 +654,14 @@ function renderResults(r) {
   r.results.forEach(remember);
   $("last-results").hidden = false;
   const n = r.results.length;
+  const where = r.none === "location";
   $("rs-title").innerHTML = n
     ? `${n} rooms in ${esc(r.metro)}.`
-    : "Nothing fit yet.";
+    : where ? `None available in ${esc(r.place || "this location")}.` : "None available.";
   $("rs-sub").textContent = n
     ? `Out of ${r.venues_scanned.toLocaleString()} scanned buildings, each heard with ${r.audience} people in.`
-    : "Try a smaller audience or another date.";
+    : where ? "We only have scanned rooms in Los Angeles and Houston so far."
+    : `No scanned room${r.metro ? ` in ${r.metro}` : ""} fits ${r.audience ? `${Number(r.audience).toLocaleString()} people` : "a group that size"}. Try a smaller audience.`;
   if (!n) { $("rs-list").innerHTML = ""; return; }
 
   // A slider: the current room big, the next ones smaller to its right. Its details sit below.
