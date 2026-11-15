@@ -1846,7 +1846,13 @@ function revealAndScroll(el) {
   el.classList.remove("reveal");
   void el.offsetWidth;
   if (!reduced()) el.classList.add("reveal");
-  requestAnimationFrame(() => el.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }));
+  // land with the section's heading just under the top bar, not halfway down the page
+  requestAnimationFrame(() => {
+    const head = el.querySelector("h2, h1") || el;
+    const bar = (document.querySelector(".masthead")?.offsetHeight || 64) + (document.querySelector(".venue-switch")?.offsetHeight || 0);
+    const y = head.getBoundingClientRect().top + scrollY - bar - 48;
+    scrollTo({ top: Math.max(0, y), behavior: reduced() ? "auto" : "smooth" });
+  });
 }
 
 // ------------------------------------------------------------------ booking: the form

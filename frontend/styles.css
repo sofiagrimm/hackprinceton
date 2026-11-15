@@ -2059,3 +2059,7 @@ body { font-size: 18px; }
 .book-next.band { background: transparent; }
 .book-next h3, .book-next .bf-h, .book-next legend { font-family: "IM Fell English", Georgia, serif; font-weight: 400; color: #3b1519; text-transform: lowercase; letter-spacing: 0.02em; }
 .book-next label, .book-next .bf-label { color: #5a3a3a; }
+
+/* booking: no tall empty gap between choosing dates and the details */
+.book-pick { min-height: 0; padding-bottom: var(--s6); }
+.book-next.band { padding-top: var(--s6); }
