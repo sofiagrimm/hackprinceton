@@ -1,5 +1,5 @@
 import { RoomSound } from "./audio.js";
-import { sunPosition, dayTimeline, utcOffsetFor, localToUtc, fmtMinute, litFacades } from "./sun.js";
+import { sunPosition, dayTimeline, utcOffsetFor, localToUtc, fmtMinute } from "./sun.js";
 import { createHero } from "./hero3d.js";
 import { createVinylHero } from "./vinyl.js";
 import { loadTour, sdkUsable } from "./tour.js";
@@ -638,16 +638,12 @@ function renderSun() {
   roomViewer?.setLight(sun, glassy);
   daylight?.update(minute, sun);
   const day = dayTimeline(dateStr, site.lat, site.lon, offset);
-  const lit = litFacades(site.footprint, sun).filter((f) => f.lit).map((f) => f.label);
-  const shadowFt = sun.altitude > 0 ? Math.round(site.building_height_ft / Math.tan((sun.altitude * Math.PI) / 180)) : null;
   $("sun-clock").textContent = fmtMinute(minute);
   $("sun-facts").innerHTML = dl([
     ["Sun", sun.altitude > 0 ? `${sun.altitude.toFixed(0)}° from the ${compass(sun.azimuth)}` : "Below the horizon"],
     ["Sunrise", fmtMinute(day.sunrise)],
     ["Golden hour", `${fmtMinute(day.goldenEveningStart)}`],
     ["Sunset", fmtMinute(day.sunset)],
-    ["Shadow", shadowFt ? `${Math.min(shadowFt, 9999).toLocaleString()} ft` : "None"],
-    ["Walls in sun", lit.length ? lit.join(", ") : "None"],
   ].map(([k, val]) => [k, esc(val)]));
 }
 
