@@ -78,7 +78,7 @@ function renderBoard() {
   const b = state.board;
   const box = $("pl-board");
   if (!b.count) {
-    box.innerHTML = `<p class="pl-empty">Nothing here yet. Request a booking from a venue's page in Browse Spaces and it will show up here with its email.</p>`;
+    box.innerHTML = `<p class="pl-empty">Nothing here yet. Request a booking from a venue's page in <a class="inline-link" href="#/search">Browse Spaces</a> and it will show up here with its email.</p>`;
     return;
   }
   box.innerHTML = b.groups.map((g) => `

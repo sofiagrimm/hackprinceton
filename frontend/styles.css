@@ -1759,5 +1759,7 @@ body[data-view="property"] .venue-switch a { padding: 5px 11px; }
 .sv-h { font-family: var(--serif); font-weight: 700; letter-spacing: -0.01em; }
 .title-em { font-style: italic; font-weight: 600; color: #e8a3b0; }
 
-/* walking around in the lighting lab */
-  background: rgba(246, 239, 230, 0.9); color: #2a1012; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
+
+/* inline links in running text, e.g. "Browse Spaces" on the bookings page */
+.inline-link { color: var(--blush); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+.inline-link:hover, .inline-link:focus-visible { color: #f6c9d1; text-decoration-thickness: 2.5px; }
