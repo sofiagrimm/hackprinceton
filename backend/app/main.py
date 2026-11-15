@@ -86,17 +86,21 @@ def _warm_browse() -> None:
 @app.get("/api/venues/{venue_id}/rooms")
 def venue_rooms(venue_id: int) -> dict:
     """Indoor rooms with a 360 photo, for the lighting preview."""
-    from .panos import rooms_for_venue
-    return {"rooms": rooms_for_venue(venue_id)}
+    from .panos import rooms_for_venue, warm
+    rooms = rooms_for_venue(venue_id)
+    warm(rooms)  # start fetching their 360 photos now, before anyone clicks
+    return {"rooms": rooms}
 
 
 @app.get("/api/pano/{model_id}/{pano_id}/{index}.jpg")
-def pano_face(model_id: str, pano_id: str, index: int) -> Response:
-    from .panos import face
-    image = face(model_id, pano_id, index) if 0 <= index <= 5 else None
+def pano_face(model_id: str, pano_id: str, index: int, full: bool = False) -> Response:
+    from .panos import face, face_small
+    if not 0 <= index <= 5:
+        raise HTTPException(404, "Panorama not available")
+    image = face(model_id, pano_id, index) if full else face_small(model_id, pano_id, index)
     if not image:
         raise HTTPException(404, "Panorama not available")
-    return Response(image, media_type="image/jpeg", headers={"Cache-Control": "max-age=3600"})
+    return Response(image, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/api/validation")
