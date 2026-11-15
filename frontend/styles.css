@@ -1930,25 +1930,4 @@ body { font-size: 18px; }
 
 .ransom .rn-line { display: block; }
 
-/* Property page: the film strip stands upright beside the main photo and rolls slowly upward.
-   img/filmstrip-v.webp is the strip turned a quarter clockwise (513 x 1865). */
-.pick-grid { grid-template-areas: "gallery explore" "info book"; }
-@media (max-width: 900px) { .pick-grid { grid-template-areas: "gallery" "info" "explore" "book"; } }
-.prop-gallery { display: grid; grid-template-columns: minmax(0, 1fr) clamp(120px, 12vw, 180px); gap: var(--s5); align-items: stretch; }
-.film-carousel.film-v { grid-area: auto; margin: 0; padding: 0 6px; align-self: stretch; max-height: 560px; overflow: hidden;
-  -webkit-mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(transparent, #000 6%, #000 94%, transparent); }
-.film-v .film-track { flex-direction: column; width: 100%; animation-name: film-roll-up; }
-@keyframes film-roll-up { to { transform: translateY(-50%); } }
-.film-v .film-strip { width: 100%; aspect-ratio: 513 / 1865; margin: 0 0 -2.2% 0; }
-.film-v .film-strip::after { background-image: url("img/filmstrip-v.webp"); }
-.film-v .film-frame:nth-child(1) { left: 19.88%; top: 4.18%; width: 58.09%; height: 21.72%; }
-.film-v .film-frame:nth-child(2) { left: 20.08%; top: 27.67%; width: 58.09%; height: 21.66%; }
-.film-v .film-frame:nth-child(3) { left: 20.08%; top: 51.1%; width: 58.28%; height: 21.72%; }
-.film-v .film-frame:nth-child(4) { left: 20.27%; top: 74.58%; width: 58.09%; height: 21.72%; }
-@media (max-width: 900px) { .prop-gallery { grid-template-columns: minmax(0, 1fr) 110px; } }
 .ransom .rn-line + .rn-line { margin-top: 0.35em; }
-
-/* the upright strip takes the photo's height instead of stretching the polaroid */
-.prop-gallery { align-items: start; }
-.film-carousel.film-v { position: relative; align-self: stretch; max-height: none; height: auto; }
-.film-v .film-track { position: absolute; left: 6px; right: 6px; top: 0; }
