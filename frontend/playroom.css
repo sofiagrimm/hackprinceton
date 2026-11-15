@@ -12,7 +12,7 @@
 .pr-hud { position: absolute; left: var(--s4); top: var(--s3); display: flex; gap: var(--s4); align-items: baseline; pointer-events: none;
   font-family: var(--type); font-size: var(--fs-xs); letter-spacing: 0.06em; color: var(--on-dark); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 .pr-slow { color: var(--on-dark-2); }
-.pr-hint { position: absolute; right: var(--s4); top: var(--s3); pointer-events: none; font-family: var(--script); font-size: var(--fs-lg); color: #f0c9a8; }
+.pr-hint { position: absolute; right: var(--s4); top: var(--s3); pointer-events: none; font-family: var(--script); font-size: var(--fs-lg); color: #f3e7d8; }
 
 .pr-controls { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s5); align-items: center; margin-top: var(--s5); }
 .pr-controls .play { width: clamp(84px, 9vw, 112px); }
@@ -42,7 +42,7 @@
 .pr-measure-out { min-height: 3em; color: var(--on-dark); }
 .pr-decay { width: 100%; height: 220px; display: block; }
 .pr-model { margin-top: var(--s3); color: var(--on-dark-2); }
-.pr-model summary { cursor: pointer; color: #f0c9a8; }
+.pr-model summary { cursor: pointer; color: #f3e7d8; }
 .pr-model-form { display: flex; flex-wrap: wrap; gap: var(--s3) var(--s4); margin-top: var(--s3); font-size: var(--fs-sm); }
 .pr-model-form input, .pr-model-form select { width: 5.5em; padding: 5px 8px; border-radius: var(--radius); border: 1.5px solid rgba(243, 236, 225, 0.4);
   background: transparent; color: var(--on-dark); font: inherit; }

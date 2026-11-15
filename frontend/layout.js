@@ -890,6 +890,7 @@ function wireGallery() {
   });
 }
 
+const badPics = new Set();
 async function renderThumbs(id) {
   const urls = await pictureList(id);
   if (state.venueId !== id && state.venueId != null) return;
@@ -911,7 +912,13 @@ async function renderThumbs(id) {
   track.style.setProperty("--strips", strips);
   track.querySelectorAll(".film-frame").forEach((b) => {
     const img = b.querySelector("img");
-    img.onerror = () => { img.removeAttribute("src"); b.disabled = true; }; // a view that doesn't exist for this building
+    // a view that doesn't exist for this building: show another of the venue's pictures in that frame
+    img.onerror = () => {
+      const others = pics.filter((u) => u !== b.dataset.src && !badPics.has(u));
+      badPics.add(b.dataset.src);
+      const next = others[Math.floor(Math.random() * others.length)];
+      if (next) { b.dataset.src = next; img.src = next; } else { img.removeAttribute("src"); b.disabled = true; }
+    };
     b.onclick = () => {
       const main = $("prop-photo");
       main.onerror = null;
