@@ -548,7 +548,7 @@ export function createPlayRoom(root) {
       if (i === 2) { const t = (L - lx) / (ix - lx); hx = L; hy = ly + t * (iy - ly); }
       if (i === 3) { const t = (0 - ly) / (iy - ly); hy = 0; hx = lx + t * (ix - lx); }
       if (i === 4) { const t = (W - ly) / (iy - ly); hy = W; hx = lx + t * (ix - lx); }
-      g.strokeStyle = i ? "rgba(232, 163, 176, 0.45)" : "rgba(243, 236, 225, 0.9)";
+      g.strokeStyle = i ? "rgba(243, 231, 216, 0.4)" : "rgba(243, 236, 225, 0.9)";
       g.lineWidth = (i ? 1.2 : 1.8) * dpr;
       g.setLineDash(i ? [4 * dpr, 4 * dpr] : []);
       g.beginPath();

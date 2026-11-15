@@ -25,7 +25,7 @@
   --tape: rgba(178, 189, 150, 0.72);
   --doodle-blue: #2d5a8a;
   --magenta: #a3195b;
-  --blush: #e8a3b0;
+  --blush: #f3e7d8;
   --brass: #d9a441;
   --serif: "Playfair Display", "Didot", "Bodoni 72", Georgia, serif;
   --on-dark: #f3ece1;
@@ -280,7 +280,7 @@ input[type=range] { accent-color: var(--wine); }
 }
 .hero-cta::before {
   content: ""; position: absolute; inset: -30% -16%; z-index: -1; border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(255, 110, 150, 0.6), rgba(232, 163, 176, 0.35) 55%, rgba(232, 163, 176, 0) 100%);
+  background: radial-gradient(closest-side, rgba(243, 231, 216, 0.6), rgba(243, 231, 216, 0.35) 55%, rgba(243, 231, 216, 0) 100%);
   animation: breathe 3.6s ease-in-out infinite alternate;
 }
 .blob { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -346,7 +346,7 @@ input[type=range] { accent-color: var(--wine); }
 .cassette .cassette-window { margin: 8px auto 0; width: 64%; height: 46px; border-radius: 23px; background: #2b2626; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; }
 .cassette .reel { width: 34px; height: 34px; background: radial-gradient(circle, var(--card) 0 5px, #1c1717 6px 8px, #6b5a4a 9px 15px, #3a302a 16px); border: 2px dashed rgba(244, 236, 223, 0.5); }
 .cassette .tape { flex: 1; width: auto; height: 14px; margin: 0 8px; background: #4a3a30; border-radius: 4px; }
-.cassette button { justify-self: end; display: inline-flex; align-items: center; min-height: 46px; padding: 0 28px; border-radius: 999px; background: var(--cherry); color: #fff; font-weight: 600; box-shadow: 0 0 0 0 rgba(255, 110, 150, 0.6); }
+.cassette button { justify-self: end; display: inline-flex; align-items: center; min-height: 46px; padding: 0 28px; border-radius: 999px; background: var(--cherry); color: #fff; font-weight: 600; box-shadow: 0 0 0 0 rgba(243, 231, 216, 0.6); }
 .cassette button:hover { background: #a51a2c; }
 .cassette button:disabled { opacity: 0.7; cursor: progress; }
 
@@ -1536,7 +1536,7 @@ body[data-view="home"] .collage { height: 100vh; height: 100svh; }
   --wine-deep: #2c0d10;
   --olive: #2f0f12;
   --olive-deep: #260b0e;
-  --sage: #e8a3b0;
+  --sage: #f3e7d8;
   --tape: rgba(214, 206, 170, 0.62);
   --on-dark: #f3e7d8;
   --on-dark-2: #ddcbb8;
@@ -1563,8 +1563,8 @@ body { background: #3a1517 url("img/home/paper.jpg") center top / 1600px auto re
   font-family: "IM Fell English", Georgia, serif; font-weight: 400; font-size: clamp(19px, 1.6vw, 24px); letter-spacing: 0.12em; color: #ddcbb8; }
 .modes a:hover { background: none; color: #fff6ea; }
 .modes a.on { background: none; color: #f3e7d8; border: 0; }
-.modes a.on::after { left: 0; right: 0.12em; bottom: 0; height: 1px; background: #e8a3b0; }
-.nav-cta { font-family: "IM Fell English", Georgia, serif; font-weight: 400; font-size: 20px; letter-spacing: 0.08em; color: #f3e7d8; border-bottom-color: #e8a3b0; }
+.modes a.on::after { left: 0; right: 0.12em; bottom: 0; height: 1px; background: #f3e7d8; }
+.nav-cta { font-family: "IM Fell English", Georgia, serif; font-weight: 400; font-size: 20px; letter-spacing: 0.08em; color: #f3e7d8; border-bottom-color: #f3e7d8; }
 .nav-cta:hover { color: #fff6ea; border-color: #fff6ea; }
 .logo { background: transparent; }
 .logo svg { color: #f3e7d8; }
@@ -1574,9 +1574,9 @@ body { background: #3a1517 url("img/home/paper.jpg") center top / 1600px auto re
 input[type=date], input:not([type]), select { background: rgba(20, 5, 7, 0.35); color: var(--ink); border-color: rgba(243, 231, 216, 0.45); }
 select option { background: #2c0d10; color: var(--ink); }
 .seg button.on { background: var(--ink); color: #2a1012; }
-.save-btn { background: transparent; color: var(--ink); border-color: #e8a3b0; }
-.save-btn svg, .save-btn svg path { stroke: #e8a3b0; }
-.save-btn:hover { background: #e8a3b0; color: #2a1012; }
+.save-btn { background: transparent; color: var(--ink); border-color: #f3e7d8; }
+.save-btn svg, .save-btn svg path { stroke: #f3e7d8; }
+.save-btn:hover { background: #f3e7d8; color: #2a1012; }
 .side-b.band.wine { background: linear-gradient(rgba(92, 33, 40, 0.55), rgba(92, 33, 40, 0.55)), #3a1517 url("img/home/paper.jpg") center / cover no-repeat; }
 .pl-rows li { background: rgba(20, 5, 7, 0.3); border-color: rgba(243, 231, 216, 0.35); }
 .stub, .stub .ledger { color: #2a1012; }
@@ -1597,14 +1597,14 @@ select option { background: #2c0d10; color: var(--ink); }
 .lab-rooms button[aria-checked="true"], .lab-presets button[aria-checked="true"] { color: #f3e7d8; }
 .lab-meter dt { color: #6b4a44; }
 
-.results-page .rs-em { color: #e8a3b0; }
+.results-page .rs-em { color: #f3e7d8; }
 /* results on the wine paper too; the "why it fits" note stays a cream card */
 .view[data-view="results"] { background: transparent; }
 .view[data-view="results"] .rs-why, .rs-why { background: #f1e6d8; color: #2a1012; }
 .rs-why h3 { color: #8e1424; }
 .rs-price, .rs-price b { color: var(--ink); }
 .rs-why p { color: #2a1012; }
-.rs-tag { color: #e8a3b0; }
+.rs-tag { color: #f3e7d8; }
 
 /* "Working on the road?" in the same Playfair as the other headings */
 #sideb-title { font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.02; font-size: clamp(36px, 4.4vw, 62px); }
@@ -1633,10 +1633,10 @@ select option { background: #2c0d10; color: var(--ink); }
 .ac-rooms .rooms button.on, .walk-switch button[aria-pressed="true"], .lab-rooms button[aria-pressed="true"],
 .lab-kinds button[aria-checked="true"], .lab-presets button[aria-pressed="true"] { --ink: #fff6ea; color: #fff6ea; }
 /* script accents read on the dark paper; on cream they stay cherry */
-.script, .cal-hint { color: #e8a3b0; }
+.script, .cal-hint { color: #f3e7d8; }
 .polaroid .script, .card .script, .stub .script, .rs-why .script, .ac-card .script, .cal .script, .book-sheet .script { color: #8e1424; }
-.view .page-title .script, .view .display .script, .view h1 .script, .view h2 .script { color: #e8a3b0 !important; }
-.script-hint { color: #e8a3b0; }
+.view .page-title .script, .view .display .script, .view h1 .script, .view h2 .script { color: #f3e7d8 !important; }
+.script-hint { color: #f3e7d8; }
 .daylight .link, .daylight summary, .daylight button.link { color: #f0c9a8; }
 .fig.good .n { color: #a9d79a; }
 .stub .cta, .stub #approve { background: #2a1012; color: #f6efe6; }
@@ -1665,7 +1665,7 @@ select option { background: #2c0d10; color: var(--ink); }
 .cassette .cassette-window { background: #6e4f40; }
 .cassette .tape { background: #b48c74; }
 .cassette .reel { border-color: rgba(246, 239, 230, 0.6); background: radial-gradient(circle, #f6efe6 0 5px, #6e4f40 6px 8px, #c9a58c 9px 15px, #8a6552 16px); }
-.cassette button, .searchbar button { background: #e8a3b0; color: #3a1517; font-weight: 700; }
+.cassette button, .searchbar button { background: #fbf8f4; color: #3b1519; font-weight: 400; }
 .cassette button:hover, .searchbar button:hover { background: #f0b9c3; color: #3a1517; }
 
 /* venue page: arrows on the main picture */
@@ -1701,7 +1701,7 @@ select option { background: #2c0d10; color: var(--ink); }
   font-family: var(--serif); font-weight: 700; letter-spacing: -0.015em; line-height: 1.08; font-size: clamp(30px, 3.6vw, 52px); max-width: 26ch;
 }
 #ex-title .venue-name, #lab-title .venue-name, #ac-title .venue-name, #walk-title .venue-name, #bk-title .venue-name {
-  display: inline; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1em; transform: none; color: #e8a3b0 !important;
+  display: inline; font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1em; transform: none; color: #f3e7d8 !important;
 }
 @media (max-width: 760px) { #ex-title, #lab-title, #ac-title, #walk-title, #bk-title { font-size: clamp(20px, 6vw, 26px); max-width: none; } }
 .lab-kinds .lab-move { margin-top: var(--s2); }
@@ -1739,7 +1739,7 @@ body[data-view="by-sound"] .view[data-view="by-sound"], body[data-view="by-light
   align-items: center; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(44, 13, 16, 0.88); border: 1px solid rgba(243, 231, 216, 0.25);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); backdrop-filter: blur(6px); }
 body:is([data-view="acoustics"], [data-view="lighting"], [data-view="walk3d"], [data-view="explore"], [data-view="book"]) .venue-switch { display: flex; }
-.vs-name { font-family: var(--serif); font-style: italic; color: #e8a3b0; font-size: var(--fs-sm); padding: 0 10px 0 12px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs-name { font-family: var(--serif); font-style: italic; color: #f3e7d8; font-size: var(--fs-sm); padding: 0 10px 0 12px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .venue-switch a { font-size: var(--fs-xs); font-weight: 600; color: #f3e7d8; text-decoration: none; padding: 7px 12px; border-radius: 999px; white-space: nowrap; }
 .venue-switch a:hover { background: rgba(243, 231, 216, 0.14); color: #fff6ea; }
 .venue-switch a[aria-current="page"] { background: #f3e7d8; color: #2a1012; }
@@ -1757,7 +1757,7 @@ body[data-view="property"] .venue-switch a { padding: 5px 11px; }
 .prop-nav .back-search { margin-left: var(--s4); }
 .prop-nav .back-search::before { content: "\2315\00a0"; }
 .sv-h { font-family: var(--serif); font-weight: 700; letter-spacing: -0.01em; }
-.title-em { font-style: italic; font-weight: 600; color: #e8a3b0; }
+.title-em { font-style: italic; font-weight: 600; color: #f3e7d8; }
 
 
 /* inline links in running text, e.g. "Browse Spaces" on the bookings page */
@@ -1805,7 +1805,7 @@ body[data-view="property"] .music-strand { top: calc(var(--nav-h) + 84px); }
 /* Home -> search: notes fly out of the name */
 .note-burst { position: fixed; inset: 0; z-index: 70; pointer-events: none; overflow: hidden; }
 .note-burst span { position: absolute; font-family: "DejaVu Serif", "Segoe UI Symbol", "Apple Symbols", serif; color: #f3e7d8; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); will-change: transform, opacity; }
-.note-burst span:nth-child(3n) { color: #e8a3b0; }
+.note-burst span:nth-child(3n) { color: #f3e7d8; }
 .note-burst span:nth-child(4n) { color: #f3d27a; }
 
 /* Browse by acoustics: the halftone microphone in the space beside the heading */
@@ -2001,7 +2001,7 @@ body { font-size: 18px; }
 .tp-stops, .tp-summary, .tp-totals, .stub, .figures, .fig .n, .ac-big, .pl-rows, .rs-card-foot b, .pick .fig .n { font-variant-numeric: lining-nums; }
 
 /* tour page: the share link reads on the wine paper */
-.tp-share-link { color: #f3c6cf; font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.tp-share-link { color: #fbf8f4; font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .tp-share-link:hover, .tp-share-link:focus-visible { color: #fff6ea; }
 /* amounts in the tour receipt and stop prices in the serif with modern numerals */
 .tp-totals dd, .tp-totals .row b, .tp-totals li span:last-child, .tp-stop-cost, .tp-stops .cost, .tp-stops small { font-family: "Playfair Display", Georgia, serif; font-variant-numeric: lining-nums; }
@@ -2053,7 +2053,7 @@ body { font-size: 18px; }
   clip-path: polygon(0 6%, 9% 0, 27% 4%, 48% 0, 70% 5%, 91% 0, 100% 8%, 98% 52%, 100% 94%, 82% 100%, 60% 96%, 38% 100%, 17% 95%, 0 100%, 2% 50%); }
 .confirm-btn:hover:not(:disabled) { background: #fff; transform: rotate(0); }
 .confirm-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.cal-status.bad, .cal-status.warn, .cal-status.err, .cal-status[data-bad] { color: #f3c6cf; }
+.cal-status.bad, .cal-status.warn, .cal-status.err, .cal-status[data-bad] { color: #fbf8f4; }
 .cal .cal-day.on, .cal .cal-day.pick, .cal .cal-day.picked, .cal .cal-day.sel, .cal .cal-day.in-range { background: #3b1519; color: #fbf8f4; }
 /* booking details: same paper as every other page; section titles in the serif, oxblood ink */
 .book-next.band { background: transparent; }
@@ -2076,3 +2076,17 @@ body { font-size: 18px; }
 .card-art .card-num { position: absolute; left: 10%; top: 55%; font-size: 6.4cqw; letter-spacing: 0.1em; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
 .card-art .card-name { position: absolute; left: 10%; bottom: 13%; margin: 0; max-width: 58%; font-size: 4cqw; letter-spacing: 0.12em; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
 .card-art .card-exp { right: 10%; bottom: 13%; font-size: 4cqw; letter-spacing: 0.08em; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
+
+/* ================================================================ no pink: blush accents become the logo's cream and oxblood */
+:root { --blush: #f3e7d8; --sage: #f3e7d8; }
+.viewer-frame, .frame-shadow, .walk-frame, .explore-3d { box-shadow: 14px 14px 0 rgba(20, 5, 7, 0.55) !important; }
+.explore-3d:hover { box-shadow: 18px 18px 0 rgba(20, 5, 7, 0.6) !important; }
+.script-hint, .venue-switch .vs-name, .vs-name, .title-em, .results-page .rs-em, .rs-tag, .tp-share-link, .inline-link { color: #f3e7d8 !important; }
+.save-btn { border-color: #f3e7d8; }
+.save-btn svg, .save-btn svg path { stroke: #f3e7d8; }
+.save-btn:hover { background: #f3e7d8; color: #3b1519; }
+.save-btn:hover svg, .save-btn:hover svg path { stroke: #3b1519; }
+.lab-list li .x, .lab-chip .x, .lab-list button { background: #3b1519; color: #fbf8f4; }
+.modes a.on::after { background: #f3e7d8; }
+.cal-key .key.picked { background: #fbf8f4 !important; }
+.note-burst span:nth-child(3n) { color: #fbf8f4; }
