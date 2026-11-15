@@ -2177,3 +2177,16 @@ body { font-size: 18px; }
   clip-path: polygon(0 6%, 9% 0, 27% 4%, 48% 0, 70% 5%, 91% 0, 100% 8%, 98% 52%, 100% 94%, 82% 100%, 60% 96%, 38% 100%, 17% 95%, 0 100%, 2% 50%); }
 #lk-go:hover { background: #561f25; color: #fbf8f4; transform: rotate(0); }
 #lk-go:disabled { opacity: 0.55; cursor: default; transform: rotate(-2deg); }
+
+/* acoustics tweaks */
+.ac-right .ac-h { margin-bottom: clamp(30px, 2.6vw, 40px); }
+.ac-mic li b { color: #3b1519; font-weight: 700; }
+.ac-mic li u { text-decoration-color: #8e1424; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+@media (min-width: 1000px) {
+  .view[data-view="acoustics"] .ac-sec .ac-mic-why { max-width: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-sm); }
+  /* watch the sound: the seat readout and the clap / sing / recording links sit on the right, under the cards */
+  .view[data-view="acoustics"] .playroom > .pr-stage { grid-row: 1 / span 4 !important; }
+  .view[data-view="acoustics"] .playroom > .pr-controls { grid-column: 2; grid-row: 3 !important; margin-top: var(--s4); align-self: start; }
+  .view[data-view="acoustics"] .playroom > .pr-compare { grid-column: 2; grid-row: 4 !important; }
+  .view[data-view="acoustics"] .playroom > .pr-measure { grid-row: 5 !important; }
+}

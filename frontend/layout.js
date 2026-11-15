@@ -1604,26 +1604,26 @@ function renderMics(a) {
     } else {
       const parts = n.acappella ? "one per part" : "one per singer";
       cards.push(micCard(`Handheld vocal mics, ${parts}`, "For the group",
-        [`Cardioid dynamic handhelds (the classic stage vocal mic): forgiving, hard to make feed back, fine for blending.`,
-         n.acappella ? `With ${voices} singers, ${Math.min(voices, 6)} to 8 mics shared by section is plenty; the bass and lead get their own.` : `Singers who stand close together can share one mic per pair.`,
-         live ? `This room rings, so a supercardioid pattern keeps more of the echo out.` : ""], ""));
+        [`<b>Cardioid dynamic handhelds</b> (the classic stage vocal mic): forgiving, <u>hard to make feed back</u>, fine for blending.`,
+         n.acappella ? `With ${voices} singers, <b>${Math.min(voices, 6)} to 8 mics</b> shared by section is plenty; <u>the bass and lead get their own</u>.` : `Singers who stand close together can <u>share one mic per pair</u>.`,
+         live ? `This room rings, so a <b>supercardioid</b> pattern <u>keeps more of the echo out</u>.` : ""], ""));
     }
     if (n.solo || !big) {
       cards.push(micCard("A solo mic out front", "For solos",
-        [`A handheld condenser or a dynamic on a stand, set downstage center so soloists step up to it.`,
-         `Give it its own fader so the solo can sit above the group.`,
-         dry ? `A condenser suits this dry room: it catches more of the voice's detail.` : `A dynamic is safer in a live room: it hears less of the echo.`]));
+        [`A <b>handheld condenser</b> or a <b>dynamic on a stand</b>, set <u>downstage center</u> so soloists step up to it.`,
+         `Give it <u>its own fader</u> so the solo can sit above the group.`,
+         dry ? `A <b>condenser</b> suits this dry room: <u>it catches more of the voice's detail</u>.` : `A <b>dynamic</b> is safer in a live room: <u>it hears less of the echo</u>.`]));
     }
     if (n.beatbox || n.acappella) {
       cards.push(micCard("A dynamic mic for vocal percussion", "For beatboxing",
-        [`A dynamic with a tight pattern, held close; it takes the plosives without distorting.`,
+        [`A <b>dynamic with a tight pattern</b>, <u>held close</u>; it takes the plosives without distorting.`,
          `Give it some low end in the mix so the kick sits under the chords.`]));
     }
     cards.push(micCard(needsPA ? "You'll want a small PA" : "You may not need a PA at all", "Sound system",
       [needsPA
-        ? `${n.audience > 180 ? `With ${n.audience} guests` : dry ? "In a room this dry" : "With words this hard to follow"}, unaided voices won't carry to the back. Two speakers on stands, slightly ahead of the singers.`
-        : `${n.audience} guests in a room with ${a.full}s of echo can hear unamplified voices well. Mic it only to record or for spoken intros.`,
-       live ? `Keep the speakers low and aimed at the audience, not the walls, or the echo will blur the sound.` : ""]));
+        ? `${n.audience > 180 ? `With ${n.audience} guests` : dry ? "In a room this dry" : "With words this hard to follow"}, <u>unaided voices won't carry to the back</u>. <b>Two speakers on stands</b>, slightly ahead of the singers.`
+        : `${n.audience} guests in a room with ${a.full}s of echo can <u>hear unamplified voices well</u>. <b>Mic it only to record</b> or for spoken intros.`,
+       live ? `Keep the speakers <u>low and aimed at the audience</u>, not the walls, or the echo will blur the sound.` : ""]));
   }
 
   if (n.intent !== "sound") {
@@ -1631,16 +1631,16 @@ function renderMics(a) {
     why.push(dialogueOk ? "quiet enough for dialogue" : `${a.empty ?? a.full}s of echo empty, live for dialogue`);
     cards.push(micCard("A boom mic over every take", "For a film set",
       [dialogueOk
-        ? `A shotgun mic on a boom pole just out of frame; this room is dead enough that it will sound clean.`
-        : `Indoors in a room this live, use a hypercardioid on the boom rather than a long shotgun: it hears less of the reflections off the walls.`,
-       `Bring sound blankets${dialogueOk ? " for any hard surfaces near the actors" : ": hang them out of shot, opposite the actors, to deaden the room"}.`,
-       n.crew ? `With a ${n.crew}-person crew, plan a boom operator and a sound mixer at minimum.` : ""]));
+        ? `A <b>shotgun mic on a boom pole</b> just out of frame; this room is dead enough that <u>it will sound clean</u>.`
+        : `Indoors in a room this live, use a <b>hypercardioid</b> on the boom rather than a long shotgun: <u>it hears less of the reflections off the walls</u>.`,
+       `Bring <b>sound blankets</b>${dialogueOk ? " for any hard surfaces near the actors" : ": <u>hang them out of shot, opposite the actors</u>, to deaden the room"}.`,
+       n.crew ? `With a ${n.crew}-person crew, plan <b>a boom operator and a sound mixer</b> at minimum.` : ""]));
     cards.push(micCard("Lavaliers for wide shots", "For a film set",
-      [`Wireless lav mics on each speaking actor for shots too wide for the boom.`,
-       `Record them on separate tracks with the boom so the editor can choose.`,
-       !dialogueOk ? `In this room the lavs will often sound cleaner than the boom.` : ""]));
+      [`<b>Wireless lav mics</b> on each speaking actor for <u>shots too wide for the boom</u>.`,
+       `Record them on <u>separate tracks</u> with the boom so the editor can choose.`,
+       !dialogueOk ? `In this room the lavs will often <u>sound cleaner than the boom</u>.` : ""]));
     cards.push(micCard("A room tone mic", "For a film set",
-      [`Record a minute of the empty room with the boom at the end of each setup; the editor uses it to smooth cuts.`]));
+      [`Record <b>a minute of the empty room</b> with the boom <u>at the end of each setup</u>; the editor uses it to smooth cuts.`]));
   }
 
   $("ac-mic-why").textContent = `Picked for ${why.join(", ")}.`;
