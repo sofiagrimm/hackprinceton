@@ -1931,3 +1931,19 @@ body { font-size: 18px; }
 .ransom .rn-line { display: block; }
 
 .ransom .rn-line + .rn-line { margin-top: 0.35em; }
+
+/* Browse spaces cards (search page shelf and results): the same deckle-edged taped print as the Browse pages */
+.rs-card.polaroid { padding: 14px 14px 18px; background: #efe4d4; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45); clip-path: polygon(0 1%, 4% 0, 9% 1.2%, 15% 0.2%, 22% 1%, 30% 0, 38% 1%, 46% 0.3%, 55% 1.1%, 63% 0, 71% 0.9%, 79% 0.2%, 87% 1.2%, 94% 0, 100% 0.8%,
+    99.4% 8%, 100% 17%, 99.2% 27%, 100% 38%, 99.3% 49%, 100% 60%, 99.2% 71%, 100% 82%, 99.4% 92%, 100% 99%,
+    94% 100%, 87% 99.1%, 79% 100%, 71% 99.2%, 63% 100%, 55% 99%, 46% 100%, 38% 99.2%, 30% 100%, 22% 99.1%, 15% 100%, 8% 99.2%, 0 100%,
+    0.6% 92%, 0 82%, 0.8% 71%, 0 60%, 0.7% 49%, 0 38%, 0.8% 27%, 0 17%, 0.6% 8%); }
+.rs-card.polaroid::before { width: 38%; height: 26px; top: 2px; background: rgba(214, 205, 172, 0.82); z-index: 2; }
+.rs-card img { filter: saturate(1.05) contrast(1.03); }
+.rs-card .rs-kind { font-family: "IM Fell English", Georgia, serif; font-size: 15px; letter-spacing: 0.08em; text-transform: lowercase; color: #3b2124; }
+.rs-card .rs-card-name { font-family: "IM Fell English", Georgia, serif; font-weight: 400; font-size: clamp(21px, 1.7vw, 26px); letter-spacing: 0.02em; text-transform: lowercase; color: #2a1012; }
+.rs-card .rs-card-meta { font-family: "IM Fell English", Georgia, serif; font-size: 15px; color: #4a2c2c; }
+.rs-card .rs-card-foot b { font-family: "IM Fell English", Georgia, serif; font-weight: 400; font-size: 20px; color: #2a1012; }
+.rs-card .rs-card-foot small { font-family: "IM Fell English", Georgia, serif; font-size: 14px; color: #4a2c2c; }
+.rs-card .rs-view { font: 400 19px/1.2 "IM Fell English", Georgia, serif; text-transform: lowercase; color: #2a1012; border-bottom: 2px solid #2a1012; text-decoration: none; }
+.rs-card .rs-view::after { content: " \2192"; }
+.rs-card .rs-num, .rs-card .rs-tag { display: none; }
