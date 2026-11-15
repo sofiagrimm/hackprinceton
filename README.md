@@ -1,10 +1,10 @@
-# Encore Scout
+# Stagehand
 
 Finding a place to sing on tour is harder than it sounds. A cappella groups and choirs need rooms with the right
 amount of echo, somewhere nearby to sleep, and a price the group can split. Most of that gets worked out over
 dozens of emails and a few bad gigs in carpeted conference rooms.
 
-Encore Scout does the legwork. You describe the stop ("14 singers in LA on March 14, a show for 80, two
+Stagehand does the legwork. You describe the stop ("14 singers in LA on March 14, a show for 80, two
 nights") and an agent searches 3,288 buildings in Los Angeles and Houston that have Matterport 3D scans. For each
 candidate room it estimates the reverberation time from the room's measured size and likely finishes, with and
 without an audience, and compares it to what works for unamplified voices. It looks at the building from above
