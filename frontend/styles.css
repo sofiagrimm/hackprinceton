@@ -1893,3 +1893,22 @@ body { font-size: 18px; }
 /* smaller headings keep their tiles readable */
 .ransom.ac-h .rn, .ransom.sv-h .rn, .ransom.featured-title .rn { font-size: 1.15em; }
 .ransom.ac-h, .ransom.sv-h, .ransom.featured-title { font-size: clamp(22px, 1.9vw, 28px); }
+
+/* Saved page: a bigger title, tighter groups, and the empty notes on one line in italic */
+.saved-page #sv-title .rn { font-size: 1.1em; }
+.saved-page #sv-title { font-size: clamp(44px, 5.4vw, 76px); }
+.saved-page .page-sub { margin-top: var(--s5); }
+.sv-group { margin-top: var(--s7); }
+.sv-h { margin-bottom: var(--s3); }
+.sv-grid:empty { display: block; }
+.sv-grid:empty::after { display: block; max-width: 60ch; font-style: italic; font-size: var(--fs-md); line-height: 1.5; color: #e2d2bf; }
+/* the cream label is shallower than it looks: keep the writing inside it (scrolls if longer) */
+.cassette-img textarea { top: 21.8%; height: 9.8%; padding: 0.15em 0.6em; font-size: 2.6cqw; line-height: 1.28; }
+/* Browse by acoustics / lighting: bigger cut-out titles */
+#bs-title, #bl-title { font-size: clamp(46px, 5.6vw, 80px); }
+#bs-title .rn, #bl-title .rn { font-size: 1em; }
+#bl-title, #bs-title { max-width: 66%; }
+@media (max-width: 900px) { #bl-title, #bs-title { max-width: none; } }
+/* Browse by acoustics: photos in full colour too, like the lighting page */
+.view[data-view="by-sound"] .browse-card img { filter: saturate(1.05) contrast(1.03); }
+.view[data-view="by-sound"] .browse-card::after { opacity: 0.35; }
