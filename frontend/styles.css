@@ -2067,3 +2067,12 @@ body { font-size: 18px; }
 /* booking ticket: a small "to" between the two dates instead of a full-size line */
 .stub-dates .stub-to { display: block; margin: 2px 0 4px; font-family: "IM Fell English", Georgia, serif; font-weight: 400; font-style: italic;
   font-size: 0.42em; letter-spacing: 0.04em; line-height: 1; color: #6b4a44; }
+
+/* booking: the real card photo (img/card.webp, 970 x 598) with the typed details on it */
+.card-art { aspect-ratio: 970 / 598; border-radius: 4.8% / 7.8%; padding: 0; overflow: visible;
+  background: url("img/card.webp") center / 100% 100% no-repeat; box-shadow: 0 14px 26px rgba(0, 0, 0, 0.45);
+  display: block; container-type: inline-size; font-family: "Special Elite", "Courier New", monospace; color: #f3e7d8; }
+.card-art::after, .card-art .card-chip, .card-art .card-record { display: none; }
+.card-art .card-num { position: absolute; left: 10%; top: 55%; font-size: 6.4cqw; letter-spacing: 0.1em; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
+.card-art .card-name { position: absolute; left: 10%; bottom: 13%; margin: 0; max-width: 58%; font-size: 4cqw; letter-spacing: 0.12em; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
+.card-art .card-exp { right: 10%; bottom: 13%; font-size: 4cqw; letter-spacing: 0.08em; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
