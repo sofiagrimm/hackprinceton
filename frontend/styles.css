@@ -2190,3 +2190,9 @@ body { font-size: 18px; }
   .view[data-view="acoustics"] .playroom > .pr-compare { grid-column: 2; grid-row: 4 !important; }
   .view[data-view="acoustics"] .playroom > .pr-measure { grid-row: 5 !important; }
 }
+
+/* acoustics: the cut-out title bigger, with room to breathe before the photo and the notes */
+.view[data-view="acoustics"] h1#ac-title { font-size: clamp(42px, 4.6vw, 68px) !important; max-width: none; line-height: 1.2; }
+.view[data-view="acoustics"] h1#ac-title .rn { font-size: 1em !important; }
+.view[data-view="acoustics"] .ac-top { margin-top: clamp(40px, 4vw, 64px); }
+@media (max-width: 760px) { .view[data-view="acoustics"] h1#ac-title { font-size: clamp(28px, 8vw, 38px) !important; } }
