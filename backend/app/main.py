@@ -54,8 +54,9 @@ _browse: list[dict] | None = None
 @app.get("/api/venues/{venue_id}/pictures")
 def venue_pictures(venue_id: int) -> dict:
     """The venue's pictures, best first, chosen once on the server and kept."""
-    from .covers import pictures
-    return {"urls": pictures(venue_id)}
+    from .covers import quick
+    urls = quick(venue_id)
+    return {"urls": urls, "ready": not any(u.startswith("/api/film/") for u in urls[:1]) and any("/api/pano/" in u for u in urls)}
 
 
 @app.on_event("startup")

@@ -108,6 +108,18 @@ def pictures(venue_id: int) -> list[str]:
         return urls
 
 
+def quick(venue_id: int) -> list[str]:
+    """Never make a page wait: the finished list if we have it, otherwise the CoStar photo and the
+    aerial views right away while the inside views are worked out in the background."""
+    venue_id = int(venue_id)
+    if venue_id in _mem or (OUT / f"{venue_id}.json").exists():
+        return pictures(venue_id)
+    from . import data
+    v = data.venues().get(venue_id) or {}
+    _pool.submit(lambda: _safe(venue_id))
+    return ([v["photo"]] if v.get("photo") else []) + [f"/api/film/{venue_id}/oblique/{s}.jpg" for s in "snew"]
+
+
 def warm(venue_ids: list[int]) -> None:
     """Prepare these venues in the background, in order (the first cards on the page first)."""
     for vid in venue_ids:

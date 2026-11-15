@@ -2090,3 +2090,11 @@ body { font-size: 18px; }
 .modes a.on::after { background: #f3e7d8; }
 .cal-key .key.picked { background: #fbf8f4 !important; }
 .note-burst span:nth-child(3n) { color: #fbf8f4; }
+
+/* explore page photo: holds its size while the picture loads, never a tiny scrap */
+.explore-snap { width: min(100%, 420px); }
+.explore-snap img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #2b1a1c; }
+.polaroid img:not([src]), .polaroid img[src=""] { visibility: visible !important; }
+/* explore choices all lowercase, titles and their lines */
+.ex-choice b, .ex-choice span, .ex-choice small, .ex-choice { text-transform: lowercase; }
+.view[data-view="explore"] .page-sub { text-transform: lowercase; }

@@ -404,7 +404,11 @@ const listCache = {};
 function pictureList(id) {
   // The server picks each venue's pictures once and keeps them, so this is one quick request.
   listCache[id] ||= fetch(`/api/venues/${id}/pictures`).then((r) => (r.ok ? r.json() : { urls: [] }))
-    .then((d) => (d.urls && d.urls.length ? d.urls : [venueInfo[id]?.photo].filter(Boolean)))
+    .then((d) => {
+      // the server answered straight away with the photo it had; ask again later for the inside views
+      if (!d.ready) setTimeout(() => { delete listCache[id]; }, 8000);
+      return d.urls && d.urls.length ? d.urls : [venueInfo[id]?.photo].filter(Boolean);
+    })
     .catch(() => [venueInfo[id]?.photo].filter(Boolean));
   return listCache[id];
 }
