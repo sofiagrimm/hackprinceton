@@ -2033,3 +2033,29 @@ body { font-size: 18px; }
 .walk-foot .note { margin: 0; }
 .walk-foot { grid-template-columns: minmax(0, 1fr); }
 .walk-foot .walk-tips { justify-content: center; width: 100%; }
+
+/* ================================================================ booking page in the site's palette and type */
+.cal { background: #fbf8f4; color: #3b1519; box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.4); }
+.cal * { font-family: "IM Fell English", Georgia, serif; }
+.cal .cal-month h3, .cal h3, .cal .cal-title { font-weight: 400; color: #3b1519; letter-spacing: 0.02em; text-transform: lowercase; }
+.cal .cal-day { color: #3b1519; font-variant-numeric: lining-nums; }
+.cal .cal-day.bad, .cal .cal-day.taken { color: rgba(59, 21, 25, 0.45); background: repeating-linear-gradient(135deg, rgba(59, 21, 25, 0.12) 0 3px, transparent 3px 7px); }
+.cal .arrow { border-color: #3b1519; color: #3b1519; }
+.cal-side .cal-hint { font-family: "IM Fell English", Georgia, serif; color: #f3e7d8; font-size: 24px; }
+.cal-side .cal-hint-arrow { color: #f3e7d8; }
+.cal-key li { font-family: "IM Fell English", Georgia, serif; color: #f3e7d8; }
+.cal-key .key { border-color: #f3e7d8 !important; }
+.cal-key .key.picked { background: #fbf8f4 !important; }
+.cal-status { font-family: "IM Fell English", Georgia, serif; font-weight: 400; color: #f3e7d8; }
+.book-confirm { margin: var(--s5) 0 0; text-align: left; }
+.confirm-btn { background: #fbf8f4; color: #3b1519; font: 400 22px/1 "IM Fell English", Georgia, serif; text-transform: lowercase; letter-spacing: 0.03em;
+  padding: 14px 26px; border: 0; border-radius: 0; box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.45); transform: rotate(-1.5deg); cursor: pointer;
+  clip-path: polygon(0 6%, 9% 0, 27% 4%, 48% 0, 70% 5%, 91% 0, 100% 8%, 98% 52%, 100% 94%, 82% 100%, 60% 96%, 38% 100%, 17% 95%, 0 100%, 2% 50%); }
+.confirm-btn:hover:not(:disabled) { background: #fff; transform: rotate(0); }
+.confirm-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.cal-status.bad, .cal-status.warn, .cal-status.err, .cal-status[data-bad] { color: #f3c6cf; }
+.cal .cal-day.on, .cal .cal-day.pick, .cal .cal-day.picked, .cal .cal-day.sel, .cal .cal-day.in-range { background: #3b1519; color: #fbf8f4; }
+/* booking details: same paper as every other page; section titles in the serif, oxblood ink */
+.book-next.band { background: transparent; }
+.book-next h3, .book-next .bf-h, .book-next legend { font-family: "IM Fell English", Georgia, serif; font-weight: 400; color: #3b1519; text-transform: lowercase; letter-spacing: 0.02em; }
+.book-next label, .book-next .bf-label { color: #5a3a3a; }
