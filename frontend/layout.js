@@ -48,6 +48,10 @@ function show(view, { keepScroll = false } = {}) {
   if (view !== "property") document.title = TITLES[view];
   if (view === "saved") renderSaved();
   if (view !== "home") window.dispatchEvent(new Event("stagehand:leavehome"));
+  // remember the last Browse Spaces page so the tab can bring you back to it
+  if (TAB_OF[view] === "concerts" && location.hash.startsWith("#/")) {
+    try { sessionStorage.setItem("stagehand.lastBrowse", location.hash); } catch { /* private window */ }
+  }
   if (from !== view && !keepScroll) window.scrollTo(0, 0);
 }
 
@@ -122,6 +126,24 @@ function firstView() {
 
 /** The ?venue= app.js is opening from the address, if any. */
 const addressVenue = () => Number(new URLSearchParams(location.search).get("venue")) || null;
+
+// ------------------------------------------------------------------ the Browse Spaces tab remembers where you were
+
+function wireBrowseTab() {
+  const tab = document.querySelector('.modes a[data-mode="concerts"]');
+  if (!tab) return;
+  const toSearch = () => go("#/search");
+  tab.addEventListener("click", (e) => {
+    e.preventDefault();
+    // already in Browse Spaces: a second press goes back to the search page
+    if (TAB_OF[document.body.dataset.view] === "concerts") { toSearch(); return; }
+    let last = null;
+    try { last = sessionStorage.getItem("stagehand.lastBrowse"); } catch { /* private window */ }
+    go(last && last !== "#/" ? last : "#/search");
+  });
+  tab.addEventListener("dblclick", (e) => { e.preventDefault(); toSearch(); });
+  tab.title = "Back to where you were in Browse Spaces. Press again for a new search.";
+}
 
 // ------------------------------------------------------------------ the zoom
 
@@ -1928,6 +1950,7 @@ function wireCollageSounds() {
 
 // ------------------------------------------------------------------ boot
 
+wireBrowseTab();
 wireSearch();
 wireZoom();
 wireSaving();

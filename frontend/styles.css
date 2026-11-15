@@ -1754,3 +1754,5 @@ body:is([data-view="acoustics"], [data-view="lighting"], [data-view="walk3d"], [
 /* the venue switcher on the overview page too, sitting in the "All results" bar */
 body[data-view="property"] .venue-switch { display: flex; top: calc(var(--nav-h) + 4px); padding: 3px; }
 body[data-view="property"] .venue-switch a { padding: 5px 11px; }
+.prop-nav .back-search { margin-left: var(--s4); }
+.prop-nav .back-search::before { content: "\2315\00a0"; }
