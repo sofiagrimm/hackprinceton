@@ -36,7 +36,7 @@
 
   /* type */
   --display: "Syne", "Helvetica Neue", Arial, sans-serif;
-  --script: "Caveat Brush", "Bradley Hand", "Segoe Print", cursive;
+  --script: "IM Fell English", "Iowan Old Style", Georgia, serif;
   --type: "Special Elite", "Courier New", Courier, monospace;
   --body: "DM Sans", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   --fs-xs: 13px;
@@ -2012,3 +2012,24 @@ body { font-size: 18px; }
 .tp-vote.on { color: #3b1519; }
 .search-band .search-shelf { margin-top: -60px; }
 @media (max-width: 900px) { .search-band .search-shelf { margin-top: 0; } }
+
+/* 3D walkthrough tips: one line of paper scraps, well below the viewer */
+.walk-foot { margin-top: var(--s7); }
+.walk-tips { max-width: none; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s3) var(--s4); margin: 0; }
+.walk-tips span { display: inline-block; padding: 4px 12px 5px; background: #fbf8f4; color: #3b1519; font: 400 17px/1.2 "IM Fell English", Georgia, serif;
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.35); white-space: nowrap; }
+.walk-tips span:nth-child(odd) { transform: rotate(-1.2deg); } .walk-tips span:nth-child(even) { transform: rotate(1deg); }
+
+/* No handwriting font anywhere: everything that used Caveat Brush now uses the site's old-style serif */
+:root { --script: "IM Fell English", "Iowan Old Style", Georgia, serif; }
+.lab-presets button { font-size: 19px; letter-spacing: 0.02em; }
+/* typewriter labels follow the rest of the text; only the cassette label stays typed */
+:root { --type: "IM Fell English", "Iowan Old Style", Georgia, serif; }
+.cassette-img textarea { font-family: "Special Elite", "Courier New", monospace; }
+
+/* walkthrough foot: status on its own line, the tips as one centred row below, link last */
+.walk-foot { display: grid; justify-items: center; gap: var(--s4); text-align: center; }
+.walk-foot .walk-status { margin: 0; }
+.walk-foot .note { margin: 0; }
+.walk-foot { grid-template-columns: minmax(0, 1fr); }
+.walk-foot .walk-tips { justify-content: center; width: 100%; }
