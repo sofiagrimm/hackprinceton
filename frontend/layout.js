@@ -69,7 +69,7 @@ function route() {
   const m = h.match(/^#\/venue\/(\d+)(?:\/(3d|book|walk|sound|light))?/);
   if (m) rememberVenue(Number(m[1]));
   if (m && m[2]) { showNextPage(Number(m[1]), { "3d": "explore", book: "book", walk: "walk3d", sound: "acoustics", light: "lighting" }[m[2]]); return; }
-  if (m) { show("property"); openVenue(Number(m[1])); updateVenueSwitch(Number(m[1]), "overview", venueInfo[Number(m[1])]?.name || $("d-name").textContent); return; }
+  if (m) { show("property"); openVenue(Number(m[1])); updateVenueSwitch(Number(m[1]), "overview", venueInfo[Number(m[1])]?.name || headText($("d-name"))); return; }
   // the Acoustics and Lighting tabs browse every venue by sound or by light
   if (h === "#/acoustics") { show("by-sound"); renderBrowseSound(); return; }
   if (h === "#/lighting") { show("by-light"); renderBrowseLight(); return; }
@@ -1235,7 +1235,10 @@ function popButton(btn) {
   btn.classList.add("pop");
   setTimeout(() => btn.classList.remove("pop"), 180);
 }
-const venueName = (id) => (state.venueId === id && $("d-name").textContent) || state.search?.results?.find((r) => r.venue_id === id)?.name || "This venue";
+/** A heading's own words (cut-out headings also hold their tiles' letters). */
+function headText(el) { return (el?.querySelector(":scope > .rn-src") || el)?.textContent.replace(/\s+/g, " ").trim() || ""; }
+
+const venueName = (id) => (state.venueId === id && headText($("d-name"))) || state.search?.results?.find((r) => r.venue_id === id)?.name || "This venue";
 
 /** A small picture of the lit room for the favorites page. */
 function labThumb() {
@@ -1628,7 +1631,7 @@ function renderMics(a) {
 
 
 function playStatus(what) {
-  const room = document.querySelector("#d-spaces button.on")?.textContent || $("d-name").textContent;
+  const room = document.querySelector("#d-spaces button.on")?.textContent || headText($("d-name"));
   const crowd = document.querySelector("#sound [data-crowd].on")?.dataset.crowd === "empty" ? "an empty room" : "a full house";
   $("ac-now").textContent = `Playing ${what} in the ${room.toLowerCase()} with ${crowd}.`;
 }
@@ -1667,7 +1670,7 @@ function startAcoustics(id) {
 /** Wait until app.js has this venue open (it loads asynchronously), then run fn. */
 function whenVenueOpen(id, fn, tries = 60) {
   const v = venueInfo[id];
-  const ready = !$("pick").hidden && $("d-name").textContent && state.venueId === id;
+  const ready = !$("pick").hidden && headText($("d-name")) && state.venueId === id;
   if (ready) { fn(); return; }
   if (tries > 0) setTimeout(() => whenVenueOpen(id, fn, tries - 1), 250);
 }
@@ -1682,7 +1685,7 @@ function startWalk(id) {
     const draw = () => {
       $("walk-switch").innerHTML = spaces.length > 1
         ? spaces.map((b) => `<button type="button" data-i="${b.dataset.i}" aria-pressed="${b.dataset.i === on()}">${esc(b.textContent)}</button>`).join("")
-        : `<span class="note">One scanned space: ${esc($("d-name").textContent)}</span>`;
+        : `<span class="note">One scanned space: ${esc(headText($("d-name")))}</span>`;
       $("walk-switch").querySelectorAll("button").forEach((btn) => (btn.onclick = () => {
         spaces.find((b) => b.dataset.i === btn.dataset.i)?.click();
         draw();
@@ -1980,7 +1983,7 @@ async function submitBooking(e) {
 
 function watchVenueName() {
   const sync = () => {
-    const name = $("d-name").textContent;
+    const name = headText($("d-name"));
     if (!name) return;
     $("vf-title").textContent = name;
     if (document.body.dataset.view === "property") $("vs-name").textContent = name;
