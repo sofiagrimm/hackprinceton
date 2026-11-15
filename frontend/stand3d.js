@@ -267,7 +267,7 @@ const img = (n, x, L) => n * L + (n % 2 === 0 ? x : L - x);
  * A stereo impulse response for one listener and a group of singers in a box room.
  * rt: reverberation time (s). Returns { buffer, nearest, critical }.
  */
-export function seatImpulse(ctx, pos, rt) {
+function buildSeat(ctx, pos, rt) {
   const { length: L, width: W, height: H } = pos.dims;
   const sr = ctx.sampleRate;
   const V = L * W * H, S = 2 * (L * W + L * H + W * H);
@@ -322,17 +322,48 @@ export function seatImpulse(ctx, pos, rt) {
   }
   // reverberant energy relative to a direct sound at 1 m (Hopkins-Stryker): 16 pi / R per singer, shared between ears
   const target = ((16 * Math.PI) / R) * singers.length * norm * norm;
-  const k = energy > 0 ? Math.sqrt(target / (energy / 2)) * 0.5 : 0;
+  // Barron's revised theory: the late echo also fades slowly with distance from the source
+  const barron = Math.exp((-0.04 * Math.max(nearest, 1)) / Math.max(rt, 0.1) / 2);
+  const k = energy > 0 ? Math.sqrt(target / (energy / 2)) * 0.5 * barron : 0;
   for (let i = start; i < len; i++) { Lc[i] += tail[0][i] * k; Rc[i] += tail[1][i] * k; }
   // keep the overall level sensible without hiding how distance changes it
-  for (const ch of [Lc, Rc]) for (let i = 0; i < len; i++) ch[i] *= 1.6;
-  return { buffer: buf, nearest, critical };
+  return { buffer: buf, nearest, critical, energy: sumSq(buf), length: len };
 }
+
+const sumSq = (buf) => { let e = 0; for (let c = 0; c < buf.numberOfChannels; c++) for (const v of buf.getChannelData(c)) e += v * v; return e; };
+const refCache = new Map();
+
+/**
+ * A stereo impulse response for one listener and a group of singers in a box room, at an absolute level:
+ * the front row (1.5 m from the nearest singer) is as loud as the browser's own normalised reverb, and
+ * further back it is quieter by what the physics gives plus a gentle extra roll-off (about 12 dB at 18 m).
+ */
+export function seatImpulse(ctx, pos, rt) {
+  const here = buildSeat(ctx, pos, rt);
+  const key = `${pos.dims.length}/${pos.dims.width}/${pos.dims.height}/${pos.singers.length}/${rt}/${ctx.sampleRate}`;
+  if (!refCache.has(key)) {
+    // the same group heard from the front row, straight out from the middle singer
+    const mid = pos.singers[Math.floor(pos.singers.length / 2)] || [1, 1.5, pos.dims.width / 2];
+    const front = { ...pos, listener: [Math.min(pos.dims.length - 0.3, mid[0] + 1.5), 1.2, mid[2]] };
+    const r = buildSeat(ctx, front, rt);
+    // energy of an impulse the browser would normalise: rms 0.00125 x 44100/sr per sample, both channels
+    const unit = 0.00125 * (44100 / ctx.sampleRate);
+    refCache.set(key, { energy: r.energy, target: unit * unit * 2 * r.length });
+  }
+  const ref = refCache.get(key);
+  const roll = Math.pow(Math.max(here.nearest, 1.5) / 1.5, -0.55);
+  const g = ref.energy > 0 ? Math.sqrt(ref.target / ref.energy) * roll : 0;
+  for (let c = 0; c < here.buffer.numberOfChannels; c++) { const d = here.buffer.getChannelData(c); for (let i = 0; i < d.length; i++) d[i] *= g; }
+  return { buffer: here.buffer, nearest: here.nearest, critical: here.critical, level_db: 10 * Math.log10(((here.energy * g * g) / ref.target) || 1e-9) };
+}
+
+
 
 /** A RoomSound whose reverb is replaced by the seat impulse, with no separate dry path. */
 export class SeatSound extends RoomSound {
   useImpulse(buffer) {
     this._ensure();
+    this.convolver.normalize = false; // the impulse carries its own level, so distance is heard
     this.convolver.buffer = buffer;
     const now = this.ctx.currentTime;
     this.dry.gain.setTargetAtTime(0, now, 0.02);
