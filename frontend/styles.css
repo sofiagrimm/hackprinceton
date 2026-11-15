@@ -1991,3 +1991,6 @@ body { font-size: 18px; }
 .search-band .search-shelf { padding-top: 0; }
 .search-shelf .featured { padding-top: 0; }
 .side-b .side-b-solo { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+/* on the cream tour form, the inverted tile: oxblood paper, cream letters */
+#tp-go, #tp-go:hover { background: #3b1519; color: #fbf8f4; }
+#tp-go:hover { background: #561f25; }
