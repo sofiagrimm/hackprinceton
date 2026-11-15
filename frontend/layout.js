@@ -1828,7 +1828,7 @@ function confirmDates() {
   const days = Math.round((end - start) / DAY) + 1;
   const fee = venue ? feeEstimate(venue) : null;
   $("book-stub").innerHTML = `
-    <p class="stub-dates">${nice(start)}${days > 1 ? ` to<br>${nice(end)}` : ""}</p>
+    <p class="stub-dates">${nice(start)}${days > 1 ? `<span class="stub-to">to</span>${nice(end)}` : ""}</p>
     <p class="stub-venue">${esc(venue?.name || "This venue")}${venue?.best_space ? `, ${esc(venue.best_space.space_name)}` : ""}</p>
     <dl class="specs">
       <div><dt>Days</dt><dd>${days}</dd></div>
