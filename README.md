@@ -74,7 +74,7 @@ Start the server and open http://localhost:8000:
 cd backend && uvicorn app.main:app --port 8000
 ```
 
-Before a demo, reset the Nessie sandbox so the fund starts at $2,500:
+Before a demo, reset the Nessie sandbox so the fund starts at $25,000:
 
 ```bash
 python scripts/reset_tour_fund.py

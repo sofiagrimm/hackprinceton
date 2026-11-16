@@ -218,7 +218,10 @@ async function collectDues() {
       : a.type === "transfer"
         ? `<li>${esc(a.from)} paid ${money(a.amount)}${a.owed > 0.5 ? `, still owes ${money(a.owed)}` : ""}.</li>`
         : `<li>${esc(a.from)} couldn't pay yet and owes ${money(a.owed)}.</li>`);
-    rows.push(`<li>The tour fund now has ${money(out.fund.balance)}, ${money(out.fund.available_after_bills)} after bills.</li>`);
+    const left = out.fund.available_after_bills;
+    rows.push(left < 0
+      ? `<li>The tour fund now has ${money(out.fund.balance)}, and its bills are ${money(-left)} more than that.</li>`
+      : `<li>The tour fund now has ${money(out.fund.balance)}, ${money(left)} after bills.</li>`);
     $("tp-dues-out").innerHTML = rows.join("");
     btn.textContent = "Dues collected";
   } catch (err) {

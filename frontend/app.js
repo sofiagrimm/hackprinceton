@@ -794,7 +794,9 @@ async function loadBudget(id) {
     <p class="total">${money(c.total)}</p>
     <p class="verdict">${verdict}</p>
     <dl class="specs">${dlRows([
-      ["Tour fund available", f ? money2(f.available_after_bills) : "Not connected"],
+      ["Tour fund available", !f ? "Not connected"
+        : f.available_after_bills < 0 ? `$0 (bills already ${money2(-f.available_after_bills)} over)`
+        : money2(f.available_after_bills)],
       ["Venue, estimated", money(c.venue_fee_estimate)],
       ["Lodging", money(c.lodging_estimate)],
       ["Break-even ticket", money2(b.break_even_ticket)],

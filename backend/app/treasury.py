@@ -25,7 +25,7 @@ from .config import CACHE_DIR
 
 API = "https://v2-prod-api.nessieisreal.com"
 STATE = CACHE_DIR / "nessie_state.json"
-START_FUND_CENTS = int(float(os.environ.get("TOUR_FUND_START", "2500")) * 100)
+START_FUND_CENTS = int(float(os.environ.get("TOUR_FUND_START", "25000")) * 100)
 MEMBER_START_CENTS = int(float(os.environ.get("TOUR_MEMBER_START", "2500")) * 100)
 DEMO_MEMBERS = int(os.environ.get("TOUR_MEMBERS_IN_BANK", "4"))  # members mirrored in Nessie
 
@@ -143,7 +143,8 @@ def plan_tour_budget(venue_id: int, group_size: int = 14, nights: int = 2, audie
         bank = "Capital One Nessie"
     except (NessieError, httpx.HTTPError) as exc:
         fund, available, bank = None, None, f"unavailable ({exc})"
-    shortfall = round(max(0.0, total - available), 2) if available is not None else None
+    # Bills already over the balance count as an empty fund, not as extra cost for this stop.
+    shortfall = round(max(0.0, total - max(0.0, available)), 2) if available is not None else None
     per_member = round(total / max(group_size, 1), 2)
     return {
         "venue": venue["name"],
