@@ -2,7 +2,7 @@
 
 Clears everything under your Nessie key (customers, accounts, bills,
 transactions) and the cached ids, so the next run creates a clean fund
-(TOUR_FUND_START, default $2,500).
+(TOUR_FUND_START, default $25,000).
 
     python scripts/reset_tour_fund.py
 """
